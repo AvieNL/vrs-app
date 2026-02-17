@@ -1,11 +1,27 @@
+.soorten-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
 .soorten-search {
-  margin-bottom: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex-shrink: 0;
+  margin-bottom: 0;
+  padding-bottom: 12px;
+  background: var(--bg-primary, #0f172a);
 }
 
 .soorten-list {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  overflow-y: auto;
+  flex: 1;
+  -webkit-overflow-scrolling: touch;
 }
 
 .soort-card {

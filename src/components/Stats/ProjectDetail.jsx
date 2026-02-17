@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import './StatsPage.css';
 
@@ -50,9 +50,10 @@ export default function ProjectDetail({ records }) {
     [records, naam]
   );
 
+  const [tvSorteer, setTvSorteer] = useState('tijd');
+
   const stats = useMemo(() => {
     const perSoort = {};
-    const perDatum = {};
     let nieuw = 0;
     let terugvangst = 0;
 
@@ -67,18 +68,11 @@ export default function ProjectDetail({ records }) {
         terugvangst++;
       }
 
-      if (r.vangstdatum) {
-        perDatum[r.vangstdatum] = (perDatum[r.vangstdatum] || 0) + 1;
-      }
     });
 
     const soortenTabel = Object.entries(perSoort)
       .map(([soort, s]) => ({ soort, nieuw: s.nieuw, terugvangst: s.terugvangst, totaal: s.nieuw + s.terugvangst }))
       .sort((a, b) => b.totaal - a.totaal);
-
-    const datumTabel = Object.entries(perDatum)
-      .sort((a, b) => b[0].localeCompare(a[0]))
-      .map(([datum, aantal]) => ({ datum, aantal }));
 
     const datums = projectRecords
       .map(r => r.vangstdatum)
@@ -93,13 +87,12 @@ export default function ProjectDetail({ records }) {
       nieuw,
       terugvangst,
       soortenTabel,
-      datumTabel,
       eerste,
       laatste,
     };
   }, [projectRecords]);
 
-  const terugvangsten = useMemo(() => {
+  const alleTerugvangsten = useMemo(() => {
     // Bouw index van ringnummer → eerste vangst uit alle records
     const eersteVangst = {};
     records.forEach(r => {
@@ -141,9 +134,16 @@ export default function ProjectDetail({ records }) {
       });
     });
 
-    lijst.sort((a, b) => (b.datum || '').localeCompare(a.datum || ''));
     return lijst;
   }, [projectRecords, records]);
+
+  const terugvangsten = useMemo(() => {
+    const sorted = [...alleTerugvangsten].sort((a, b) => {
+      if (tvSorteer === 'afstand') return (b.afstandKm || 0) - (a.afstandKm || 0);
+      return (b.dagen || 0) - (a.dagen || 0);
+    });
+    return sorted.slice(0, 10);
+  }, [alleTerugvangsten, tvSorteer]);
 
   function formatDatum(d) {
     if (!d) return '—';
@@ -222,7 +222,13 @@ export default function ProjectDetail({ records }) {
       {/* Terugvangsten */}
       {terugvangsten.length > 0 && (
         <div className="section">
-          <h3>Terugvangsten ({terugvangsten.length})</h3>
+          <div className="tv-header">
+            <h3>Terugvangsten (top 10)</h3>
+            <div className="tv-toggle">
+              <button className={`tv-toggle-btn${tvSorteer === 'tijd' ? ' active' : ''}`} onClick={() => setTvSorteer('tijd')}>Langste tijd</button>
+              <button className={`tv-toggle-btn${tvSorteer === 'afstand' ? ' active' : ''}`} onClick={() => setTvSorteer('afstand')}>Verste afstand</button>
+            </div>
+          </div>
           <div className="trektellen-table-wrap">
             <table className="trektellen-table">
               <thead>
@@ -250,30 +256,6 @@ export default function ProjectDetail({ records }) {
         </div>
       )}
 
-      {/* Vangsten per datum */}
-      {stats.datumTabel.length > 0 && (
-        <div className="section">
-          <h3>Per datum</h3>
-          <div className="trektellen-table-wrap">
-            <table className="trektellen-table">
-              <thead>
-                <tr>
-                  <th>Datum</th>
-                  <th className="tt-col-num">Aantal</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats.datumTabel.map(d => (
-                  <tr key={d.datum}>
-                    <td>{formatDatum(d.datum)}</td>
-                    <td className="tt-col-num tt-col-total">{d.aantal}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

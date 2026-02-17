@@ -140,14 +140,12 @@ function computeTerugvangsten(records) {
     });
   });
 
-  // Sorteer op datum (nieuwste eerst)
-  lijst.sort((a, b) => (b.datum || '').localeCompare(a.datum || ''));
-
   return lijst;
 }
 
 export default function StatsPage({ records, markAllAsUploaded }) {
   const [showUploadConfirm, setShowUploadConfirm] = useState(false);
+  const [tvSorteer, setTvSorteer] = useState('tijd'); // 'tijd' of 'afstand'
 
   const huidigeRecords = useMemo(
     () => records.filter(r => !r.uploaded && r.bron !== 'griel_import'),
@@ -155,7 +153,15 @@ export default function StatsPage({ records, markAllAsUploaded }) {
   );
   const huidigeStats = useMemo(() => computeStats(huidigeRecords), [huidigeRecords]);
   const totaalStats = useMemo(() => computeStats(records), [records]);
-  const terugvangsten = useMemo(() => computeTerugvangsten(records), [records]);
+  const alleTerugvangsten = useMemo(() => computeTerugvangsten(records), [records]);
+
+  const terugvangsten = useMemo(() => {
+    const sorted = [...alleTerugvangsten].sort((a, b) => {
+      if (tvSorteer === 'afstand') return (b.afstandKm || 0) - (a.afstandKm || 0);
+      return (b.dagen || 0) - (a.dagen || 0);
+    });
+    return sorted.slice(0, 10);
+  }, [alleTerugvangsten, tvSorteer]);
 
   function handleExport(type, subset) {
     const data = subset === 'huidig' ? huidigeRecords : records;
@@ -322,7 +328,13 @@ export default function StatsPage({ records, markAllAsUploaded }) {
         {/* Terugvangsten */}
         {terugvangsten.length > 0 && (
           <div className="section">
-            <h3>Terugvangsten ({terugvangsten.length})</h3>
+            <div className="tv-header">
+              <h3>Terugvangsten (top 10)</h3>
+              <div className="tv-toggle">
+                <button className={`tv-toggle-btn${tvSorteer === 'tijd' ? ' active' : ''}`} onClick={() => setTvSorteer('tijd')}>Langste tijd</button>
+                <button className={`tv-toggle-btn${tvSorteer === 'afstand' ? ' active' : ''}`} onClick={() => setTvSorteer('afstand')}>Verste afstand</button>
+              </div>
+            </div>
             <div className="trektellen-table-wrap">
               <table className="trektellen-table">
                 <thead>

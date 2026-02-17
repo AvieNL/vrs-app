@@ -205,6 +205,42 @@
   margin-bottom: 16px;
 }
 
+/* Terugvangsten header + toggle */
+.tv-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.tv-header h3 {
+  margin: 0;
+}
+
+.tv-toggle {
+  display: flex;
+  gap: 4px;
+}
+
+.tv-toggle-btn {
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  border: 1px solid var(--border, #1e293b);
+  border-radius: var(--radius, 6px);
+  background: transparent;
+  color: var(--text-secondary, #94a3b8);
+  cursor: pointer;
+}
+
+.tv-toggle-btn.active {
+  background: var(--accent, #38bdf8);
+  color: var(--bg-primary, #0f172a);
+  border-color: var(--accent, #38bdf8);
+  font-weight: 600;
+}
+
 /* Terugvangsten kolommen */
 .tv-ring {
   font-family: monospace;
