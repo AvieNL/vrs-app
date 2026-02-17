@@ -7,12 +7,13 @@ import StatsPage from './components/Stats/StatsPage';
 import ProjectenPage from './components/Projecten/ProjectenPage';
 import SoortenPage from './components/Soorten/SoortenPage';
 import SoortDetail from './components/Soorten/SoortDetail';
+import VeldenPage from './components/Velden/VeldenPage';
 import { useRecords } from './hooks/useRecords';
 import { useProjects } from './hooks/useProjects';
 import './styles/theme.css';
 
 export default function App() {
-  const { records, addRecord, deleteRecord } = useRecords();
+  const { records, addRecord, deleteRecord, markAllAsUploaded } = useRecords();
   const { projects, addProject, updateProject, deleteProject } = useProjects();
 
   return (
@@ -28,7 +29,7 @@ export default function App() {
               <RecordsPage records={records} onDelete={deleteRecord} />
             } />
             <Route path="/stats" element={
-              <StatsPage records={records} />
+              <StatsPage records={records} markAllAsUploaded={markAllAsUploaded} />
             } />
             <Route path="/projecten" element={
               <ProjectenPage
@@ -44,6 +45,7 @@ export default function App() {
             <Route path="/soorten/:naam" element={
               <SoortDetail records={records} />
             } />
+            <Route path="/velden" element={<VeldenPage />} />
           </Routes>
         </main>
         <Navigation />

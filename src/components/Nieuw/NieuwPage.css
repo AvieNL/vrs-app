@@ -28,6 +28,22 @@
   align-items: center;
 }
 
+.suggestion-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.suggestion-name {
+  font-weight: 600;
+}
+
+.suggestion-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 .suggestions li:hover,
 .suggestions li:active {
   background: var(--bg-secondary);

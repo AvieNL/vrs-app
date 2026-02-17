@@ -1,8 +1,37 @@
-import { useState, useMemo } from 'react';
-import speciesList from '../../data/species.json';
+import { useState, useMemo, useCallback } from 'react';
 import speciesRef from '../../data/species-reference.json';
 import euringCodes from '../../data/euring-codes.json';
 import './NieuwPage.css';
+
+// Filter out the header row from speciesRef
+const speciesData = speciesRef.filter(s => s.naam_nl && s.naam_lat);
+
+const TAAL_LABELS = {
+  naam_nl: 'Nederlands',
+  naam_lat: 'Latijn',
+  naam_en: 'Engels',
+  naam_de: 'Duits',
+};
+
+// Fuzzy match: all characters of query must appear in order in target
+// Returns score (lower = better) or -1 if no match
+function fuzzyMatch(query, target) {
+  const q = query.toLowerCase();
+  const t = target.toLowerCase();
+
+  // Exact substring match — best score
+  const substringIdx = t.indexOf(q);
+  if (substringIdx === 0) return 0;   // starts-with
+  if (substringIdx > 0) return 1;      // substring
+
+  // Fuzzy: all chars in order
+  let qi = 0;
+  for (let ti = 0; ti < t.length && qi < q.length; ti++) {
+    if (t[ti] === q[qi]) qi++;
+  }
+  if (qi === q.length) return 2; // fuzzy match
+  return -1; // no match
+}
 
 const LEEFTIJD_OPTIONS = [
   { value: '', label: '-- Kies --' },
@@ -176,7 +205,7 @@ export default function NieuwPage({ onSave, projects, records }) {
     if (!form.vogelnaam) return {};
     const lower = form.vogelnaam.toLowerCase();
     const soortRecords = records.filter(
-      r => r.vogelnaam && r.vogelnaam.toLowerCase() === lower
+      r => r.vogelnaam && r.vogelnaam.toLowerCase() === lower && r.project !== 'NK027'
     );
     return computeRanges(soortRecords);
   }, [form.vogelnaam, records]);
@@ -205,16 +234,98 @@ export default function NieuwPage({ onSave, projects, records }) {
     setForm(prev => ({ ...prev, [field]: value }));
   }
 
+  // Recent species from records (unique, most recent first)
+  const recentSpecies = useMemo(() => {
+    const seen = new Set();
+    const recent = [];
+    const sorted = [...records].sort((a, b) => {
+      const da = a.vangstdatum || '';
+      const db = b.vangstdatum || '';
+      return db.localeCompare(da);
+    });
+    for (const r of sorted) {
+      if (r.vogelnaam && !seen.has(r.vogelnaam)) {
+        seen.add(r.vogelnaam);
+        recent.push(r.vogelnaam);
+        if (recent.length >= 15) break;
+      }
+    }
+    return recent;
+  }, [records]);
+
+  const recentSet = useMemo(() => new Set(recentSpecies), [recentSpecies]);
+
+  const searchSpecies = useCallback((query) => {
+    const fields = ['naam_nl', 'naam_lat', 'naam_en', 'naam_de'];
+    const results = [];
+
+    for (const sp of speciesData) {
+      let bestScore = -1;
+      let bestField = 'naam_nl';
+
+      for (const field of fields) {
+        const val = sp[field];
+        if (!val) continue;
+        const score = fuzzyMatch(query, val);
+        if (score >= 0 && (bestScore < 0 || score < bestScore)) {
+          bestScore = score;
+          bestField = field;
+          if (score === 0) break; // can't do better than starts-with
+        }
+      }
+
+      if (bestScore >= 0) {
+        results.push({
+          naam_nl: sp.naam_nl,
+          matchedField: bestField,
+          matchedName: bestField !== 'naam_nl' ? sp[bestField] : null,
+          score: bestScore,
+          isRecent: recentSet.has(sp.naam_nl),
+        });
+      }
+    }
+
+    // Sort: recent first, then by score, then alphabetical
+    results.sort((a, b) => {
+      if (a.isRecent !== b.isRecent) return a.isRecent ? -1 : 1;
+      if (a.score !== b.score) return a.score - b.score;
+      return a.naam_nl.localeCompare(b.naam_nl);
+    });
+
+    return results.slice(0, 10);
+  }, [recentSet]);
+
   function handleSpeciesInput(value) {
     update('vogelnaam', value);
     if (value.length >= 2) {
-      const lower = value.toLowerCase();
-      const matches = speciesList.filter(
-        s => typeof s === 'string' && s.toLowerCase().includes(lower)
-      ).slice(0, 8);
-      setSuggestions(matches);
+      setSuggestions(searchSpecies(value));
+    } else if (value.length === 0) {
+      // Show recent species when input is empty
+      if (recentSpecies.length > 0) {
+        setSuggestions(recentSpecies.slice(0, 8).map(name => ({
+          naam_nl: name,
+          matchedField: 'naam_nl',
+          matchedName: null,
+          score: 0,
+          isRecent: true,
+        })));
+      } else {
+        setSuggestions([]);
+      }
     } else {
       setSuggestions([]);
+    }
+  }
+
+  function handleSpeciesFocus() {
+    if (form.vogelnaam.length === 0 && recentSpecies.length > 0) {
+      setSuggestions(recentSpecies.slice(0, 8).map(name => ({
+        naam_nl: name,
+        matchedField: 'naam_nl',
+        matchedName: null,
+        score: 0,
+        isRecent: true,
+      })));
     }
   }
 
@@ -260,13 +371,24 @@ export default function NieuwPage({ onSave, projects, records }) {
                   type="text"
                   value={form.vogelnaam}
                   onChange={e => handleSpeciesInput(e.target.value)}
+                  onFocus={handleSpeciesFocus}
                   placeholder="Begin te typen..."
                   autoComplete="off"
                 />
                 {suggestions.length > 0 && (
                   <ul className="suggestions">
                     {suggestions.map(s => (
-                      <li key={s} onClick={() => selectSpecies(s)}>{s}</li>
+                      <li key={s.naam_nl + (s.matchedField || '')} onClick={() => selectSpecies(s.naam_nl)}>
+                        <div className="suggestion-content">
+                          <span className="suggestion-name">{s.naam_nl}</span>
+                          {s.matchedName && (
+                            <span className="suggestion-sub">{s.matchedName} ({TAAL_LABELS[s.matchedField]})</span>
+                          )}
+                          {s.isRecent && !s.matchedName && form.vogelnaam.length < 2 && (
+                            <span className="suggestion-sub">Recent gebruikt</span>
+                          )}
+                        </div>
+                      </li>
                     ))}
                   </ul>
                 )}

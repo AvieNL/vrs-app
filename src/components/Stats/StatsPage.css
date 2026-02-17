@@ -1,3 +1,23 @@
+.stats-section {
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+}
+
+.stats-section--huidig {
+  border-bottom: 2px solid var(--bg-tertiary);
+}
+
+.stats-section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+.stats-section--huidig .stats-section-title {
+  color: var(--accent);
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -24,6 +44,95 @@
   margin-top: 4px;
 }
 
+/* Trektellen-stijl tabel */
+.trektellen-table-wrap {
+  margin: 12px 0;
+  overflow-x: auto;
+}
+
+.trektellen-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.trektellen-table th {
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.5px;
+  padding: 8px 6px;
+  text-align: left;
+  border-bottom: 2px solid var(--bg-secondary);
+}
+
+.trektellen-table td {
+  padding: 6px;
+  border-bottom: 1px solid var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.trektellen-table tbody tr:hover {
+  background: var(--bg-secondary);
+}
+
+.tt-col-soort {
+  text-align: left;
+}
+
+.tt-col-num {
+  text-align: right;
+  width: 60px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tt-col-total {
+  font-weight: 700;
+}
+
+.tt-totaal-row {
+  font-weight: 700;
+}
+
+.tt-totaal-row td {
+  border-top: 2px solid var(--accent);
+  border-bottom: none;
+  padding-top: 8px;
+  color: var(--accent);
+}
+
+.stats-empty {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 12px 0;
+}
+
+/* Upload bevestiging */
+.upload-confirm {
+  background: var(--bg-secondary);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-top: 12px;
+}
+
+.upload-confirm p {
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}
+
+.upload-confirm-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.upload-confirm-buttons button {
+  flex: 1;
+}
+
+/* Bestaande styles */
 .top-list {
   margin-top: 8px;
 }

@@ -7,6 +7,7 @@ const tabs = [
   { path: '/stats', label: 'Stats', icon: '◔' },
   { path: '/projecten', label: 'Projecten', icon: '▤' },
   { path: '/soorten', label: 'Soorten', icon: '🐦' },
+  { path: '/velden', label: 'Velden', icon: '▦' },
 ];
 
 export default function Navigation() {
