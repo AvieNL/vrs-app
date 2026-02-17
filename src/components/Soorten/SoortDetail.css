@@ -1,0 +1,57 @@
+.soort-detail h2 {
+  font-size: 1.4rem;
+  margin-bottom: 16px;
+  color: var(--accent);
+}
+
+.back-btn {
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+}
+
+.detail-table {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+  margin-top: 8px;
+}
+
+.dt-label {
+  color: var(--text-muted);
+  display: inline-block;
+  min-width: 100px;
+}
+
+.empty-text {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-top: 8px;
+}
+
+.vangst-stats {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.mini-stat {
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  text-align: center;
+  min-width: 80px;
+}
+
+.mini-val {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.mini-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}

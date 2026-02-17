@@ -1,0 +1,37 @@
+.projecten-page .page-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.projecten-page .page-top h2 {
+  font-size: 1.2rem;
+}
+
+.project-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.project-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.project-loc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.project-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}

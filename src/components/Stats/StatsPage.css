@@ -1,0 +1,77 @@
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.stat-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.top-list {
+  margin-top: 8px;
+}
+
+.top-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 0.85rem;
+}
+
+.top-name {
+  width: 140px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.top-bar-wrap {
+  flex: 1;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.top-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+.top-count {
+  width: 40px;
+  text-align: right;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.export-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.export-buttons button {
+  flex: 1;
+}

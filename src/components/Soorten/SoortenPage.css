@@ -1,0 +1,42 @@
+.soorten-search {
+  margin-bottom: 12px;
+}
+
+.soorten-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.soort-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.soort-card:active {
+  background: var(--bg-tertiary);
+}
+
+.soort-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.soort-lat {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.soort-meta {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
