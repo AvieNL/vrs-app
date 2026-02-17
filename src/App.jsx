@@ -4,7 +4,7 @@ import Navigation from './components/Layout/Navigation';
 import NieuwPage from './components/Nieuw/NieuwPage';
 import RecordsPage from './components/Records/RecordsPage';
 import StatsPage from './components/Stats/StatsPage';
-import ProjectenPage from './components/Projecten/ProjectenPage';
+import ProjectDetail from './components/Stats/ProjectDetail';
 import SoortenPage from './components/Soorten/SoortenPage';
 import SoortDetail from './components/Soorten/SoortDetail';
 import VeldenPage from './components/Velden/VeldenPage';
@@ -14,7 +14,7 @@ import './styles/theme.css';
 
 export default function App() {
   const { records, addRecord, deleteRecord, markAllAsUploaded } = useRecords();
-  const { projects, addProject, updateProject, deleteProject } = useProjects();
+  const { projects } = useProjects();
 
   return (
     <BrowserRouter>
@@ -31,13 +31,8 @@ export default function App() {
             <Route path="/stats" element={
               <StatsPage records={records} markAllAsUploaded={markAllAsUploaded} />
             } />
-            <Route path="/projecten" element={
-              <ProjectenPage
-                projects={projects}
-                onAdd={addProject}
-                onUpdate={updateProject}
-                onDelete={deleteProject}
-              />
+            <Route path="/stats/project/:naam" element={
+              <ProjectDetail records={records} />
             } />
             <Route path="/soorten" element={
               <SoortenPage records={records} />

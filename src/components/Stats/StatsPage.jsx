@@ -1,6 +1,47 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { exportCSV, exportJSON, exportGrielXML, downloadFile } from '../../utils/export';
 import './StatsPage.css';
+
+function parseDate(d) {
+  if (!d) return null;
+  const parts = d.split('-');
+  if (parts[0].length === 4) return new Date(+parts[0], +parts[1] - 1, +parts[2]);
+  if (parts[2] && parts[2].length === 4) return new Date(+parts[2], +parts[1] - 1, +parts[0]);
+  return null;
+}
+
+function dagenTussen(d1, d2) {
+  if (!d1 || !d2) return null;
+  return Math.round(Math.abs(d2 - d1) / 86400000);
+}
+
+function haversineKm(lat1, lon1, lat2, lon2) {
+  if (!lat1 || !lon1 || !lat2 || !lon2) return null;
+  const R = 6371;
+  const toRad = x => x * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function formatDagen(d) {
+  if (d === null) return '—';
+  if (d === 0) return 'zelfde dag';
+  if (d < 30) return `${d} dg`;
+  if (d < 365) return `${Math.floor(d / 30)} mnd ${d % 30 ? `${d % 30} dg` : ''}`.trim();
+  const j = Math.floor(d / 365);
+  const rest = d % 365;
+  const m = Math.floor(rest / 30);
+  return `${j} jr${m ? ` ${m} mnd` : ''}`;
+}
+
+function formatAfstand(km) {
+  if (km === null) return '—';
+  if (km < 1) return `${Math.round(km * 1000)} m`;
+  return `${km.toFixed(1)} km`;
+}
 
 function computeStats(records) {
   const soorten = new Set();
@@ -53,6 +94,58 @@ function computeStats(records) {
   return { total: records.length, soorten: soorten.size, nieuw, terugvangst, topSoorten, perMaand, perProject, soortenTabel };
 }
 
+function computeTerugvangsten(records) {
+  // Bouw een index van ringnummer → eerste vangst (metalenringinfo=1)
+  const eersteVangst = {};
+  records.forEach(r => {
+    if (!r.ringnummer) return;
+    if (r.metalenringinfo === 1 || r.metalenringinfo === '1') {
+      const bestaand = eersteVangst[r.ringnummer];
+      if (!bestaand || (r.vangstdatum && (!bestaand.vangstdatum || r.vangstdatum < bestaand.vangstdatum))) {
+        eersteVangst[r.ringnummer] = r;
+      }
+    }
+  });
+
+  // Zoek terugvangsten en bereken verschil
+  const lijst = [];
+  records.forEach(r => {
+    if (!r.ringnummer) return;
+    if (r.metalenringinfo === 1 || r.metalenringinfo === '1') return;
+
+    const origineel = eersteVangst[r.ringnummer];
+    const tvDatum = parseDate(r.vangstdatum);
+    const origDatum = origineel ? parseDate(origineel.vangstdatum) : null;
+    const dagen = dagenTussen(origDatum, tvDatum);
+
+    let afstandKm = null;
+    if (origineel) {
+      const lat1 = parseFloat(origineel.lat);
+      const lon1 = parseFloat(origineel.lon);
+      const lat2 = parseFloat(r.lat);
+      const lon2 = parseFloat(r.lon);
+      afstandKm = haversineKm(lat1, lon1, lat2, lon2);
+    }
+
+    lijst.push({
+      ringnummer: r.ringnummer,
+      soort: r.vogelnaam || 'Onbekend',
+      datum: r.vangstdatum,
+      origDatum: origineel?.vangstdatum || null,
+      origPlaats: origineel?.plaatscode || origineel?.google_plaats || null,
+      plaats: r.plaatscode || r.google_plaats || '',
+      dagen,
+      afstandKm,
+      project: r.project || '',
+    });
+  });
+
+  // Sorteer op datum (nieuwste eerst)
+  lijst.sort((a, b) => (b.datum || '').localeCompare(a.datum || ''));
+
+  return lijst;
+}
+
 export default function StatsPage({ records, markAllAsUploaded }) {
   const [showUploadConfirm, setShowUploadConfirm] = useState(false);
 
@@ -62,6 +155,7 @@ export default function StatsPage({ records, markAllAsUploaded }) {
   );
   const huidigeStats = useMemo(() => computeStats(huidigeRecords), [huidigeRecords]);
   const totaalStats = useMemo(() => computeStats(records), [records]);
+  const terugvangsten = useMemo(() => computeTerugvangsten(records), [records]);
 
   function handleExport(type, subset) {
     const data = subset === 'huidig' ? huidigeRecords : records;
@@ -91,6 +185,13 @@ export default function StatsPage({ records, markAllAsUploaded }) {
   function handleConfirmUploaded() {
     markAllAsUploaded();
     setShowUploadConfirm(false);
+  }
+
+  function formatDatum(d) {
+    if (!d) return '—';
+    const parts = d.split('-');
+    if (parts[0].length === 4) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    return d;
   }
 
   return (
@@ -218,6 +319,37 @@ export default function StatsPage({ records, markAllAsUploaded }) {
           </div>
         </div>
 
+        {/* Terugvangsten */}
+        {terugvangsten.length > 0 && (
+          <div className="section">
+            <h3>Terugvangsten ({terugvangsten.length})</h3>
+            <div className="trektellen-table-wrap">
+              <table className="trektellen-table">
+                <thead>
+                  <tr>
+                    <th className="tt-col-soort">Soort</th>
+                    <th>Ring</th>
+                    <th>Datum</th>
+                    <th className="tt-col-num">Tijd</th>
+                    <th className="tt-col-num">Afstand</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {terugvangsten.map((tv, i) => (
+                    <tr key={`${tv.ringnummer}-${tv.datum}-${i}`}>
+                      <td className="tt-col-soort">{tv.soort}</td>
+                      <td className="tv-ring">{tv.ringnummer}</td>
+                      <td className="tv-datum">{formatDatum(tv.datum)}</td>
+                      <td className="tt-col-num tv-tijd">{formatDagen(tv.dagen)}</td>
+                      <td className="tt-col-num tv-afstand">{formatAfstand(tv.afstandKm)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {/* Per project */}
         {Object.keys(totaalStats.perProject).length > 0 && (
           <div className="section">
@@ -226,10 +358,10 @@ export default function StatsPage({ records, markAllAsUploaded }) {
               {Object.entries(totaalStats.perProject)
                 .sort((a, b) => b[1] - a[1])
                 .map(([project, count]) => (
-                  <div key={project} className="top-item">
+                  <Link key={project} to={`/stats/project/${encodeURIComponent(project)}`} className="top-item project-link">
                     <span className="top-name">{project}</span>
-                    <span className="top-count">{count}</span>
-                  </div>
+                    <span className="top-count">{count} →</span>
+                  </Link>
                 ))}
             </div>
           </div>

@@ -175,6 +175,57 @@
   font-weight: 600;
 }
 
+/* Project links */
+.project-link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.project-link:hover .top-name,
+.project-link:hover .top-count {
+  color: var(--accent);
+}
+
+.project-back {
+  display: inline-block;
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 0.85rem;
+  padding: 4px 0;
+}
+
+.project-back:hover {
+  text-decoration: underline;
+}
+
+.project-period {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+}
+
+/* Terugvangsten kolommen */
+.tv-ring {
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.tv-datum {
+  white-space: nowrap;
+}
+
+.tv-tijd {
+  white-space: nowrap;
+  font-size: 0.8rem;
+}
+
+.tv-afstand {
+  white-space: nowrap;
+  font-size: 0.8rem;
+}
+
 .export-buttons {
   display: flex;
   gap: 8px;
