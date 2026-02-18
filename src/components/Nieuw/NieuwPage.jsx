@@ -212,7 +212,7 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides 
     if (!form.vogelnaam) return {};
     const lower = form.vogelnaam.toLowerCase();
     const soortRecords = records.filter(
-      r => r.vogelnaam && r.vogelnaam.toLowerCase() === lower && r.project !== 'NK027'
+      r => r.vogelnaam && r.vogelnaam.toLowerCase() === lower && r.leeftijd !== '1'
     );
     return computeRanges(soortRecords);
   }, [form.vogelnaam, records]);

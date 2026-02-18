@@ -2,7 +2,11 @@
   display: flex;
   gap: 12px;
   align-items: center;
-  margin-bottom: 12px;
+  padding-bottom: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg-primary, #0f172a);
 }
 
 .records-page .search-bar input {

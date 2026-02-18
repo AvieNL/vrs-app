@@ -1,6 +1,25 @@
 import { useState, useMemo } from 'react';
 import './RecordsPage.css';
 
+const LEEFTIJD_LABEL = {
+  '0': '?',
+  '1': 'pullus',
+  '2': 'onb.',
+  '3': '1kj',
+  '4': '+1kj',
+  '5': '2kj',
+  '6': '+2kj',
+  '7': '3kj',
+  '8': '+3kj',
+  '9': '4kj+',
+  'A': '+4kj',
+};
+
+function leeftijdLabel(code) {
+  if (!code) return '';
+  return LEEFTIJD_LABEL[code] || code;
+}
+
 export default function RecordsPage({ records, onDelete }) {
   const [zoek, setZoek] = useState('');
   const [expanded, setExpanded] = useState(null);
@@ -52,7 +71,7 @@ export default function RecordsPage({ records, onDelete }) {
               {expanded === r.id && (
                 <div className="record-details">
                   <div className="detail-grid">
-                    {r.leeftijd && <div><span className="detail-label">Leeftijd:</span> {r.leeftijd}</div>}
+                    {r.leeftijd && <div><span className="detail-label">Leeftijd:</span> {leeftijdLabel(r.leeftijd)}</div>}
                     {r.geslacht && <div><span className="detail-label">Geslacht:</span> {r.geslacht}</div>}
                     {r.vangstmethode && <div><span className="detail-label">Methode:</span> {r.vangstmethode}</div>}
                     {r.project && <div><span className="detail-label">Project:</span> {r.project}</div>}

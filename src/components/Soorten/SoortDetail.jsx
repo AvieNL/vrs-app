@@ -5,6 +5,12 @@ import './SoortDetail.css';
 
 const soorten = speciesRef.filter(s => s.naam_nl && !s.naam_nl.includes('groene tekst'));
 
+const LEEFTIJD_LABEL = {
+  '0': '?', '1': 'pullus', '2': 'onb.', '3': '1kj', '4': '+1kj',
+  '5': '2kj', '6': '+2kj', '7': '3kj', '8': '+3kj', '9': '4kj+', 'A': '+4kj',
+};
+function leeftijdLabel(code) { return LEEFTIJD_LABEL[code] || code; }
+
 function parseVal(v) {
   if (v === undefined || v === null || v === '') return NaN;
   return parseFloat(String(v).replace(',', '.'));
@@ -228,7 +234,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
   const ageStats = useMemo(() => {
     const counts = {};
     soortRecords.forEach(r => {
-      const a = r.leeftijd || '?';
+      const a = r.leeftijd ? leeftijdLabel(r.leeftijd) : '?';
       counts[a] = (counts[a] || 0) + 1;
     });
     return counts;
@@ -490,7 +496,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
                   <span className="sd-recent-date">{r.vangstdatum}</span>
                   <span className="sd-recent-meta">
                     {r.geslacht && r.geslacht !== 'U' && <>{r.geslacht}</>}
-                    {r.leeftijd && <> / lft {r.leeftijd}</>}
+                    {r.leeftijd && <> / {leeftijdLabel(r.leeftijd)}</>}
                   </span>
                 </div>
               ))}
