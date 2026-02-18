@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { euringReference } from '../../data/euring-reference';
 import './VeldenPage.css';
 
 const SECTIES = [
@@ -6,7 +8,7 @@ const SECTIES = [
     velden: [
       { xml: 'centrale', app: 'centrale', type: 'tekst', standaard: 'NLA' },
       { xml: 'ringnummer', app: 'ringnummer', type: 'tekst', standaard: '' },
-      { xml: 'metalenringinfo', app: 'metalenringinfo', type: 'nummer', standaard: '1' },
+      { xml: 'metalenringinfo', app: 'metalenringinfo', type: 'code', standaard: '1' },
       { xml: 'identificatie_methode', app: 'identificatie_methode', type: 'code', standaard: 'A0' },
       { xml: 'verificatie', app: 'verificatie', type: 'nummer', standaard: '0' },
       { xml: 'andere_merktekens', app: 'andere_merktekens', type: 'tekst', standaard: '' },
@@ -95,13 +97,19 @@ const SECTIES = [
 let volgnr = 0;
 
 export default function VeldenPage() {
+  const [openVeld, setOpenVeld] = useState(null);
   volgnr = 0;
+
+  function toggleVeld(xml) {
+    setOpenVeld(prev => (prev === xml ? null : xml));
+  }
 
   return (
     <div className="velden-page">
       <h1>Velden</h1>
       <p className="intro">
         Alle {SECTIES.reduce((sum, s) => sum + s.velden.length, 0)} velden uit de Griel XML-export, gegroepeerd per sectie.
+        Klik op een <span className="code-badge-inline">code</span>-veld voor alle mogelijke waarden.
       </p>
 
       {SECTIES.map(sectie => (
@@ -120,14 +128,17 @@ export default function VeldenPage() {
             <tbody>
               {sectie.velden.map(veld => {
                 volgnr++;
+                const hasRef = veld.type === 'code' && euringReference[veld.xml];
+                const isOpen = openVeld === veld.xml;
                 return (
-                  <tr key={veld.xml}>
-                    <td className="col-nr">{volgnr}</td>
-                    <td className="col-xml">{veld.xml}</td>
-                    <td>{veld.app}</td>
-                    <td className="col-type">{veld.type}</td>
-                    <td className="col-default">{veld.standaard || '—'}</td>
-                  </tr>
+                  <VeldRow
+                    key={veld.xml}
+                    veld={veld}
+                    nr={volgnr}
+                    hasRef={hasRef}
+                    isOpen={isOpen}
+                    onToggle={() => hasRef && toggleVeld(veld.xml)}
+                  />
                 );
               })}
             </tbody>
@@ -135,5 +146,49 @@ export default function VeldenPage() {
         </div>
       ))}
     </div>
+  );
+}
+
+function VeldRow({ veld, nr, hasRef, isOpen, onToggle }) {
+  const ref = hasRef ? euringReference[veld.xml] : null;
+
+  return (
+    <>
+      <tr
+        className={hasRef ? 'veld-clickable' : ''}
+        onClick={onToggle}
+      >
+        <td className="col-nr">{nr}</td>
+        <td className="col-xml">{veld.xml}</td>
+        <td>{veld.app}</td>
+        <td className="col-type">
+          {hasRef ? (
+            <span className="code-badge">
+              code {isOpen ? '▲' : '▼'}
+            </span>
+          ) : (
+            veld.type
+          )}
+        </td>
+        <td className="col-default">{veld.standaard || '—'}</td>
+      </tr>
+      {isOpen && ref && (
+        <tr className="code-detail-row">
+          <td colSpan="5">
+            <div className="code-detail">
+              <div className="code-detail-title">{ref.label}</div>
+              <div className="code-detail-list">
+                {ref.codes.map(c => (
+                  <div key={c.code} className="code-detail-item">
+                    <span className="code-value">{c.code}</span>
+                    <span className="code-desc">{c.beschrijving}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
   );
 }

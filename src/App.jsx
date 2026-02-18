@@ -8,6 +8,8 @@ import ProjectDetail from './components/Stats/ProjectDetail';
 import SoortenPage from './components/Soorten/SoortenPage';
 import SoortDetail from './components/Soorten/SoortDetail';
 import VeldenPage from './components/Velden/VeldenPage';
+import OverPage from './components/Over/OverPage';
+import InstellingenPage from './components/Instellingen/InstellingenPage';
 import { useRecords } from './hooks/useRecords';
 import { useProjects } from './hooks/useProjects';
 import { useSpeciesOverrides } from './hooks/useSpeciesOverrides';
@@ -43,6 +45,8 @@ export default function App() {
               <SoortDetail records={records} speciesOverrides={speciesOverrides} />
             } />
             <Route path="/velden" element={<VeldenPage />} />
+            <Route path="/over" element={<OverPage />} />
+            <Route path="/instellingen" element={<InstellingenPage />} />
           </Routes>
         </main>
         <Navigation />

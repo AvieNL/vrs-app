@@ -1,0 +1,54 @@
+.over-page {
+  padding: 1rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.over-page h1 {
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.over-version {
+  color: var(--text-secondary, #94a3b8);
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+}
+
+.over-sectie {
+  margin-bottom: 1.5rem;
+}
+
+.over-sectie h2 {
+  font-size: 1rem;
+  color: var(--accent, #38bdf8);
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--border, #1e293b);
+}
+
+.over-sectie p,
+.over-sectie li {
+  color: var(--text-secondary, #94a3b8);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.over-sectie ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.over-sectie li {
+  padding: 0.25rem 0;
+  padding-left: 1rem;
+  position: relative;
+}
+
+.over-sectie li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--accent, #38bdf8);
+}
