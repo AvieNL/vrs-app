@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import speciesRef from '../../data/species-reference.json';
 import euringCodes from '../../data/euring-codes.json';
+import RuiscoreDiagram from './RuiscoreDiagram';
 import './NieuwPage.css';
 
 // Filter out the header row from speciesRef
@@ -160,6 +161,44 @@ const BROEDVLEK_OPTIONS = [
   { value: '7', label: '7 - Groeit dicht (uitgevlogen)' },
 ];
 
+const HANDICAP_OPTIONS = [
+  { value: '', label: '-- Kies --' },
+  { value: '00', label: '00 - Geen handicap, vermoedelijk gezond' },
+  { value: '10', label: '10 - PARASIET(EN)' },
+  { value: '11', label: '11 - Teek(en)' },
+  { value: '12', label: '12 - Veerluis(luizen)' },
+  { value: '13', label: '13 - Luisvlieg(en)' },
+  { value: '14', label: '14 - Teken en luisvliegen' },
+  { value: '20', label: '20 - KLEURAFWIJKING' },
+  { value: '21', label: '21 - Leucistisch' },
+  { value: '22', label: '22 - Albinistisch' },
+  { value: '23', label: '23 - Groeistrepen' },
+  { value: '30', label: '30 - VERENKLEED niet in orde' },
+  { value: '31', label: '31 - Mist meerdere slagpennen (geen rui)' },
+  { value: '32', label: '32 - Mist meerdere staartpennen (geen rui)' },
+  { value: '33', label: '33 - Mist hele staart' },
+  { value: '40', label: '40 - POTEN niet in orde' },
+  { value: '41', label: '41 - Oude of nieuwe breuk' },
+  { value: '42', label: '42 - Mist teen(en)' },
+  { value: '43', label: '43 - Mist voet(en)' },
+  { value: '44', label: '44 - Kalkpoten' },
+  { value: '45', label: '45 - Gezwel / wrat / tumor (poot)' },
+  { value: '50', label: '50 - SNAVEL niet in orde' },
+  { value: '51', label: '51 - Kruisbek' },
+  { value: '52', label: '52 - Onder- of bovensnavel korter' },
+  { value: '53', label: '53 - Mist onder- of bovensnavel' },
+  { value: '60', label: '60 - VLEUGEL niet in orde' },
+  { value: '61', label: '61 - Vleugel lam (stress/verrekking/breuk)' },
+  { value: '70', label: '70 - ZIEKTE' },
+  { value: '71', label: '71 - Schimmel' },
+  { value: '72', label: '72 - Gezwel / wrat / tumor' },
+  { value: '73', label: '73 - Geel' },
+  { value: '80', label: '80 - Vleugel nog niet volgroeid (1kj)' },
+  { value: '90', label: '90 - ANDERE MANKEMENTEN' },
+  { value: '91', label: '91 - Blind aan één oog' },
+  { value: '99', label: '99 - Niet in deze lijst' },
+];
+
 const CLOACA_OPTIONS = [
   { value: '', label: '-- Kies --' },
   { value: '0', label: '0 - Niet bepaald' },
@@ -288,12 +327,37 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
     essentieel: true,
     vangstdetails: false,
     conditie: false,
+    rui: false,
     overigeMaten: false,
     euring: false,
     opmerkingen: false,
   });
   const [suggestions, setSuggestions] = useState([]);
   const [saved, setSaved] = useState(false);
+  const [ruikaart, setRuikaart] = useState(Array(20).fill(''));
+
+  function updateRuikaart(index, value) {
+    // Laatste veld (19) = L/R, rest alleen 0-5
+    if (index === 19) {
+      if (value !== '' && !/^[LRlr]$/.test(value)) return;
+      value = value.toUpperCase();
+    } else {
+      if (value !== '' && !/^[0-5]$/.test(value)) return;
+    }
+    const next = [...ruikaart];
+    next[index] = value;
+    setRuikaart(next);
+    // Auto-sum primaries (index 9-18) naar handpen_score
+    const hasAnyPrimary = next.slice(9, 19).some(v => v !== '');
+    if (hasAnyPrimary) {
+      const primSum = next.slice(9, 19).reduce((sum, v) => sum + (parseInt(v) || 0), 0);
+      update('handpen_score', String(primSum));
+    }
+  }
+
+  function resetRuikaart() {
+    setRuikaart(Array(20).fill(''));
+  }
 
   // Find species reference data for selected species
   const speciesInfo = useMemo(() => {
@@ -513,6 +577,7 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
       ringer_initiaal: settings?.ringerInitiaal || '',
       ringer_nummer: settings?.ringerNummer || '',
     });
+    resetRuikaart();
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
@@ -842,7 +907,7 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
         <div className="section">
           <div className="section-header" onClick={() => toggleSection('conditie')}>
             <h3>Conditie</h3>
-            {warnings.some(w => ['tarsus_lengte'].includes(w.key)) && <span className="section-badge-warn">!</span>}
+            {false && <span className="section-badge-warn">!</span>}
             <span className={`toggle ${sections.conditie ? 'open' : ''}`}>▾</span>
           </div>
           {sections.conditie && (
@@ -876,41 +941,86 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
                 </div>
               )}
 
+              <div className="form-group">
+                <label>Handicap</label>
+                <select value={form.handicap} onChange={e => update('handicap', e.target.value)}>
+                  {HANDICAP_OPTIONS.map(o => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Sectie 4: Rui */}
+        <div className="section">
+          <div className="section-header" onClick={() => toggleSection('rui')}>
+            <h3>Rui</h3>
+            <span className={`toggle ${sections.rui ? 'open' : ''}`}>▾</span>
+          </div>
+          {sections.rui && (
+            <div className="section-content">
+              <div className="ruiscore-diagram">
+                <RuiscoreDiagram />
+              </div>
+              <div className="ruikaart">
+                <div className="ruikaart-labels">
+                  <span className="ruikaart-groep ruikaart-tertials">Tertials</span>
+                  <span className="ruikaart-groep ruikaart-secondaries">Secondaries</span>
+                  <span className="ruikaart-groep ruikaart-primaries">Primaries</span>
+                  <span className="ruikaart-groep ruikaart-lr">L/R</span>
+                </div>
+                <div className="ruikaart-velden">
+                  {ruikaart.map((val, i) => (
+                    <input
+                      key={i}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      className={`ruikaart-input${i === 2 || i === 8 || i === 18 ? ' ruikaart-border-right' : ''}`}
+                      value={val}
+                      onChange={e => updateRuikaart(i, e.target.value)}
+                      placeholder={i === 19 ? 'L/R' : String(i < 3 ? i + 1 : i < 9 ? i - 2 : i - 8)}
+                    />
+                  ))}
+                </div>
+              </div>
               <div className="form-row">
-                {renderBioField('tarsus_lengte', 'Tarsus (mm)')}
                 <div className="form-group">
-                  <label>Handicap</label>
-                  <input type="text" value={form.handicap}
-                    onChange={e => update('handicap', e.target.value)} />
+                  <label>Handpenrui (totaal)</label>
+                  <input type="text" value={form.handpen_score}
+                    onChange={e => update('handpen_score', e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label>Oude dekveren</label>
+                  <input type="text" value={form.oude_dekveren}
+                    onChange={e => update('oude_dekveren', e.target.value)} />
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* Sectie 4: Overige maten */}
+        {/* Sectie 5: Overige maten */}
         <div className="section">
           <div className="section-header" onClick={() => toggleSection('overigeMaten')}>
             <h3>Overige maten</h3>
-            {warnings.some(w => !['vleugel', 'gewicht', 'handpenlengte', 'tarsus_lengte'].includes(w.key)) && <span className="section-badge-warn">!</span>}
+            {warnings.some(w => !['vleugel', 'gewicht', 'handpenlengte'].includes(w.key)) && <span className="section-badge-warn">!</span>}
             <span className={`toggle ${sections.overigeMaten ? 'open' : ''}`}>▾</span>
           </div>
           {sections.overigeMaten && (
             <div className="section-content">
               <div className="form-row">
-                {renderBioField('kop_snavel', 'Kop+snavel (mm)')}
-                {renderBioField('snavel_schedel', 'Snavel-schedel (mm)')}
+                {renderBioField('tarsus_lengte', 'Tarsus lengte (mm)')}
+                {renderBioField('tarsus_dikte', 'Tarsus dikte (mm)')}
               </div>
               <div className="form-row">
-                {renderBioField('staartlengte', 'Staart (mm)')}
                 <div className="form-group">
                   <label>Tarsus-teen (mm)</label>
                   <input type="text" inputMode="decimal" value={form.tarsus_teen}
                     onChange={e => update('tarsus_teen', e.target.value)} />
                 </div>
-              </div>
-              <div className="form-row">
-                {renderBioField('tarsus_dikte', 'Tarsus dikte (mm)')}
                 <div className="form-group">
                   <label>Achternagel (mm)</label>
                   <input type="text" inputMode="decimal" value={form.achternagel}
@@ -918,16 +1028,11 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
                 </div>
               </div>
               <div className="form-row">
-                <div className="form-group">
-                  <label>Oude dekveren</label>
-                  <input type="text" value={form.oude_dekveren}
-                    onChange={e => update('oude_dekveren', e.target.value)} />
-                </div>
-                <div className="form-group">
-                  <label>Handpenrui (totaal)</label>
-                  <input type="text" value={form.handpen_score}
-                    onChange={e => update('handpen_score', e.target.value)} />
-                </div>
+                {renderBioField('staartlengte', 'Staart (mm)')}
+                {renderBioField('snavel_schedel', 'Snavel-schedel (mm)')}
+              </div>
+              <div className="form-group">
+                {renderBioField('kop_snavel', 'Kop+snavel (mm)')}
               </div>
             </div>
           )}

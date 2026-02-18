@@ -245,6 +245,88 @@
   margin-right: 8px;
 }
 
+/* Ruikaart */
+.ruikaart {
+  margin-bottom: 12px;
+}
+
+.ruikaart-labels {
+  display: flex;
+  margin-bottom: 4px;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.ruikaart-groep {
+  text-align: center;
+}
+
+.ruikaart-tertials {
+  width: calc(3 / 20 * 100%);
+}
+
+.ruikaart-secondaries {
+  width: calc(6 / 20 * 100%);
+}
+
+.ruikaart-primaries {
+  width: calc(10 / 20 * 100%);
+}
+
+.ruikaart-lr {
+  width: calc(1 / 20 * 100%);
+}
+
+.ruikaart-velden {
+  display: flex;
+  gap: 0;
+}
+
+.ruikaart-input,
+.ruikaart-input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  width: 0;
+  text-align: center;
+  padding: 8px 1px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  border: 1px solid var(--border);
+  border-right: none;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  border-radius: 0;
+  -webkit-appearance: none;
+}
+
+.ruikaart-input:last-child {
+  border-right: 1px solid var(--border);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.ruikaart-input:first-child {
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+}
+
+.ruikaart-input::placeholder {
+  font-size: 0.6rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.ruikaart-input:focus {
+  z-index: 1;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.ruikaart-border-right {
+  border-right: 3px solid var(--accent) !important;
+}
+
 /* Broedinfo hint bij broedvlek */
 .broed-info-hint {
   display: flex;
@@ -325,4 +407,10 @@
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+.ruiscore-diagram {
+  margin-bottom: 12px;
+  color: var(--text-primary);
+  opacity: 0.75;
 }

@@ -2,3 +2,87 @@
   font-size: 1.2rem;
   margin-bottom: 16px;
 }
+
+/* Kleurenkiezer */
+.theme-colors {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.color-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  background: var(--bg-tertiary);
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  min-width: 0;
+  min-height: 0;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.color-option:hover {
+  border-color: var(--border);
+}
+
+.color-option.active {
+  border-color: var(--accent);
+}
+
+.color-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid rgba(128, 128, 128, 0.25);
+  display: block;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.color-label {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.color-option.active .color-label {
+  color: var(--accent);
+}
+
+/* Donker/Licht schakelaar */
+.mode-toggle {
+  display: inline-flex;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius);
+  padding: 3px;
+  gap: 2px;
+}
+
+.mode-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  padding: 7px 22px;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 0.875rem;
+  font-weight: 600;
+  min-height: 36px;
+  min-width: 0;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.mode-btn:hover {
+  color: var(--text-primary);
+}
+
+.mode-btn.active {
+  background: var(--accent);
+  color: var(--bg-primary);
+}
