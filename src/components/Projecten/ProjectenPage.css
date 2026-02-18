@@ -19,10 +19,27 @@
   align-items: center;
 }
 
+.project-card:has(.project-edit) {
+  flex-direction: column;
+  align-items: stretch;
+}
+
 .project-info {
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+.project-meta {
+  display: flex;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.project-nummer {
+  color: var(--accent);
+  font-weight: 600;
 }
 
 .project-loc {
@@ -34,4 +51,16 @@
   display: flex;
   gap: 6px;
   align-items: center;
+}
+
+.project-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.project-edit-actions {
+  display: flex;
+  gap: 8px;
 }

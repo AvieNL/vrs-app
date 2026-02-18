@@ -10,15 +10,18 @@ import SoortDetail from './components/Soorten/SoortDetail';
 import VeldenPage from './components/Velden/VeldenPage';
 import OverPage from './components/Over/OverPage';
 import InstellingenPage from './components/Instellingen/InstellingenPage';
+import ProjectenPage from './components/Projecten/ProjectenPage';
 import { useRecords } from './hooks/useRecords';
 import { useProjects } from './hooks/useProjects';
 import { useSpeciesOverrides } from './hooks/useSpeciesOverrides';
+import { useSettings } from './hooks/useSettings';
 import './styles/theme.css';
 
 export default function App() {
-  const { records, addRecord, deleteRecord, markAllAsUploaded, importRecords } = useRecords();
-  const { projects } = useProjects();
+  const { records, addRecord, deleteRecord, markAllAsUploaded, importRecords, renameProject } = useRecords();
+  const { projects, addProject, updateProject, deleteProject } = useProjects();
   const speciesOverrides = useSpeciesOverrides();
+  const { settings, updateSettings } = useSettings();
 
   return (
     <BrowserRouter>
@@ -27,7 +30,7 @@ export default function App() {
         <main className="app-content">
           <Routes>
             <Route path="/" element={
-              <NieuwPage onSave={addRecord} projects={projects.filter(p => p.actief)} records={records} speciesOverrides={speciesOverrides} />
+              <NieuwPage onSave={addRecord} projects={projects.filter(p => p.actief)} records={records} speciesOverrides={speciesOverrides} settings={settings} />
             } />
             <Route path="/records" element={
               <RecordsPage records={records} onDelete={deleteRecord} />
@@ -46,7 +49,10 @@ export default function App() {
             } />
             <Route path="/velden" element={<VeldenPage />} />
             <Route path="/over" element={<OverPage />} />
-            <Route path="/instellingen" element={<InstellingenPage />} />
+            <Route path="/projecten" element={
+              <ProjectenPage projects={projects} onAdd={addProject} onUpdate={updateProject} onDelete={deleteProject} onRenameProject={renameProject} />
+            } />
+            <Route path="/instellingen" element={<InstellingenPage settings={settings} onUpdateSettings={updateSettings} />} />
           </Routes>
         </main>
         <Navigation />

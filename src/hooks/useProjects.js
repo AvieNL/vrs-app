@@ -4,8 +4,9 @@ import { loadFromStorage, saveToStorage, generateId } from '../utils/storage';
 const STORAGE_KEY = 'vrs-projects';
 
 const DEFAULT_PROJECTS = [
-  { id: 'cas', naam: 'CES/CAS - Ter Avest', locatie: 'Breedenbroek', actief: true },
-  { id: 'overig', naam: 'Overig ringwerk - Ter Avest', locatie: 'Breedenbroek', actief: true },
+  { id: 'tuin', naam: 'Tuin - Ter Avest', locatie: 'Breedenbroek', nummer: '1925', actief: true },
+  { id: 'overig', naam: 'Overig ringwerk - Ter Avest', locatie: 'Breedenbroek', nummer: '1722', actief: true },
+  { id: 'nk027', naam: 'NK027', locatie: 'Breedenbroek', nummer: '1926', actief: true },
 ];
 
 export function useProjects() {
@@ -18,7 +19,7 @@ export function useProjects() {
   }, [projects]);
 
   function addProject(project) {
-    const newProject = { ...project, id: generateId(), actief: true };
+    const newProject = { ...project, id: generateId(), nummer: project.nummer || '', actief: true };
     setProjects(prev => [...prev, newProject]);
     return newProject;
   }

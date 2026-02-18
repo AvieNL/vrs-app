@@ -72,5 +72,11 @@ export function useRecords() {
     return withIds.length;
   }
 
-  return { records, addRecord, updateRecord, deleteRecord, markAsUploaded, markAllAsUploaded, importRecords };
+  function renameProject(oldName, newName) {
+    setRecords(prev => prev.map(r =>
+      r.project === oldName ? { ...r, project: newName } : r
+    ));
+  }
+
+  return { records, addRecord, updateRecord, deleteRecord, markAsUploaded, markAllAsUploaded, importRecords, renameProject };
 }
