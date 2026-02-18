@@ -60,5 +60,17 @@ export function useRecords() {
     setRecords(prev => prev.map(r => r.uploaded ? r : { ...r, uploaded: true }));
   }
 
-  return { records, addRecord, updateRecord, deleteRecord, markAsUploaded, markAllAsUploaded };
+  function importRecords(newRecords) {
+    const withIds = newRecords.map(r => ({
+      ...r,
+      id: r.id || generateId(),
+      timestamp: r.timestamp || new Date().toISOString(),
+      bron: r.bron || 'import',
+      uploaded: r.uploaded ?? true,
+    }));
+    setRecords(prev => [...withIds, ...prev]);
+    return withIds.length;
+  }
+
+  return { records, addRecord, updateRecord, deleteRecord, markAsUploaded, markAllAsUploaded, importRecords };
 }

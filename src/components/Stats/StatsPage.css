@@ -271,3 +271,118 @@
 .export-buttons button {
   flex: 1;
 }
+
+/* Grafieken */
+.chart-block {
+  margin-bottom: 20px;
+}
+
+.chart-block h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.chart-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.chart-svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chart-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+/* Leaflet kaart */
+.kaart-container {
+  width: 100%;
+  height: 320px;
+  border-radius: var(--radius, 6px);
+  overflow: hidden;
+  background: var(--bg-secondary);
+}
+
+.kaart-container .leaflet-popup-content-wrapper {
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.kaart-container .leaflet-popup-content b {
+  color: #1e293b;
+}
+
+/* Project tabel link */
+.project-table-link {
+  color: var(--accent, #38bdf8);
+  text-decoration: none;
+}
+
+.project-table-link:hover {
+  text-decoration: underline;
+}
+
+/* Import */
+.import-info {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.import-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.import-file-input {
+  display: none;
+}
+
+.import-label {
+  display: inline-block;
+  cursor: pointer;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+}
+
+.import-status {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius, 6px);
+  font-size: 0.85rem;
+}
+
+.import-status--success {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--success, #22c55e);
+  border: 1px solid var(--success, #22c55e);
+}
+
+.import-status--error {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid #ef4444;
+}

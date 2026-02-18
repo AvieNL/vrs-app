@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { BarChartStacked, BarChartSimple, LineChart, VangstKaart, useChartData } from './Charts';
 import './StatsPage.css';
 
 function parseDate(d) {
@@ -67,7 +68,6 @@ export default function ProjectDetail({ records }) {
         perSoort[soort].terugvangst++;
         terugvangst++;
       }
-
     });
 
     const soortenTabel = Object.entries(perSoort)
@@ -92,8 +92,11 @@ export default function ProjectDetail({ records }) {
     };
   }, [projectRecords]);
 
+  const { perJaar, perMaand, soortenPerJaar } = useChartData(projectRecords);
+
+  const topSoorten = useMemo(() => stats.soortenTabel.slice(0, 10), [stats.soortenTabel]);
+
   const alleTerugvangsten = useMemo(() => {
-    // Bouw index van ringnummer → eerste vangst uit alle records
     const eersteVangst = {};
     records.forEach(r => {
       if (!r.ringnummer) return;
@@ -152,6 +155,8 @@ export default function ProjectDetail({ records }) {
     return d;
   }
 
+  const topMax = topSoorten.length > 0 ? topSoorten[0].totaal : 1;
+
   return (
     <div className="page stats-page">
       <Link to="/stats" className="project-back">&larr; Stats</Link>
@@ -182,7 +187,35 @@ export default function ProjectDetail({ records }) {
         </p>
       )}
 
-      {/* Soortentabel */}
+      {perJaar.length > 1 && (
+        <BarChartStacked data={perJaar} title="Vangsten per jaar" />
+      )}
+
+      {perMaand.some(m => m.count > 0) && (
+        <BarChartSimple data={perMaand} title="Vangsten per maand" />
+      )}
+
+      {soortenPerJaar.length > 1 && (
+        <LineChart data={soortenPerJaar} title="Soorten per jaar" xKey="jaar" yKey="soorten" />
+      )}
+
+      {topSoorten.length > 0 && (
+        <div className="chart-block">
+          <h3>Top 10 soorten</h3>
+          <div className="top-list">
+            {topSoorten.map(s => (
+              <div className="top-item" key={s.soort}>
+                <span className="top-name">{s.soort}</span>
+                <div className="top-bar-wrap">
+                  <div className="top-bar" style={{ width: `${(s.totaal / topMax) * 100}%` }} />
+                </div>
+                <span className="top-count">{s.totaal}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {stats.soortenTabel.length > 0 && (
         <div className="section">
           <h3>Soorten</h3>
@@ -219,7 +252,8 @@ export default function ProjectDetail({ records }) {
         </div>
       )}
 
-      {/* Terugvangsten */}
+      <VangstKaart targetRecords={projectRecords} allRecords={records} />
+
       {terugvangsten.length > 0 && (
         <div className="section">
           <div className="tv-header">

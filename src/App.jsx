@@ -10,11 +10,13 @@ import SoortDetail from './components/Soorten/SoortDetail';
 import VeldenPage from './components/Velden/VeldenPage';
 import { useRecords } from './hooks/useRecords';
 import { useProjects } from './hooks/useProjects';
+import { useSpeciesOverrides } from './hooks/useSpeciesOverrides';
 import './styles/theme.css';
 
 export default function App() {
-  const { records, addRecord, deleteRecord, markAllAsUploaded } = useRecords();
+  const { records, addRecord, deleteRecord, markAllAsUploaded, importRecords } = useRecords();
   const { projects } = useProjects();
+  const speciesOverrides = useSpeciesOverrides();
 
   return (
     <BrowserRouter>
@@ -23,13 +25,13 @@ export default function App() {
         <main className="app-content">
           <Routes>
             <Route path="/" element={
-              <NieuwPage onSave={addRecord} projects={projects.filter(p => p.actief)} records={records} />
+              <NieuwPage onSave={addRecord} projects={projects.filter(p => p.actief)} records={records} speciesOverrides={speciesOverrides} />
             } />
             <Route path="/records" element={
               <RecordsPage records={records} onDelete={deleteRecord} />
             } />
             <Route path="/stats" element={
-              <StatsPage records={records} markAllAsUploaded={markAllAsUploaded} />
+              <StatsPage records={records} markAllAsUploaded={markAllAsUploaded} importRecords={importRecords} />
             } />
             <Route path="/stats/project/:naam" element={
               <ProjectDetail records={records} />
@@ -38,7 +40,7 @@ export default function App() {
               <SoortenPage records={records} />
             } />
             <Route path="/soorten/:naam" element={
-              <SoortDetail records={records} />
+              <SoortDetail records={records} speciesOverrides={speciesOverrides} />
             } />
             <Route path="/velden" element={<VeldenPage />} />
           </Routes>

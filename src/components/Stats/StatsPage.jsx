@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { exportCSV, exportJSON, exportGrielXML, downloadFile } from '../../utils/export';
+import { BarChartStacked, BarChartSimple, LineChart, VangstKaart, useChartData } from './Charts';
 import './StatsPage.css';
 
 function parseDate(d) {
@@ -78,7 +79,14 @@ function computeStats(records) {
     }
 
     if (r.project) {
-      perProject[r.project] = (perProject[r.project] || 0) + 1;
+      if (!perProject[r.project]) perProject[r.project] = { totaal: 0, nieuw: 0, terugvangst: 0, soorten: new Set() };
+      perProject[r.project].totaal++;
+      if (r.metalenringinfo === 1 || r.metalenringinfo === '1') {
+        perProject[r.project].nieuw++;
+      } else {
+        perProject[r.project].terugvangst++;
+      }
+      perProject[r.project].soorten.add(naam);
     }
   });
 
@@ -91,11 +99,14 @@ function computeStats(records) {
     .map(([naam, s]) => ({ naam, nieuw: s.nieuw, terugvangst: s.terugvangst, totaal: s.nieuw + s.terugvangst }))
     .sort((a, b) => b.totaal - a.totaal);
 
-  return { total: records.length, soorten: soorten.size, nieuw, terugvangst, topSoorten, perMaand, perProject, soortenTabel };
+  const projectTabel = Object.entries(perProject)
+    .map(([naam, p]) => ({ naam, totaal: p.totaal, nieuw: p.nieuw, terugvangst: p.terugvangst, soorten: p.soorten.size }))
+    .sort((a, b) => b.totaal - a.totaal);
+
+  return { total: records.length, soorten: soorten.size, nieuw, terugvangst, topSoorten, perMaand, perProject, soortenTabel, projectTabel };
 }
 
 function computeTerugvangsten(records) {
-  // Bouw een index van ringnummer → eerste vangst (metalenringinfo=1)
   const eersteVangst = {};
   records.forEach(r => {
     if (!r.ringnummer) return;
@@ -107,7 +118,6 @@ function computeTerugvangsten(records) {
     }
   });
 
-  // Zoek terugvangsten en bereken verschil
   const lijst = [];
   records.forEach(r => {
     if (!r.ringnummer) return;
@@ -143,9 +153,79 @@ function computeTerugvangsten(records) {
   return lijst;
 }
 
-export default function StatsPage({ records, markAllAsUploaded }) {
+// --- Import parsers ---
+
+function parseGrielXML(text) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(text, 'application/xml');
+  const vangsten = doc.querySelectorAll('vangst');
+  const records = [];
+
+  vangsten.forEach(v => {
+    const record = {};
+    for (const child of v.children) {
+      let val = child.textContent.trim();
+      // Nederlandse decimalen terugzetten
+      if (['vleugel','gewicht','kop_snavel','tarsus_lengte','handpenlengte','staartlengte','snavel_schedel','tarsus_teen','tarsus_dikte','achternagel'].includes(child.tagName)) {
+        val = val.replace(',', '.');
+      }
+      // Numerieke velden
+      if (['metalenringinfo','verificatie','verplaatst','nauwk_vangstdatum','nauwk_coord','zeker_omstandigheden'].includes(child.tagName)) {
+        const num = parseInt(val, 10);
+        record[child.tagName] = isNaN(num) ? val : num;
+      } else {
+        record[child.tagName] = val;
+      }
+    }
+    // Datum normaliseren naar yyyy-mm-dd
+    if (record.vangstdatum) {
+      const parts = record.vangstdatum.split('-');
+      if (parts.length === 3 && parts[2].length === 4) {
+        record.vangstdatum = `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+    }
+    records.push(record);
+  });
+
+  return records;
+}
+
+function parseCSV(text) {
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if (lines.length < 2) return [];
+
+  // Detecteer separator
+  const sep = lines[0].includes('\t') ? '\t' : (lines[0].includes(';') ? ';' : ',');
+  const headers = lines[0].split(sep).map(h => h.replace(/^["']|["']$/g, '').trim());
+
+  const records = [];
+  for (let i = 1; i < lines.length; i++) {
+    const vals = lines[i].split(sep).map(v => v.replace(/^["']|["']$/g, '').trim());
+    if (vals.length < 2) continue;
+    const record = {};
+    headers.forEach((h, j) => {
+      if (h && vals[j] !== undefined) {
+        record[h] = vals[j];
+      }
+    });
+    // Numerieke velden
+    ['metalenringinfo','verificatie','verplaatst','nauwk_vangstdatum','nauwk_coord','zeker_omstandigheden'].forEach(f => {
+      if (record[f] !== undefined) {
+        const num = parseInt(record[f], 10);
+        if (!isNaN(num)) record[f] = num;
+      }
+    });
+    records.push(record);
+  }
+
+  return records;
+}
+
+export default function StatsPage({ records, markAllAsUploaded, importRecords }) {
   const [showUploadConfirm, setShowUploadConfirm] = useState(false);
-  const [tvSorteer, setTvSorteer] = useState('tijd'); // 'tijd' of 'afstand'
+  const [tvSorteer, setTvSorteer] = useState('tijd');
+  const [importStatus, setImportStatus] = useState(null);
+  const fileInputRef = useRef(null);
 
   const huidigeRecords = useMemo(
     () => records.filter(r => !r.uploaded && r.bron !== 'griel_import'),
@@ -154,6 +234,7 @@ export default function StatsPage({ records, markAllAsUploaded }) {
   const huidigeStats = useMemo(() => computeStats(huidigeRecords), [huidigeRecords]);
   const totaalStats = useMemo(() => computeStats(records), [records]);
   const alleTerugvangsten = useMemo(() => computeTerugvangsten(records), [records]);
+  const { perJaar, perMaand, soortenPerJaar } = useChartData(records);
 
   const terugvangsten = useMemo(() => {
     const sorted = [...alleTerugvangsten].sort((a, b) => {
@@ -191,6 +272,45 @@ export default function StatsPage({ records, markAllAsUploaded }) {
   function handleConfirmUploaded() {
     markAllAsUploaded();
     setShowUploadConfirm(false);
+  }
+
+  function handleImportFile(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const text = evt.target.result;
+      let parsed = [];
+
+      try {
+        const name = file.name.toLowerCase();
+        if (name.endsWith('.xml')) {
+          parsed = parseGrielXML(text);
+        } else if (name.endsWith('.csv') || name.endsWith('.tsv') || name.endsWith('.txt')) {
+          parsed = parseCSV(text);
+        } else if (name.endsWith('.json')) {
+          const json = JSON.parse(text);
+          parsed = Array.isArray(json) ? json : [];
+        } else {
+          // Probeer als CSV
+          parsed = parseCSV(text);
+        }
+
+        if (parsed.length === 0) {
+          setImportStatus({ type: 'error', message: 'Geen records gevonden in bestand.' });
+        } else {
+          const count = importRecords(parsed);
+          setImportStatus({ type: 'success', message: `${count} records geïmporteerd.` });
+        }
+      } catch (err) {
+        setImportStatus({ type: 'error', message: `Fout bij importeren: ${err.message}` });
+      }
+
+      // Reset file input
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+    reader.readAsText(file);
   }
 
   function formatDatum(d) {
@@ -306,6 +426,19 @@ export default function StatsPage({ records, markAllAsUploaded }) {
           </div>
         </div>
 
+        {/* Grafieken */}
+        {perJaar.length > 1 && (
+          <BarChartStacked data={perJaar} title="Vangsten per jaar" />
+        )}
+
+        {perMaand.some(m => m.count > 0) && (
+          <BarChartSimple data={perMaand} title="Vangsten per maand" />
+        )}
+
+        {soortenPerJaar.length > 1 && (
+          <LineChart data={soortenPerJaar} title="Soorten per jaar" xKey="jaar" yKey="soorten" />
+        )}
+
         {/* Top soorten */}
         <div className="section">
           <h3>Top soorten</h3>
@@ -362,26 +495,79 @@ export default function StatsPage({ records, markAllAsUploaded }) {
           </div>
         )}
 
+        {/* Kaart */}
+        <VangstKaart targetRecords={records} allRecords={records} />
+
         {/* Per project */}
-        {Object.keys(totaalStats.perProject).length > 0 && (
+        {totaalStats.projectTabel.length > 0 && (
           <div className="section">
             <h3>Per project</h3>
-            <div className="top-list">
-              {Object.entries(totaalStats.perProject)
-                .sort((a, b) => b[1] - a[1])
-                .map(([project, count]) => (
-                  <Link key={project} to={`/stats/project/${encodeURIComponent(project)}`} className="top-item project-link">
-                    <span className="top-name">{project}</span>
-                    <span className="top-count">{count} →</span>
-                  </Link>
-                ))}
+            <div className="trektellen-table-wrap">
+              <table className="trektellen-table">
+                <thead>
+                  <tr>
+                    <th className="tt-col-soort">Project</th>
+                    <th className="tt-col-num">Totaal</th>
+                    <th className="tt-col-num">Nieuw</th>
+                    <th className="tt-col-num">Terugv.</th>
+                    <th className="tt-col-num">Soorten</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {totaalStats.projectTabel.map(p => (
+                    <tr key={p.naam}>
+                      <td className="tt-col-soort">
+                        <Link to={`/stats/project/${encodeURIComponent(p.naam)}`} className="project-table-link">
+                          {p.naam}
+                        </Link>
+                      </td>
+                      <td className="tt-col-num tt-col-total">{p.totaal}</td>
+                      <td className="tt-col-num">{p.nieuw || ''}</td>
+                      <td className="tt-col-num">{p.terugvangst || ''}</td>
+                      <td className="tt-col-num">{p.soorten}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="tt-totaal-row">
+                    <td className="tt-col-soort">Totaal ({totaalStats.projectTabel.length} projecten)</td>
+                    <td className="tt-col-num tt-col-total">{totaalStats.total}</td>
+                    <td className="tt-col-num">{totaalStats.nieuw}</td>
+                    <td className="tt-col-num">{totaalStats.terugvangst}</td>
+                    <td className="tt-col-num">{totaalStats.soorten}</td>
+                  </tr>
+                </tfoot>
+              </table>
             </div>
           </div>
         )}
 
-        {/* Export alle data */}
+        {/* Import & Export */}
         <div className="section">
-          <h3>Alles exporteren</h3>
+          <h3>Importeren</h3>
+          <p className="import-info">Importeer vangsten vanuit een Griel XML-export, CSV of JSON-bestand.</p>
+          <div className="import-area">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xml,.csv,.tsv,.txt,.json"
+              onChange={handleImportFile}
+              className="import-file-input"
+              id="import-file"
+            />
+            <label htmlFor="import-file" className="btn-secondary import-label">
+              Bestand kiezen...
+            </label>
+          </div>
+          {importStatus && (
+            <div className={`import-status import-status--${importStatus.type}`}>
+              {importStatus.message}
+            </div>
+          )}
+        </div>
+
+        <div className="section">
+          <h3>Exporteren</h3>
           <div className="export-buttons">
             <button className="btn-primary" onClick={() => handleExport('griel', 'alles')}>
               Griel XML

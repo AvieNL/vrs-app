@@ -173,7 +173,7 @@ function computeRanges(soortRecords) {
   return ranges;
 }
 
-export default function NieuwPage({ onSave, projects, records }) {
+export default function NieuwPage({ onSave, projects, records, speciesOverrides }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [sections, setSections] = useState({
     essentieel: true,
@@ -200,8 +200,15 @@ export default function NieuwPage({ onSave, projects, records }) {
     return euringCodes[key] || '';
   }, [form.vogelnaam]);
 
+  // Get species overrides for selected species
+  const getOverride = speciesOverrides?.getOverride;
+  const soortOverride = useMemo(() => {
+    if (!form.vogelnaam || !getOverride) return {};
+    return getOverride(form.vogelnaam);
+  }, [form.vogelnaam, getOverride]);
+
   // Compute biometry ranges from existing records for selected species
-  const bioRanges = useMemo(() => {
+  const bioRangesFromRecords = useMemo(() => {
     if (!form.vogelnaam) return {};
     const lower = form.vogelnaam.toLowerCase();
     const soortRecords = records.filter(
@@ -209,6 +216,49 @@ export default function NieuwPage({ onSave, projects, records }) {
     );
     return computeRanges(soortRecords);
   }, [form.vogelnaam, records]);
+
+  // Merge: manual overrides take priority, per individual field (min/max)
+  const bioRanges = useMemo(() => {
+    const BIO_KEYS = [
+      { key: 'vleugel', label: 'Vleugel' },
+      { key: 'gewicht', label: 'Gewicht' },
+      { key: 'handpenlengte', label: 'P8' },
+      { key: 'staartlengte', label: 'Staart' },
+      { key: 'kop_snavel', label: 'Kop+snavel' },
+      { key: 'tarsus_lengte', label: 'Tarsus' },
+      { key: 'tarsus_dikte', label: 'Tarsus dikte' },
+      { key: 'snavel_schedel', label: 'Snavel-schedel' },
+    ];
+    const merged = {};
+    for (const f of BIO_KEYS) {
+      const ovMin = parseVal(soortOverride[`bio_${f.key}_min`]);
+      const ovMax = parseVal(soortOverride[`bio_${f.key}_max`]);
+      const fromRec = bioRangesFromRecords[f.key];
+
+      const hasAnyOverride = !isNaN(ovMin) || !isNaN(ovMax);
+      const hasRecords = !!fromRec;
+
+      if (!hasAnyOverride && !hasRecords) continue;
+
+      // Pick best available min/max: override > records
+      const min = !isNaN(ovMin) ? ovMin : (hasRecords ? fromRec.min : NaN);
+      const max = !isNaN(ovMax) ? ovMax : (hasRecords ? fromRec.max : NaN);
+
+      if (isNaN(min) || isNaN(max)) continue;
+
+      const margin = (max - min) * 0.1 || min * 0.1;
+      merged[f.key] = {
+        label: f.label,
+        min,
+        max,
+        rangeMin: +(min - margin).toFixed(1),
+        rangeMax: +(max + margin).toFixed(1),
+        n: hasRecords ? fromRec.n : 0,
+        isOverride: hasAnyOverride,
+      };
+    }
+    return merged;
+  }, [bioRangesFromRecords, soortOverride]);
 
   // Check current form values against ranges
   const warnings = useMemo(() => {
@@ -350,6 +400,31 @@ export default function NieuwPage({ onSave, projects, records }) {
     setTimeout(() => setSaved(false), 2000);
   }
 
+  function renderBioField(key, label) {
+    const range = bioRanges[key];
+    const warning = warnings.find(w => w.key === key);
+    return (
+      <div className="form-group">
+        <label>
+          {label}
+          {range && (
+            <span className={`range-hint${range.isOverride ? ' range-hint-override' : ''}`}>
+              {range.min.toFixed(1)}–{range.max.toFixed(1)}
+            </span>
+          )}
+        </label>
+        <input type="text" inputMode="decimal" value={form[key]}
+          className={warning ? 'input-warn' : ''}
+          onChange={e => update(key, e.target.value)} />
+        {warning && (
+          <span className="field-warning">
+            {warning.value} buiten bereik ({warning.min}–{warning.max})
+          </span>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="page nieuw-page">
       <form onSubmit={handleSubmit}>
@@ -415,16 +490,16 @@ export default function NieuwPage({ onSave, projects, records }) {
                     )}
                   </div>
 
-                  {/* Min/max ranges uit eigen data */}
+                  {/* Min/max ranges uit eigen data + handmatig */}
                   {Object.keys(bioRanges).length > 0 && (
                     <div className="bio-ranges">
-                      <span className="bio-ranges-title">Bereik (eigen data)</span>
+                      <span className="bio-ranges-title">Bereik</span>
                       <div className="bio-ranges-grid">
                         {Object.entries(bioRanges).map(([key, range]) => (
                           <div key={key} className="bio-range-item">
                             <span className="br-label">{range.label}</span>
                             <span className="br-value">{range.min.toFixed(1)}–{range.max.toFixed(1)}</span>
-                            <span className="br-n">n={range.n}</span>
+                            {range.n > 0 && <span className="br-n">n={range.n}</span>}
                           </div>
                         ))}
                       </div>
@@ -434,33 +509,17 @@ export default function NieuwPage({ onSave, projects, records }) {
                   {/* Boeken */}
                   {speciesInfo.boeken && Object.keys(speciesInfo.boeken).length > 0 && (
                     <div className="soort-info-boeken">
-                      {Object.entries(speciesInfo.boeken).map(([boek, pagina]) => (
-                        <span key={boek} className="boek-ref">
-                          {boek.replace(/_/g, ' ')}: p.{pagina}
-                        </span>
-                      ))}
+                      <span className="boeken-label">Boeken</span>
+                      <div className="boeken-chips">
+                        {Object.entries(speciesInfo.boeken).map(([boek, pagina]) => (
+                          <span key={boek} className="boek-chip">
+                            <span className="boek-chip-naam">{boek.replace(/_/g, ' ')}</span>
+                            <span className="boek-chip-pagina">p.{pagina}</span>
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   )}
-
-                  {/* Nest info compact */}
-                  {speciesInfo.nest_eileg && speciesInfo.nest_eileg !== 'maanden' && (
-                    <div className="soort-info-nest">
-                      Nest: {speciesInfo.nest_eileg}
-                      {speciesInfo.nest_eieren && <>, {speciesInfo.nest_eieren} eieren</>}
-                      {speciesInfo.nest_ei_dagen && <>, {speciesInfo.nest_ei_dagen} d broedtijd</>}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Biometrie waarschuwingen */}
-              {warnings.length > 0 && (
-                <div className="bio-warnings">
-                  {warnings.map(w => (
-                    <div key={w.key} className="warning-bar">
-                      <strong>{w.label}</strong> {w.value} valt buiten normaal bereik ({w.min}–{w.max})
-                    </div>
-                  ))}
                 </div>
               )}
 
@@ -545,65 +604,25 @@ export default function NieuwPage({ onSave, projects, records }) {
           {sections.biometrie && (
             <div className="section-content">
               <div className="form-row">
-                <div className="form-group">
-                  <label>Vleugel (mm) {bioRanges.vleugel && <span className="range-hint">{bioRanges.vleugel.min.toFixed(1)}–{bioRanges.vleugel.max.toFixed(1)}</span>}</label>
-                  <input type="text" inputMode="decimal" value={form.vleugel}
-                    className={warnings.some(w => w.key === 'vleugel') ? 'input-warn' : ''}
-                    onChange={e => update('vleugel', e.target.value)} />
-                </div>
-                <div className="form-group">
-                  <label>Gewicht (g) {bioRanges.gewicht && <span className="range-hint">{bioRanges.gewicht.min.toFixed(1)}–{bioRanges.gewicht.max.toFixed(1)}</span>}</label>
-                  <input type="text" inputMode="decimal" value={form.gewicht}
-                    className={warnings.some(w => w.key === 'gewicht') ? 'input-warn' : ''}
-                    onChange={e => update('gewicht', e.target.value)} />
-                </div>
+                {renderBioField('vleugel', 'Vleugel (mm)')}
+                {renderBioField('gewicht', 'Gewicht (g)')}
               </div>
               <div className="form-row">
-                <div className="form-group">
-                  <label>P8 / Handpen (mm) {bioRanges.handpenlengte && <span className="range-hint">{bioRanges.handpenlengte.min.toFixed(1)}–{bioRanges.handpenlengte.max.toFixed(1)}</span>}</label>
-                  <input type="text" inputMode="decimal" value={form.handpenlengte}
-                    className={warnings.some(w => w.key === 'handpenlengte') ? 'input-warn' : ''}
-                    onChange={e => update('handpenlengte', e.target.value)} />
-                </div>
-                <div className="form-group">
-                  <label>Staart (mm) {bioRanges.staartlengte && <span className="range-hint">{bioRanges.staartlengte.min.toFixed(1)}–{bioRanges.staartlengte.max.toFixed(1)}</span>}</label>
-                  <input type="text" inputMode="decimal" value={form.staartlengte}
-                    className={warnings.some(w => w.key === 'staartlengte') ? 'input-warn' : ''}
-                    onChange={e => update('staartlengte', e.target.value)} />
-                </div>
+                {renderBioField('handpenlengte', 'P8 / Handpen (mm)')}
+                {renderBioField('staartlengte', 'Staart (mm)')}
               </div>
               <div className="form-row">
-                <div className="form-group">
-                  <label>Kop+snavel (mm) {bioRanges.kop_snavel && <span className="range-hint">{bioRanges.kop_snavel.min.toFixed(1)}–{bioRanges.kop_snavel.max.toFixed(1)}</span>}</label>
-                  <input type="text" inputMode="decimal" value={form.kop_snavel}
-                    className={warnings.some(w => w.key === 'kop_snavel') ? 'input-warn' : ''}
-                    onChange={e => update('kop_snavel', e.target.value)} />
-                </div>
-                <div className="form-group">
-                  <label>Snavel-schedel (mm) {bioRanges.snavel_schedel && <span className="range-hint">{bioRanges.snavel_schedel.min.toFixed(1)}–{bioRanges.snavel_schedel.max.toFixed(1)}</span>}</label>
-                  <input type="text" inputMode="decimal" value={form.snavel_schedel}
-                    className={warnings.some(w => w.key === 'snavel_schedel') ? 'input-warn' : ''}
-                    onChange={e => update('snavel_schedel', e.target.value)} />
-                </div>
+                {renderBioField('kop_snavel', 'Kop+snavel (mm)')}
+                {renderBioField('snavel_schedel', 'Snavel-schedel (mm)')}
               </div>
               <div className="form-row-3">
-                <div className="form-group">
-                  <label>Tarsus (mm) {bioRanges.tarsus_lengte && <span className="range-hint">{bioRanges.tarsus_lengte.min.toFixed(1)}–{bioRanges.tarsus_lengte.max.toFixed(1)}</span>}</label>
-                  <input type="text" inputMode="decimal" value={form.tarsus_lengte}
-                    className={warnings.some(w => w.key === 'tarsus_lengte') ? 'input-warn' : ''}
-                    onChange={e => update('tarsus_lengte', e.target.value)} />
-                </div>
+                {renderBioField('tarsus_lengte', 'Tarsus (mm)')}
                 <div className="form-group">
                   <label>Tarsus-teen (mm)</label>
                   <input type="text" inputMode="decimal" value={form.tarsus_teen}
                     onChange={e => update('tarsus_teen', e.target.value)} />
                 </div>
-                <div className="form-group">
-                  <label>Tarsus dikte (mm) {bioRanges.tarsus_dikte && <span className="range-hint">{bioRanges.tarsus_dikte.min.toFixed(1)}–{bioRanges.tarsus_dikte.max.toFixed(1)}</span>}</label>
-                  <input type="text" inputMode="decimal" value={form.tarsus_dikte}
-                    className={warnings.some(w => w.key === 'tarsus_dikte') ? 'input-warn' : ''}
-                    onChange={e => update('tarsus_dikte', e.target.value)} />
-                </div>
+                {renderBioField('tarsus_dikte', 'Tarsus dikte (mm)')}
               </div>
               <div className="form-row">
                 <div className="form-group">

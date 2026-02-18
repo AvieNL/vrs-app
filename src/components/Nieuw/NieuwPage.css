@@ -151,21 +151,41 @@
 
 /* Boeken in paneel */
 .soort-info-boeken {
+  margin-bottom: 4px;
+}
+
+.boeken-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.boeken-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 12px;
-  margin-bottom: 8px;
+  gap: 5px;
 }
 
-.boek-ref {
-  font-size: 0.78rem;
+.boek-chip {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  gap: 4px;
+}
+
+.boek-chip-naam {
   color: var(--text-secondary);
 }
 
-/* Nest info */
-.soort-info-nest {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
+.boek-chip-pagina {
+  color: var(--accent);
+  font-weight: 600;
 }
 
 /* Biometrie waarschuwingen */
@@ -189,6 +209,24 @@
   font-weight: 400;
   font-size: 0.75rem;
   font-family: monospace;
+}
+
+.range-hint-override {
+  color: var(--warning);
+}
+
+/* Override markering in bereik-paneel */
+.bio-range-override .br-value {
+  color: var(--warning);
+}
+
+/* Waarschuwing direct onder invoerveld */
+.field-warning {
+  display: block;
+  color: var(--warning);
+  font-size: 0.72rem;
+  margin-top: 3px;
+  line-height: 1.3;
 }
 
 /* Sectie badge voor waarschuwingen */
