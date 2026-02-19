@@ -5,11 +5,11 @@
 
 -- STAP 1: Voeg bestaande admins toe aan alle bestaande projecten
 INSERT INTO public.project_members (project_id, user_id)
-SELECT p.id, pr.user_id
+SELECT p.id, pr.id
 FROM   public.projecten p
 CROSS  JOIN public.profiles pr
 WHERE  pr.role = 'admin'
-  AND  pr.user_id <> p.user_id   -- eigenaar niet nogmaals toevoegen
+  AND  pr.id <> p.user_id   -- eigenaar niet nogmaals toevoegen
 ON CONFLICT DO NOTHING;
 
 -- STAP 2: Trigger zodat nieuwe projecten automatisch alle admins als lid krijgen
@@ -20,10 +20,10 @@ SECURITY DEFINER
 AS $$
 BEGIN
   INSERT INTO public.project_members (project_id, user_id)
-  SELECT NEW.id, pr.user_id
+  SELECT NEW.id, pr.id
   FROM   public.profiles pr
   WHERE  pr.role = 'admin'
-    AND  pr.user_id <> NEW.user_id
+    AND  pr.id <> NEW.user_id
   ON CONFLICT DO NOTHING;
   RETURN NEW;
 END;
