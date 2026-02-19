@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import './RecordsPage.css';
 
 const LEEFTIJD_LABEL = {
@@ -23,6 +24,20 @@ function leeftijdLabel(code) {
 export default function RecordsPage({ records, onDelete }) {
   const [zoek, setZoek] = useState('');
   const [expanded, setExpanded] = useState(null);
+  const location = useLocation();
+
+  useEffect(() => {
+    const openId = location.state?.openId;
+    if (!openId) return;
+    const record = records.find(r => r.id === openId);
+    if (record?.ringnummer) setZoek(record.ringnummer);
+    setExpanded(openId);
+    setTimeout(() => {
+      const el = document.getElementById(`record-${openId}`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 150);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state?.openId]);
 
   const filtered = useMemo(() => {
     if (!zoek) return records;
@@ -54,13 +69,14 @@ export default function RecordsPage({ records, onDelete }) {
           filtered.slice(0, 100).map(r => (
             <div
               key={r.id}
+              id={`record-${r.id}`}
               className={`record-card ${expanded === r.id ? 'expanded' : ''}`}
               onClick={() => setExpanded(expanded === r.id ? null : r.id)}
             >
               <div className="record-header">
                 <div className="record-main">
                   <strong>{r.vogelnaam || 'Onbekend'}</strong>
-                  <span className="record-ring">{r.ringnummer}</span>
+                  <span className="record-ring ring-link" onClick={e => { e.stopPropagation(); setExpanded(r.id); setTimeout(() => { document.getElementById(`record-${r.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 50); }}>{r.ringnummer}</span>
                 </div>
                 <div className="record-meta">
                   <span>{r.vangstdatum}</span>

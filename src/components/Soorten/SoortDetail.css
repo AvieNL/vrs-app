@@ -379,6 +379,7 @@
   font-variant-numeric: tabular-nums;
 }
 
+
 .sd-recent-date {
   color: var(--text-secondary);
 }
@@ -389,7 +390,67 @@
   font-size: 0.78rem;
 }
 
+.sd-recent-type {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  background: rgba(56, 189, 248, 0.12);
+  color: var(--accent);
+  letter-spacing: 0.3px;
+}
+
+.sd-recent-item--tv .sd-recent-type {
+  background: rgba(234, 179, 8, 0.12);
+  color: var(--warning);
+}
+
 /* Age section */
 .sd-age-section {
   margin-bottom: 4px;
+}
+
+/* Age bar chart */
+.sd-age-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sd-age-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+}
+
+.sd-age-bar-label {
+  width: 44px;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.sd-age-bar-track {
+  flex: 1;
+  height: 8px;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.sd-age-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+
+.sd-age-bar-count {
+  width: 24px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
 }

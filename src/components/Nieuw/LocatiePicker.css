@@ -1,0 +1,24 @@
+.locatie-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.locatie-map {
+  width: 100%;
+  height: 220px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  z-index: 0;
+}
+
+.locatie-coords {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.gps-btn {
+  width: 100%;
+}

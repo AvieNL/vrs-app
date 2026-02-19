@@ -7,6 +7,7 @@ const DEFAULT_SETTINGS = {
   ringerNaam: 'Thijs ter Avest',
   ringerInitiaal: 'TtA',
   ringerNummer: '3254',
+  hulpModus: 'uitgebreid',
 };
 
 export function useSettings() {

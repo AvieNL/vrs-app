@@ -11,10 +11,12 @@ import VeldenPage from './components/Velden/VeldenPage';
 import OverPage from './components/Over/OverPage';
 import InstellingenPage from './components/Instellingen/InstellingenPage';
 import ProjectenPage from './components/Projecten/ProjectenPage';
+import RingstrengenPage from './components/Ringstreng/RingstrengenPage';
 import { useRecords } from './hooks/useRecords';
 import { useProjects } from './hooks/useProjects';
 import { useSpeciesOverrides } from './hooks/useSpeciesOverrides';
 import { useSettings } from './hooks/useSettings';
+import { useRingStrengen } from './hooks/useRingStrengen';
 import './styles/theme.css';
 
 export default function App() {
@@ -22,6 +24,7 @@ export default function App() {
   const { projects, addProject, updateProject, deleteProject } = useProjects();
   const speciesOverrides = useSpeciesOverrides();
   const { settings, updateSettings } = useSettings();
+  const { ringStrengen, addRingstreng, updateRingstreng, deleteRingstreng, advanceHuidige } = useRingStrengen();
 
   return (
     <BrowserRouter>
@@ -30,7 +33,15 @@ export default function App() {
         <main className="app-content">
           <Routes>
             <Route path="/" element={
-              <NieuwPage onSave={addRecord} projects={projects.filter(p => p.actief)} records={records} speciesOverrides={speciesOverrides} settings={settings} />
+              <NieuwPage
+                onSave={addRecord}
+                projects={projects.filter(p => p.actief)}
+                records={records}
+                speciesOverrides={speciesOverrides}
+                settings={settings}
+                ringStrengen={ringStrengen}
+                onAdvanceRing={advanceHuidige}
+              />
             } />
             <Route path="/records" element={
               <RecordsPage records={records} onDelete={deleteRecord} />
@@ -53,6 +64,15 @@ export default function App() {
               <ProjectenPage projects={projects} onAdd={addProject} onUpdate={updateProject} onDelete={deleteProject} onRenameProject={renameProject} />
             } />
             <Route path="/instellingen" element={<InstellingenPage settings={settings} onUpdateSettings={updateSettings} />} />
+            <Route path="/ringstrengen" element={
+              <RingstrengenPage
+                ringStrengen={ringStrengen}
+                records={records}
+                onAdd={addRingstreng}
+                onUpdate={updateRingstreng}
+                onDelete={deleteRingstreng}
+              />
+            } />
           </Routes>
         </main>
         <Navigation />

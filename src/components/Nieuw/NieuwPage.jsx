@@ -1,7 +1,9 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import speciesRef from '../../data/species-reference.json';
 import euringCodes from '../../data/euring-codes.json';
+import { euringReference } from '../../data/euring-reference.js';
 import RuiscoreDiagram from './RuiscoreDiagram';
+import LocatiePicker from './LocatiePicker';
 import './NieuwPage.css';
 
 // Filter out the header row from speciesRef
@@ -47,6 +49,44 @@ const LEEFTIJD_OPTIONS = [
   { value: '8', label: '8 - Na derde jaar (+3)' },
   { value: '9', label: '9 - Vierde jaar en ouder (4+)' },
   { value: 'A', label: 'A - Na vierde jaar (+4)' },
+];
+
+const LEEFTIJD_LABELS = {
+  '0': 'onbekend',
+  '1': 'pullus',
+  '2': 'volgroeid',
+  '3': '1kj',
+  '4': 'na 1kj',
+  '5': '2kj',
+  '6': 'na 2kj',
+  '7': '3kj',
+  '8': 'na 3kj',
+  '9': '4kj+',
+  'A': 'na 4kj+',
+};
+
+const PULLUS_LEEFTIJD_OPTIONS = [
+  { value: '99', label: '99 – leeftijd niet genoteerd' },
+  ...Array.from({ length: 45 }, (_, i) => ({
+    value: String(i).padStart(2, '0'),
+    label: `${String(i).padStart(2, '0')} – ${i} ${i === 1 ? 'dag' : 'dagen'}`,
+  })),
+];
+
+const NAUWK_LEEFTIJD_OPTIONS = [
+  { value: 'U', label: 'U – niet genoteerd / onbekend' },
+  ...Array.from({ length: 10 }, (_, i) => ({
+    value: String(i),
+    label: `${i} – nauwkeurig tot ${i === 0 ? 'op de dag' : `±${i} dag${i > 1 ? 'en' : ''}`}`,
+  })),
+];
+
+const BROEDGROOTTE_OPTIONS = [
+  { value: '00', label: '00 – onbekend of niet genoteerd' },
+  ...Array.from({ length: 12 }, (_, i) => ({
+    value: String(i + 1).padStart(2, '0'),
+    label: `${String(i + 1).padStart(2, '0')} – ${i + 1} ${i === 0 ? 'kuiken' : 'kuikens'} in het nest`,
+  })),
 ];
 
 const GESLACHT_OPTIONS = [
@@ -120,16 +160,6 @@ const ALL_RINGCENTRALES = [
   { value: 'UKK', label: 'UKK - Ukraine' },
 ];
 
-const VANGSTMETHODE_OPTIONS = [
-  { value: '', label: '-- Kies --' },
-  { value: 'L', label: 'L - Mistnet' },
-  { value: 'N', label: 'N - Nestval' },
-  { value: 'H', label: 'H - Met de hand' },
-  { value: 'T', label: 'T - Val/kooi' },
-  { value: 'P', label: 'P - Pul in nest' },
-  { value: 'R', label: 'R - Herbepaling' },
-  { value: 'D', label: 'D - Dood' },
-];
 
 const VET_OPTIONS = [
   { value: '', label: '-- Kies --' },
@@ -143,10 +173,10 @@ const VET_OPTIONS = [
 
 const VLIEGSPIER_OPTIONS = [
   { value: '', label: '-- Kies --' },
-  { value: '0', label: '0 - Borstbeen voelbaar' },
-  { value: '1', label: '1 - Spier aanwezig' },
-  { value: '2', label: '2 - Spier bolt duidelijk' },
-  { value: '3', label: '3 - Spier boven borstbeen' },
+  { value: '0', label: '0 – Borstbeen scherp, spier ingevallen' },
+  { value: '1', label: '1 – Borstbeen goed voelbaar, spier vlak' },
+  { value: '2', label: '2 – Borstbeen nog voelbaar, spier licht gewelfd' },
+  { value: '3', label: '3 – Borstbeen nauwelijks voelbaar, spier volledig gewelfd' },
 ];
 
 const BROEDVLEK_OPTIONS = [
@@ -211,6 +241,83 @@ const CLOACA_OPTIONS = [
   { value: '7', label: '7 - Niet verwijd, onopvallend (vrouw?)' },
 ];
 
+const PLAATSCODE_OPTIONS = [
+  { value: 'NL--', label: 'NL-- – Nederland (niet gespecificeerd)' },
+  { value: 'NL11', label: 'NL11 – Ameland' },
+  { value: 'NL04', label: 'NL04 – Drenthe' },
+  { value: 'NL05', label: 'NL05 – Friesland' },
+  { value: 'NL06', label: 'NL06 – Gelderland' },
+  { value: 'NL02', label: 'NL02 – Griend' },
+  { value: 'NL07', label: 'NL07 – Groningen' },
+  { value: 'NL17', label: 'NL17 – IJsselmeerpolders (incl. Urk & Schokland)' },
+  { value: 'NL08', label: 'NL08 – Limburg' },
+  { value: 'NL09', label: 'NL09 – Noord-Brabant' },
+  { value: 'NL14', label: 'NL14 – Noord-Holland' },
+  { value: 'NL15', label: 'NL15 – Overijssel' },
+  { value: 'NL13', label: 'NL13 – Rottumeroog' },
+  { value: 'NL12', label: 'NL12 – Schiermonnikoog' },
+  { value: 'NL03', label: 'NL03 – Terschelling' },
+  { value: 'NL00', label: 'NL00 – Texel' },
+  { value: 'NL16', label: 'NL16 – Utrecht' },
+  { value: 'NL01', label: 'NL01 – Vlieland' },
+  { value: 'NL18', label: 'NL18 – Zeeland' },
+  { value: 'NL19', label: 'NL19 – Zuid-Holland' },
+];
+
+const SNAVEL_METHODE_OPTIONS = [
+  { value: '', label: '-- Kies --' },
+  { value: 'C', label: 'C – Punt tot cere' },
+  { value: 'F', label: 'F – Punt tot veren' },
+  { value: 'N', label: 'N – Punt tot neusgat' },
+  { value: 'S', label: 'S – Punt tot schedel' },
+];
+
+const TARSUS_METHODE_OPTIONS = [
+  { value: '', label: '-- Kies --' },
+  { value: 'M', label: 'M – Maximum tarsus (gevouwen voet)' },
+  { value: 'S', label: 'S – Minimum tarsus (Svensson 1992)' },
+  { value: 'T', label: 'T – Tarsus en teen (langste teen)' },
+];
+
+const CONDITIE_OPTIONS = [
+  { value: '0', label: '0 – Conditie onbekend' },
+  { value: '1', label: '1 – Dood, tijdstip onbekend' },
+  { value: '2', label: '2 – Vers dood (binnen ~1 week)' },
+  { value: '3', label: '3 – Niet vers dood (meer dan ~1 week geleden)' },
+  { value: '4', label: '4 – Ziek/gewond aangetroffen, vrijgelaten' },
+  { value: '5', label: '5 – Ziek/gewond aangetroffen, niet (zeker) vrijgelaten' },
+  { value: '6', label: '6 – Levend en gezond, in gevangenschap genomen' },
+  { value: '7', label: '7 – Levend en gezond, zeker vrijgelaten' },
+  { value: '8', label: '8 – Levend en gezond, vrijgelaten door ringer' },
+  { value: '9', label: '9 – Levend en gezond, lot onbekend' },
+];
+
+const NAUWK_COORD_OPTIONS = [
+  { value: 0, label: '0 – Nauwkeurig tot de opgegeven coördinaten' },
+  { value: 1, label: '1 – Straal 5 km' },
+  { value: 2, label: '2 – Straal 10 km' },
+  { value: 3, label: '3 – Straal 20 km' },
+  { value: 4, label: '4 – Straal 50 km' },
+  { value: 5, label: '5 – Straal 100 km' },
+  { value: 6, label: '6 – Straal 500 km' },
+  { value: 7, label: '7 – Straal 1000 km' },
+  { value: 8, label: '8 – Gereserveerd' },
+  { value: 9, label: '9 – Ergens in het land/gebied uit de plaatscode' },
+];
+
+const NAUWK_DATUM_OPTIONS = [
+  { value: 0, label: '0 – Nauwkeurig op de dag' },
+  { value: 1, label: '1 – ±1 dag' },
+  { value: 2, label: '2 – ±3 dagen' },
+  { value: 3, label: '3 – ±1 week' },
+  { value: 4, label: '4 – ±2 weken' },
+  { value: 5, label: '5 – ±6 weken' },
+  { value: 6, label: '6 – ±3 maanden' },
+  { value: 7, label: '7 – ±6 maanden' },
+  { value: 8, label: '8 – Slechts nauwkeurig tot op het jaar' },
+  { value: 9, label: '9 – Datum uitgifte ring / datum vondst (lang dood)' },
+];
+
 const RUI_LICHAAM_OPTIONS = [
   { value: '', label: '-- Kies --' },
   { value: '0', label: '0 - Geen' },
@@ -221,20 +328,20 @@ const RUI_LICHAAM_OPTIONS = [
 const EMPTY_FORM = {
   vogelnaam: '',
   ringnummer: '',
-  metalenringinfo: 1,
+  metalenringinfo: 2,
   identificatie_methode: 'A0',
   leeftijd: '',
   geslacht: '',
-  vangstmethode: 'L',
+  vangstmethode: 'M',
   lokmiddelen: 'N',
   vangstdatum: new Date().toISOString().split('T')[0],
   tijd: '',
   project: '',
   centrale: 'NLA',
-  status: '',
-  conditie: '',
+  status: 'U',
+  conditie: '8',
   omstandigheden: '',
-  plaatscode: '',
+  plaatscode: 'NL--',
   google_plaats: '',
   lat: '',
   lon: '',
@@ -245,6 +352,9 @@ const EMPTY_FORM = {
   handpenlengte: '',
   staartlengte: '',
   snavel_schedel: '',
+  snavel_methode: '',
+  staart_verschil: '',
+  tarsus_methode: '',
   tarsus_teen: '',
   tarsus_dikte: '',
   vet: '',
@@ -259,11 +369,11 @@ const EMPTY_FORM = {
   opmerkingen1: '',
   opmerkingen2: '',
   andere_merktekens: '',
-  gemanipuleerd: '',
+  gemanipuleerd: 'N',
   verplaatst: 0,
-  broedselgrootte: '--',
-  pul_leeftijd: '--',
-  nauwk_pul_leeftijd: '-',
+  broedselgrootte: '00',
+  pul_leeftijd: '99',
+  nauwk_pul_leeftijd: 'U',
   nauwk_vangstdatum: 0,
   nauwk_coord: 0,
   zeker_omstandigheden: 0,
@@ -317,7 +427,7 @@ function computeRanges(soortRecords) {
   return ranges;
 }
 
-export default function NieuwPage({ onSave, projects, records, speciesOverrides, settings }) {
+export default function NieuwPage({ onSave, projects, records, speciesOverrides, settings, ringStrengen = [], onAdvanceRing }) {
   const [form, setForm] = useState(() => ({
     ...EMPTY_FORM,
     ringer_initiaal: settings?.ringerInitiaal || '',
@@ -326,9 +436,9 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
   const [sections, setSections] = useState({
     essentieel: true,
     vangstdetails: false,
-    conditie: false,
     rui: false,
     overigeMaten: false,
+    locatie: false,
     euring: false,
     opmerkingen: false,
   });
@@ -569,6 +679,11 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
       ...form,
       euring_code: euringCode,
     });
+    // Ringstreng teller ophogen als het ringnummer auto-ingevuld was
+    if (!isTerugvangst && autoFilledRingId.current && onAdvanceRing) {
+      onAdvanceRing(autoFilledRingId.current);
+      autoFilledRingId.current = null;
+    }
     setForm({
       ...EMPTY_FORM,
       vangstdatum: form.vangstdatum,
@@ -587,17 +702,15 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
     const warning = warnings.find(w => w.key === key);
     return (
       <div className="form-group">
-        <label>
-          {label}
-          {range && (
-            <span className={`range-hint${range.isOverride ? ' range-hint-override' : ''}`}>
-              {range.min.toFixed(1)}–{range.max.toFixed(1)}
-            </span>
-          )}
-        </label>
+        <label>{label}</label>
         <input type="text" inputMode="decimal" value={form[key]}
           className={warning ? 'input-warn' : ''}
           onChange={e => update(key, e.target.value)} />
+        {range && !warning && (
+          <span className={`field-hint${range.isOverride ? ' field-hint--warn' : ''}`}>
+            Bereik: {range.min.toFixed(1)}–{range.max.toFixed(1)}
+          </span>
+        )}
         {warning && (
           <span className="field-warning">
             {warning.value} buiten bereik ({warning.min}–{warning.max})
@@ -635,14 +748,63 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
     return null;
   }, [form.cloaca, form.geslacht]);
 
-  const isTerugvangst = form.metalenringinfo === 0;
+  const isTerugvangst = form.metalenringinfo === 4;
+
+  // Track of het ringnummer auto-ingevuld is (dan mogen we na opslaan de teller ophogen)
+  const autoFilledRingId = useRef(null);
+
+  // Auto-invullen ringnummer op basis van ringmaat van de geselecteerde soort
+  useEffect(() => {
+    if (isTerugvangst) return;
+    if (!speciesInfo?.ringmaat) return;
+
+    // Haal mogelijke maten op: "2.3/2.8 pull" → ["2.3", "2.8"]
+    const kandidaatMaten = speciesInfo.ringmaat
+      .split('/')
+      .map(s => s.trim().replace(/[♂♀].*$/, '').replace(/\s.*$/, '').trim())
+      .filter(Boolean);
+
+    // Zoek eerste beschikbare ringstreng die matcht op een van de kandidaatmaten
+    const parseRingNum = s => { const m = s?.replace(/\./g,'').match(/^[A-Za-z]*(\d+)[A-Za-z]*$/); return m ? parseInt(m[1],10) : NaN; };
+    const match = ringStrengen.find(r =>
+      kandidaatMaten.includes(r.ringmaat) && parseRingNum(r.huidige) <= parseRingNum(r.tot)
+    );
+    if (!match) {
+      setForm(prev => ({ ...prev, ringnummer: '' }));
+      autoFilledRingId.current = null;
+      return;
+    }
+    setForm(prev => ({ ...prev, ringnummer: match.huidige }));
+    autoFilledRingId.current = match.id;
+  }, [speciesInfo?.ringmaat, isTerugvangst]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Terugvangst: zoek eigen vogel op basis van ringnummer
+  const terugvangstInfo = useMemo(() => {
+    if (!isTerugvangst || form.ringnummer.length < 5) return null;
+    const normalize = s => s.trim().replace(/\./g, '').toLowerCase();
+    const nr = normalize(form.ringnummer);
+    const matches = records.filter(r =>
+      r.ringnummer && normalize(r.ringnummer) === nr
+    );
+    if (matches.length === 0) return { eigen: false };
+    // Sorteer op datum, neem eerste vangst
+    const gesorteerd = [...matches].sort((a, b) =>
+      (a.vangstdatum || '').localeCompare(b.vangstdatum || '')
+    );
+    const eerste = gesorteerd[0];
+    return {
+      eigen: true,
+      vangstdatum: eerste.vangstdatum,
+      leeftijd: eerste.leeftijd,
+      vogelnaam: eerste.vogelnaam,
+    };
+  }, [isTerugvangst, form.ringnummer, records]);
 
   function toggleTerugvangst() {
     if (isTerugvangst) {
-      // Terug naar nieuwe ring: centrale op NLA
-      setForm(prev => ({ ...prev, metalenringinfo: 1, centrale: 'NLA' }));
+      setForm(prev => ({ ...prev, metalenringinfo: 2, centrale: 'NLA', omstandigheden: '' }));
     } else {
-      setForm(prev => ({ ...prev, metalenringinfo: 0 }));
+      setForm(prev => ({ ...prev, metalenringinfo: 4, omstandigheden: '28' }));
     }
   }
 
@@ -656,7 +818,7 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
         {/* Sectie 1: Essentieel */}
         <div className="section">
           <div className="section-header" onClick={() => toggleSection('essentieel')}>
-            <h3>Essentieel</h3>
+            <h3>Nieuwe vangst</h3>
             <span className={`toggle ${sections.essentieel ? 'open' : ''}`}>▾</span>
           </div>
           {sections.essentieel && (
@@ -691,7 +853,7 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
               </div>
 
               {/* Soort-info paneel */}
-              {speciesInfo && (
+              {speciesInfo && settings?.hulpModus !== 'basis' && (
                 <div className="soort-info-panel">
                   <div className="soort-info-header">
                     <strong>{speciesInfo.naam_nl}</strong>
@@ -704,9 +866,15 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
                       <span className="sii-value">{speciesInfo.ringmaat || '—'}</span>
                     </div>
                     {speciesInfo.ruitype && (
-                      <div className="soort-info-item">
+                      <div className={`soort-info-item${['A','B','C','D'].includes(speciesInfo.ruitype) ? ' ruitype-highlight' : ''}`}>
                         <span className="sii-label">Ruitype</span>
-                        <span className="sii-value">{speciesInfo.ruitype}</span>
+                        <span className="sii-value">
+                          {speciesInfo.ruitype}
+                          {speciesInfo.ruitype === 'A' && <span className="ruitype-badge">Leeftijd beperkt</span>}
+                          {speciesInfo.ruitype === 'B' && <span className="ruitype-badge">Ruigrens bepalend</span>}
+                          {speciesInfo.ruitype === 'C' && <span className="ruitype-badge">Ruigrens bepalend</span>}
+                          {speciesInfo.ruitype === 'D' && <span className="ruitype-badge">Kleed bepalend</span>}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -752,9 +920,23 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
                   <input
                     type="text"
                     value={form.ringnummer}
-                    onChange={e => update('ringnummer', e.target.value)}
+                    onChange={e => { update('ringnummer', e.target.value.toUpperCase()); autoFilledRingId.current = null; }}
                     placeholder="bijv. ...7154867"
                   />
+                  {isTerugvangst && terugvangstInfo && (
+                    terugvangstInfo.eigen ? (
+                      <div className="terugvangst-info terugvangst-info--eigen">
+                        <span className="terugvangst-label">Eigen vogel</span>
+                        <span>{terugvangstInfo.vogelnaam}</span>
+                        {terugvangstInfo.vangstdatum && <span>Eerste vangst: <strong>{terugvangstInfo.vangstdatum}</strong></span>}
+                        {terugvangstInfo.leeftijd && <span>Leeftijd bij eerste vangst: <strong>{LEEFTIJD_LABELS[terugvangstInfo.leeftijd] ?? terugvangstInfo.leeftijd}</strong></span>}
+                      </div>
+                    ) : (
+                      <div className="terugvangst-info terugvangst-info--vreemd">
+                        <span className="terugvangst-label">Niet in eigen vangsten</span>
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
 
@@ -784,6 +966,308 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
                     <option key={o.value} value={o.value}>{o.label}</option>
                   ))}
                 </select>
+                {form.leeftijd === '1' && (
+                  <div className="pullus-velden">
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Pullus leeftijd</label>
+                        <select value={form.pul_leeftijd} onChange={e => update('pul_leeftijd', e.target.value)}>
+                          {PULLUS_LEEFTIJD_OPTIONS.map(o => (
+                            <option key={o.value} value={o.value}>{o.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label>Nauwkeurigheid</label>
+                        <select value={form.nauwk_pul_leeftijd} onChange={e => update('nauwk_pul_leeftijd', e.target.value)}>
+                          {NAUWK_LEEFTIJD_OPTIONS.map(o => (
+                            <option key={o.value} value={o.value}>{o.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label>Broedgrootte</label>
+                      <select value={form.broedselgrootte} onChange={e => update('broedselgrootte', e.target.value)}>
+                        {BROEDGROOTTE_OPTIONS.map(o => (
+                          <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
+                      </select>
+                      {speciesInfo?.nest_eieren && (
+                        <span className="field-hint">Eieren {speciesInfo.naam_nl}: {speciesInfo.nest_eieren}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {speciesInfo?.ruitype === 'A' && <>
+                  {settings?.hulpModus !== 'basis' && (
+                    <div className="ruitype-note ruitype-note--kalender">
+                      <div className="ruitype-kalender">
+                        <div className="ruitype-kal-rij">
+                          <span className="ruitype-kal-zijlabel">Juv.</span>
+                          <div className="ruitype-kal-balk">
+                            <div className="ruitype-kal-seg ruitype-kal-seg--pull" style={{gridColumn:'span 1'}}>pull.</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--juv"  style={{gridColumn:'span 2'}}>juv</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--rui"  style={{gridColumn:'span 2'}}>complete rui</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--vol"  style={{gridColumn:'span 3'}}>volgroeid</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--akj"  style={{gridColumn:'span 4'}}>na 1 kj</div>
+                          </div>
+                        </div>
+                        <div className="ruitype-kal-maanden">
+                          <span className="ruitype-kal-maand">Mei</span>
+                          <span className="ruitype-kal-maand">Jun</span>
+                          <span className="ruitype-kal-maand">Jul</span>
+                          <span className="ruitype-kal-maand">Aug</span>
+                          <span className="ruitype-kal-maand">Sep</span>
+                          <span className="ruitype-kal-maand">Okt</span>
+                          <span className="ruitype-kal-maand">Nov</span>
+                          <span className="ruitype-kal-maand ruitype-kal-maand--dec">Dec</span>
+                          <span className="ruitype-kal-maand ruitype-kal-maand--jan">Jan</span>
+                          <span className="ruitype-kal-maand">Feb</span>
+                          <span className="ruitype-kal-maand">Mrt</span>
+                          <span className="ruitype-kal-maand">Apr</span>
+                        </div>
+                        <div className="ruitype-kal-rij">
+                          <span className="ruitype-kal-zijlabel">Ad.</span>
+                          <div className="ruitype-kal-balk">
+                            <div className="ruitype-kal-seg ruitype-kal-seg--vol"  style={{gridColumn:'span 3'}}>volgroeid</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--rui"  style={{gridColumn:'span 2'}}>complete rui</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--vol"  style={{gridColumn:'span 3'}}>volgroeid</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--akj"  style={{gridColumn:'span 4'}}>na 1 kj</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {settings?.hulpModus !== 'basis' && <div className="ruitype-kal-tekst">
+                    <div className="ruitype-groep">
+                      <span className="ruitype-seizoen">Voorjaar</span>
+                      <div className="ruitype-opties">
+                        <div className="ruitype-optie">
+                          <span className="ruitype-val">na 1 kj, leeftijd niet mogelijk</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="ruitype-groep ruitype-groep--separator">
+                      <span className="ruitype-seizoen">Najaar</span>
+                      <div className="ruitype-opties">
+                        <div className="ruitype-optie">
+                          <span className="ruitype-val">volgroeid, leeftijd niet mogelijk</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>}
+                </>}
+                {speciesInfo?.ruitype === 'B' && <>
+                  {settings?.hulpModus !== 'basis' && (
+                    <div className="ruitype-note ruitype-note--kalender">
+                      <div className="ruitype-kalender">
+                        <div className="ruitype-kal-rij">
+                          <span className="ruitype-kal-zijlabel">Juv.</span>
+                          <div className="ruitype-kal-balk">
+                            <div className="ruitype-kal-seg ruitype-kal-seg--pull" style={{gridColumn:'span 1'}}>pull.</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--juv"  style={{gridColumn:'span 2'}}>juv</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--rui"  style={{gridColumn:'span 2'}}>part. rui</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--vol"  style={{gridColumn:'span 3'}}>1 kj</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--akj"  style={{gridColumn:'span 4'}}>2 kj</div>
+                          </div>
+                        </div>
+                        <div className="ruitype-kal-maanden">
+                          <span className="ruitype-kal-maand">Mei</span>
+                          <span className="ruitype-kal-maand">Jun</span>
+                          <span className="ruitype-kal-maand">Jul</span>
+                          <span className="ruitype-kal-maand">Aug</span>
+                          <span className="ruitype-kal-maand">Sep</span>
+                          <span className="ruitype-kal-maand">Okt</span>
+                          <span className="ruitype-kal-maand">Nov</span>
+                          <span className="ruitype-kal-maand ruitype-kal-maand--dec">Dec</span>
+                          <span className="ruitype-kal-maand ruitype-kal-maand--jan">Jan</span>
+                          <span className="ruitype-kal-maand">Feb</span>
+                          <span className="ruitype-kal-maand">Mrt</span>
+                          <span className="ruitype-kal-maand">Apr</span>
+                        </div>
+                        <div className="ruitype-kal-rij">
+                          <span className="ruitype-kal-zijlabel">Ad.</span>
+                          <div className="ruitype-kal-balk">
+                            <div className="ruitype-kal-seg ruitype-kal-seg--vol"  style={{gridColumn:'span 3'}}>2kj / na 2kj</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--rui"  style={{gridColumn:'span 2'}}>complete rui</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--akj"  style={{gridColumn:'span 3'}}>na 1 kj</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--akj"  style={{gridColumn:'span 4'}}>na 2 kj</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {settings?.hulpModus !== 'basis' && <div className="ruitype-kal-tekst">
+                    <div className="ruitype-groep">
+                      <span className="ruitype-seizoen">Voorjaar</span>
+                      <div className="ruitype-opties">
+                        <div className="ruitype-optie">
+                          <span className="ruitype-cond">met ruigrens</span>
+                          <span className="ruitype-val">1 kj</span>
+                        </div>
+                        <div className="ruitype-optie">
+                          <span className="ruitype-cond">zonder ruigrens</span>
+                          <span className="ruitype-val">na 1 kj</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="ruitype-groep ruitype-groep--separator">
+                      <span className="ruitype-seizoen">Najaar</span>
+                      <div className="ruitype-opties">
+                        <div className="ruitype-optie">
+                          <span className="ruitype-cond">met ruigrens</span>
+                          <span className="ruitype-val">2 kj</span>
+                        </div>
+                        <div className="ruitype-optie">
+                          <span className="ruitype-cond">zonder ruigrens</span>
+                          <span className="ruitype-val">na 2 kj</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>}
+                </>}
+                {speciesInfo?.ruitype === 'C' && <>
+                  {settings?.hulpModus !== 'basis' && (
+                    <div className="ruitype-note ruitype-note--kalender">
+                      <div className="ruitype-kalender">
+                        <div className="ruitype-kal-rij">
+                          <span className="ruitype-kal-zijlabel">Juv.</span>
+                          <div className="ruitype-kal-balk">
+                            <div className="ruitype-kal-seg ruitype-kal-seg--pull" style={{gridColumn:'span 1'}}>pull.</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--juv"  style={{gridColumn:'span 2'}}>juv</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--rui"  style={{gridColumn:'span 2'}}>part. rui</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--vol"  style={{gridColumn:'span 3'}}>1 kj</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--rui"  style={{gridColumn:'span 1'}}>p.r.</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--vol"  style={{gridColumn:'span 3'}}>2 kj</div>
+                          </div>
+                        </div>
+                        <div className="ruitype-kal-maanden">
+                          <span className="ruitype-kal-maand">Mei</span>
+                          <span className="ruitype-kal-maand">Jun</span>
+                          <span className="ruitype-kal-maand">Jul</span>
+                          <span className="ruitype-kal-maand">Aug</span>
+                          <span className="ruitype-kal-maand">Sep</span>
+                          <span className="ruitype-kal-maand">Okt</span>
+                          <span className="ruitype-kal-maand">Nov</span>
+                          <span className="ruitype-kal-maand ruitype-kal-maand--dec">Dec</span>
+                          <span className="ruitype-kal-maand ruitype-kal-maand--jan">Jan</span>
+                          <span className="ruitype-kal-maand">Feb</span>
+                          <span className="ruitype-kal-maand">Mrt</span>
+                          <span className="ruitype-kal-maand">Apr</span>
+                        </div>
+                        <div className="ruitype-kal-rij">
+                          <span className="ruitype-kal-zijlabel">Ad.</span>
+                          <div className="ruitype-kal-balk">
+                            <div className="ruitype-kal-seg ruitype-kal-seg--vol"  style={{gridColumn:'span 3'}}>2kj / na 2kj</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--rui"  style={{gridColumn:'span 2'}}>complete rui</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--akj"  style={{gridColumn:'span 3'}}>na 1 kj</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--rui"  style={{gridColumn:'span 1'}}>p.r.</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--akj"  style={{gridColumn:'span 3'}}>na 2 kj</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {settings?.hulpModus !== 'basis' && <div className="ruitype-kal-tekst">
+                    <div className="ruitype-groep">
+                      <span className="ruitype-seizoen">Voorjaar</span>
+                      <div className="ruitype-opties">
+                        <div className="ruitype-optie">
+                          <span className="ruitype-cond">twee ruigrenzen</span>
+                          <span className="ruitype-val">2 kj</span>
+                        </div>
+                        <div className="ruitype-optie">
+                          <span className="ruitype-cond">één ruigrens</span>
+                          <span className="ruitype-val">na 2 kj</span>
+                        </div>
+                        <div className="ruitype-optie">
+                          <span className="ruitype-cond">twijfel</span>
+                          <span className="ruitype-val">na 1 kj</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="ruitype-groep ruitype-groep--separator">
+                      <span className="ruitype-seizoen">Najaar</span>
+                      <div className="ruitype-opties">
+                        <div className="ruitype-optie">
+                          <span className="ruitype-cond">ruigrens</span>
+                          <span className="ruitype-val">1 kj</span>
+                        </div>
+                        <div className="ruitype-optie">
+                          <span className="ruitype-cond">geen ruigrens</span>
+                          <span className="ruitype-val">na 1 kj</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>}
+                </>}
+                {speciesInfo?.ruitype === 'D' && <>
+                  {settings?.hulpModus !== 'basis' && (
+                    <div className="ruitype-note ruitype-note--kalender">
+                      <div className="ruitype-kalender">
+                        <div className="ruitype-kal-rij">
+                          <span className="ruitype-kal-zijlabel">Juv.</span>
+                          <div className="ruitype-kal-balk">
+                            <div className="ruitype-kal-seg ruitype-kal-seg--pull" style={{gridColumn:'span 1'}}>pull.</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--juv"  style={{gridColumn:'span 2'}}>juv</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--rui"  style={{gridColumn:'span 2'}}>part. rui</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--vol"  style={{gridColumn:'span 3'}}>1 kj</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--rui"  style={{gridColumn:'span 1'}}>c.r.</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--akj"  style={{gridColumn:'span 3'}}>na 1 kj</div>
+                          </div>
+                        </div>
+                        <div className="ruitype-kal-maanden">
+                          <span className="ruitype-kal-maand">Mei</span>
+                          <span className="ruitype-kal-maand">Jun</span>
+                          <span className="ruitype-kal-maand">Jul</span>
+                          <span className="ruitype-kal-maand">Aug</span>
+                          <span className="ruitype-kal-maand">Sep</span>
+                          <span className="ruitype-kal-maand">Okt</span>
+                          <span className="ruitype-kal-maand">Nov</span>
+                          <span className="ruitype-kal-maand ruitype-kal-maand--dec">Dec</span>
+                          <span className="ruitype-kal-maand ruitype-kal-maand--jan">Jan</span>
+                          <span className="ruitype-kal-maand">Feb</span>
+                          <span className="ruitype-kal-maand">Mrt</span>
+                          <span className="ruitype-kal-maand">Apr</span>
+                        </div>
+                        <div className="ruitype-kal-rij">
+                          <span className="ruitype-kal-zijlabel">Ad.</span>
+                          <div className="ruitype-kal-balk">
+                            <div className="ruitype-kal-seg ruitype-kal-seg--vol"  style={{gridColumn:'span 3'}}>volgroeid</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--rui"  style={{gridColumn:'span 2'}}>complete rui</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--akj"  style={{gridColumn:'span 3'}}>na 1 kj</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--rui"  style={{gridColumn:'span 1'}}>c.r.</div>
+                            <div className="ruitype-kal-seg ruitype-kal-seg--akj"  style={{gridColumn:'span 3'}}>na 1 kj</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {settings?.hulpModus !== 'basis' && <div className="ruitype-kal-tekst">
+                    <div className="ruitype-groep">
+                      <span className="ruitype-seizoen">Voorjaar</span>
+                      <div className="ruitype-opties">
+                        <div className="ruitype-optie">
+                          <span className="ruitype-val">niet mogelijk op kleed, na 1 kj</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="ruitype-groep ruitype-groep--separator">
+                      <span className="ruitype-seizoen">Najaar</span>
+                      <div className="ruitype-opties">
+                        <div className="ruitype-optie">
+                          <span className="ruitype-cond">vers kleed</span>
+                          <span className="ruitype-val">1 kj</span>
+                        </div>
+                        <div className="ruitype-optie">
+                          <span className="ruitype-cond">versleten kleed</span>
+                          <span className="ruitype-val">na 1 kj</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>}
+                </>}
               </div>
 
               <div className="form-row">
@@ -798,9 +1282,11 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
                 <div className="form-group">
                   <label>Tijd</label>
                   <input
-                    type="time"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="bijv. 0845"
                     value={form.tijd}
-                    onChange={e => update('tijd', e.target.value.replace(':', ''))}
+                    onChange={e => update('tijd', e.target.value)}
                   />
                 </div>
               </div>
@@ -820,8 +1306,8 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
                 <div className="form-group">
                   <label>Vangstmethode</label>
                   <select value={form.vangstmethode} onChange={e => update('vangstmethode', e.target.value)}>
-                    {VANGSTMETHODE_OPTIONS.map(o => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
+                    {euringReference.vangstmethode.codes.map(o => (
+                      <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
                     ))}
                   </select>
                 </div>
@@ -833,7 +1319,7 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
         {/* Sectie 2: Vangstdetails */}
         <div className="section">
           <div className="section-header" onClick={() => toggleSection('vangstdetails')}>
-            <h3>Vangstdetails</h3>
+            <h3>Basisgegevens</h3>
             {warnings.some(w => ['vleugel', 'gewicht', 'handpenlengte'].includes(w.key)) && <span className="section-badge-warn">!</span>}
             <span className={`toggle ${sections.vangstdetails ? 'open' : ''}`}>▾</span>
           </div>
@@ -859,8 +1345,8 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
                 </div>
               </div>
               <div className="form-row">
-                {renderBioField('vleugel', 'Vleugel (mm)')}
-                {renderBioField('handpenlengte', 'P8 (mm)')}
+                {renderBioField('vleugel', 'Vleugel (0,5 mm)')}
+                {renderBioField('handpenlengte', 'P8 (0,5 mm)')}
               </div>
               <div className="form-row-3">
                 <div className="form-group">
@@ -889,50 +1375,47 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
                 </div>
               </div>
               <div className="form-row">
-                {renderBioField('gewicht', 'Gewicht (g)')}
+                {renderBioField('gewicht', 'Gewicht (0,1 g)')}
                 <div className="form-group">
                   <label>Weegtijd</label>
                   <input
-                    type="time"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="bijv. 0845"
                     value={form.weegtijd}
                     onChange={e => update('weegtijd', e.target.value)}
                   />
                 </div>
               </div>
-            </div>
-          )}
-        </div>
-
-        {/* Sectie 3: Conditie */}
-        <div className="section">
-          <div className="section-header" onClick={() => toggleSection('conditie')}>
-            <h3>Conditie</h3>
-            {false && <span className="section-badge-warn">!</span>}
-            <span className={`toggle ${sections.conditie ? 'open' : ''}`}>▾</span>
-          </div>
-          {sections.conditie && (
-            <div className="section-content">
-              <div className="form-group">
-                <label>Cloaca</label>
-                <select value={form.cloaca} onChange={e => update('cloaca', e.target.value)}>
-                  {CLOACA_OPTIONS.map(o => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-                {cloacaWarning && (
-                  <span className="field-warning">{cloacaWarning}</span>
-                )}
+              <div className="form-row-3">
+                <div className="form-group">
+                  <label>Cloaca</label>
+                  <select value={form.cloaca} onChange={e => update('cloaca', e.target.value)}>
+                    {CLOACA_OPTIONS.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                  {cloacaWarning && (
+                    <span className="field-warning">{cloacaWarning}</span>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label>Broedvlek</label>
+                  <select value={form.broedvlek} onChange={e => update('broedvlek', e.target.value)}>
+                    {BROEDVLEK_OPTIONS.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Handicap</label>
+                  <select value={form.handicap} onChange={e => update('handicap', e.target.value)}>
+                    {HANDICAP_OPTIONS.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
-
-              <div className="form-group">
-                <label>Broedvlek</label>
-                <select value={form.broedvlek} onChange={e => update('broedvlek', e.target.value)}>
-                  {BROEDVLEK_OPTIONS.map(o => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-              </div>
-
               {speciesInfo && (speciesInfo.nest_eileg || speciesInfo.broed) && (
                 <div className="broed-info-hint">
                   {speciesInfo.broed && <span>Broedt: <strong>{speciesInfo.broed}</strong></span>}
@@ -940,15 +1423,6 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
                   {speciesInfo.nest_broedels && <span>Broedels: <strong>{speciesInfo.nest_broedels}</strong></span>}
                 </div>
               )}
-
-              <div className="form-group">
-                <label>Handicap</label>
-                <select value={form.handicap} onChange={e => update('handicap', e.target.value)}>
-                  {HANDICAP_OPTIONS.map(o => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-              </div>
             </div>
           )}
         </div>
@@ -961,9 +1435,11 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
           </div>
           {sections.rui && (
             <div className="section-content">
-              <div className="ruiscore-diagram">
-                <RuiscoreDiagram />
-              </div>
+              {settings?.hulpModus !== 'basis' && (
+                <div className="ruiscore-diagram">
+                  <RuiscoreDiagram />
+                </div>
+              )}
               <div className="ruikaart">
                 <div className="ruikaart-labels">
                   <span className="ruikaart-groep ruikaart-tertials">Tertials</span>
@@ -1012,27 +1488,86 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
           {sections.overigeMaten && (
             <div className="section-content">
               <div className="form-row">
-                {renderBioField('tarsus_lengte', 'Tarsus lengte (mm)')}
-                {renderBioField('tarsus_dikte', 'Tarsus dikte (mm)')}
+                {renderBioField('tarsus_lengte', 'Tarsus (0,1 mm)')}
+                <div className="form-group">
+                  <label>Tarsus methode</label>
+                  <select value={form.tarsus_methode} onChange={e => update('tarsus_methode', e.target.value)}>
+                    {TARSUS_METHODE_OPTIONS.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <div className="form-row">
+                {renderBioField('tarsus_dikte', 'Tarsus dikte (0,1 mm)')}
                 <div className="form-group">
-                  <label>Tarsus-teen (mm)</label>
-                  <input type="text" inputMode="decimal" value={form.tarsus_teen}
-                    onChange={e => update('tarsus_teen', e.target.value)} />
-                </div>
-                <div className="form-group">
-                  <label>Achternagel (mm)</label>
+                  <label>Achternagel (0,1 mm)</label>
                   <input type="text" inputMode="decimal" value={form.achternagel}
                     onChange={e => update('achternagel', e.target.value)} />
                 </div>
               </div>
               <div className="form-row">
-                {renderBioField('staartlengte', 'Staart (mm)')}
-                {renderBioField('snavel_schedel', 'Snavel-schedel (mm)')}
+                {renderBioField('staartlengte', 'Staartlengte (0,1 mm)')}
+                <div className="form-group">
+                  <label>Staartverschil (0,1 mm)</label>
+                  <input type="text" inputMode="decimal" value={form.staart_verschil}
+                    onChange={e => update('staart_verschil', e.target.value)} />
+                </div>
               </div>
+              <div className="form-row">
+                {renderBioField('snavel_schedel', 'Snavellengte (0,1 mm)')}
+                <div className="form-group">
+                  <label>Snavelmethode</label>
+                  <select value={form.snavel_methode} onChange={e => update('snavel_methode', e.target.value)}>
+                    {SNAVEL_METHODE_OPTIONS.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="form-row">
+                {renderBioField('kop_snavel', 'Totale koplengte (0,1 mm)')}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Sectie: Locatie */}
+        <div className="section">
+          <div className="section-header" onClick={() => toggleSection('locatie')}>
+            <h3>Locatie</h3>
+            <span className={`toggle ${sections.locatie ? 'open' : ''}`}>▾</span>
+          </div>
+          {sections.locatie && (
+            <div className="section-content">
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Plaatscode</label>
+                  <select value={form.plaatscode} onChange={e => update('plaatscode', e.target.value)}>
+                    {PLAATSCODE_OPTIONS.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Plaatsnaam</label>
+                  <input type="text" value={form.google_plaats}
+                    onChange={e => update('google_plaats', e.target.value)}
+                    placeholder="bijv. Breedenbroek" />
+                </div>
+              </div>
+              <LocatiePicker
+                lat={form.lat}
+                lon={form.lon}
+                onChange={(lat, lon) => setForm(prev => ({ ...prev, lat, lon }))}
+              />
               <div className="form-group">
-                {renderBioField('kop_snavel', 'Kop+snavel (mm)')}
+                <label>Nauwkeurigheid coördinaten</label>
+                <select value={form.nauwk_coord} onChange={e => update('nauwk_coord', Number(e.target.value))}>
+                  {NAUWK_COORD_OPTIONS.map(o => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
               </div>
             </div>
           )}
@@ -1041,68 +1576,81 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
         {/* EURING Codes */}
         <div className="section">
           <div className="section-header" onClick={() => toggleSection('euring')}>
-            <h3>EURING Codes</h3>
+            <h3>Overige EURING data</h3>
             <span className={`toggle ${sections.euring ? 'open' : ''}`}>▾</span>
           </div>
           {sections.euring && (
             <div className="section-content">
               <div className="form-row">
                 <div className="form-group">
-                  <label>Centrale</label>
-                  <input type="text" value={form.centrale}
-                    onChange={e => update('centrale', e.target.value)} />
+                  <label>Metalen ring informatie</label>
+                  <select value={form.metalenringinfo} onChange={e => update('metalenringinfo', Number(e.target.value))}>
+                    {euringReference.metalenringinfo.codes.map(o => (
+                      <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="form-group">
-                  <label>Identificatiemethode</label>
-                  <input type="text" value={form.identificatie_methode}
-                    onChange={e => update('identificatie_methode', e.target.value)} />
+                  <label>Gemanipuleerd</label>
+                  <select value={form.gemanipuleerd} onChange={e => update('gemanipuleerd', e.target.value)}>
+                    {euringReference.gemanipuleerd.codes.map(o => (
+                      <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <div className="form-row">
                 <div className="form-group">
                   <label>Status</label>
-                  <input type="text" value={form.status}
-                    onChange={e => update('status', e.target.value)} placeholder="bijv. U" />
+                  <select value={form.status} onChange={e => update('status', e.target.value)}>
+                    {euringReference.status.codes.map(o => (
+                      <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="form-group">
                   <label>Conditie</label>
-                  <input type="text" value={form.conditie}
-                    onChange={e => update('conditie', e.target.value)} placeholder="bijv. 8" />
+                  <select value={form.conditie} onChange={e => update('conditie', e.target.value)}>
+                    {CONDITIE_OPTIONS.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
+              <div className="form-group">
+                <label>Omstandigheden</label>
+                <select value={form.omstandigheden} onChange={e => update('omstandigheden', e.target.value)}>
+                  <option value="">-- Kies --</option>
+                  {euringReference.omstandigheden.codes.map(o => (
+                    <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
+                  ))}
+                </select>
+              </div>
               <div className="form-row">
-                <div className="form-group">
-                  <label>Omstandigheden</label>
-                  <input type="text" value={form.omstandigheden}
-                    onChange={e => update('omstandigheden', e.target.value)} placeholder="bijv. 20" />
-                </div>
                 <div className="form-group">
                   <label>Lokmiddelen</label>
-                  <input type="text" value={form.lokmiddelen}
-                    onChange={e => update('lokmiddelen', e.target.value)} placeholder="bijv. N" />
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Plaatscode</label>
-                  <input type="text" value={form.plaatscode}
-                    onChange={e => update('plaatscode', e.target.value)} placeholder="bijv. NL06" />
+                  <select value={form.lokmiddelen} onChange={e => update('lokmiddelen', e.target.value)}>
+                    {euringReference.lokmiddelen.codes.map(o => (
+                      <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="form-group">
-                  <label>Barcode</label>
-                  <input type="text" value={form.barcode}
-                    onChange={e => update('barcode', e.target.value)} />
+                  <label>Identificatiemethode</label>
+                  <select value={form.identificatie_methode} onChange={e => update('identificatie_methode', e.target.value)}>
+                    {euringReference.identificatie_methode.codes.map(o => (
+                      <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <div className="form-group">
-                <label>Google Plaats</label>
-                <input type="text" value={form.google_plaats}
-                  onChange={e => update('google_plaats', e.target.value)} />
-              </div>
-              <div className="form-group">
-                <label>Andere merktekens</label>
-                <input type="text" value={form.andere_merktekens}
-                  onChange={e => update('andere_merktekens', e.target.value)} />
+                <label>Nauwkeurigheid ringdatum</label>
+                <select value={form.nauwk_vangstdatum} onChange={e => update('nauwk_vangstdatum', Number(e.target.value))}>
+                  {NAUWK_DATUM_OPTIONS.map(o => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
               </div>
             </div>
           )}
@@ -1116,6 +1664,16 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
           </div>
           {sections.opmerkingen && (
             <div className="section-content">
+              <div className="form-group">
+                <label>Barcode</label>
+                <input type="text" value={form.barcode}
+                  onChange={e => update('barcode', e.target.value)} />
+              </div>
+              <div className="form-group">
+                <label>Andere merktekens</label>
+                <input type="text" value={form.andere_merktekens}
+                  onChange={e => update('andere_merktekens', e.target.value)} />
+              </div>
               <div className="form-group">
                 <label>Opmerkingen</label>
                 <textarea rows="2" value={form.opmerkingen}

@@ -342,6 +342,24 @@ input:focus, select:focus, textarea:focus {
   border-color: var(--border-focus);
 }
 
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 0.5;
+  font-size: 0.8em;
+}
+
+.ring-link {
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.ring-link:hover {
+  opacity: 0.75;
+}
+
 button {
   cursor: pointer;
   min-height: 44px;

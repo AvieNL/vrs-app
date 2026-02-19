@@ -1,5 +1,5 @@
 import { useMemo, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { exportCSV, exportJSON, exportGrielXML, downloadFile } from '../../utils/export';
 import { BarChartStacked, BarChartSimple, LineChart, VangstKaart, useChartData } from './Charts';
 import './StatsPage.css';
@@ -138,6 +138,7 @@ function computeTerugvangsten(records) {
     }
 
     lijst.push({
+      id: r.id,
       ringnummer: r.ringnummer,
       soort: r.vogelnaam || 'Onbekend',
       datum: r.vangstdatum,
@@ -222,6 +223,7 @@ function parseCSV(text) {
 }
 
 export default function StatsPage({ records, markAllAsUploaded, importRecords }) {
+  const navigate = useNavigate();
   const [showUploadConfirm, setShowUploadConfirm] = useState(false);
   const [tvSorteer, setTvSorteer] = useState('tijd');
   const [importStatus, setImportStatus] = useState(null);
@@ -483,7 +485,7 @@ export default function StatsPage({ records, markAllAsUploaded, importRecords })
                   {terugvangsten.map((tv, i) => (
                     <tr key={`${tv.ringnummer}-${tv.datum}-${i}`}>
                       <td className="tt-col-soort">{tv.soort}</td>
-                      <td className="tv-ring">{tv.ringnummer}</td>
+                      <td className="tv-ring"><span className="ring-link" onClick={() => navigate('/records', { state: { openId: tv.id } })}>{tv.ringnummer}</span></td>
                       <td className="tv-datum">{formatDatum(tv.datum)}</td>
                       <td className="tt-col-num tv-tijd">{formatDagen(tv.dagen)}</td>
                       <td className="tt-col-num tv-afstand">{formatAfstand(tv.afstandKm)}</td>

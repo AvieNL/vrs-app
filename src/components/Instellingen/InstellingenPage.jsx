@@ -44,6 +44,26 @@ export default function InstellingenPage({ settings, onUpdateSettings }) {
       </div>
 
       <div className="section">
+        <h3>Hulpweergave</h3>
+        <div className="section-content">
+          <div className="mode-toggle">
+            <button
+              className={`mode-btn${settings.hulpModus === 'uitgebreid' ? ' active' : ''}`}
+              onClick={() => onUpdateSettings({ hulpModus: 'uitgebreid' })}
+            >
+              Uitgebreid
+            </button>
+            <button
+              className={`mode-btn${settings.hulpModus === 'basis' ? ' active' : ''}`}
+              onClick={() => onUpdateSettings({ hulpModus: 'basis' })}
+            >
+              Basis
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="section">
         <h3>Standaard ringer</h3>
         <div className="section-content">
           <div className="form-group">

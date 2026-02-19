@@ -37,6 +37,7 @@ export default function Header() {
         {menuOpen && (
           <div className="header-dropdown">
             <button onClick={() => goTo('/projecten')}>Projecten</button>
+            <button onClick={() => goTo('/ringstrengen')}>Ringstrengen</button>
             <button onClick={() => goTo('/instellingen')}>Instellingen</button>
             <button onClick={() => goTo('/over')}>Over</button>
           </div>

@@ -234,7 +234,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
   const ageStats = useMemo(() => {
     const counts = {};
     soortRecords.forEach(r => {
-      const a = r.leeftijd ? leeftijdLabel(r.leeftijd) : '?';
+      const a = r.leeftijd || '0';
       counts[a] = (counts[a] || 0) + 1;
     });
     return counts;
@@ -420,6 +420,44 @@ export default function SoortDetail({ records, speciesOverrides }) {
         </div>
       )}
 
+      {/* Biometrie */}
+      {bioStats.length > 0 && !editMode && (
+        <div className="sd-card">
+          <h3 className="sd-card-title">Biometrie</h3>
+          <table className="sd-bio-table">
+            <thead>
+              <tr>
+                <th>Meting</th>
+                <th>Min</th>
+                <th>Gem.</th>
+                <th>Max</th>
+                <th>n</th>
+              </tr>
+            </thead>
+            <tbody>
+              {BIO_FIELDS.map(b => {
+                const minVal = getBioValue(b.key, 'min');
+                const avgVal = getBioValue(b.key, 'avg');
+                const maxVal = getBioValue(b.key, 'max');
+                const calc = bioStatsCalc.find(c => c.key === b.key);
+                const n = calc?.stats?.n;
+                if (!minVal && !avgVal && !maxVal) return null;
+                const isOv = (stat) => soort[`bio_${b.key}_${stat}`] !== undefined && soort[`bio_${b.key}_${stat}`] !== '';
+                return (
+                  <tr key={b.key}>
+                    <td className="sd-bio-field">{b.label} <span className="sd-bio-unit">({b.unit})</span></td>
+                    <td className={`sd-bio-num${isOv('min') ? ' sd-bio-override' : ''}`}>{minVal || '—'}</td>
+                    <td className={`sd-bio-num sd-bio-avg${isOv('avg') ? ' sd-bio-override' : ''}`}>{avgVal || '—'}</td>
+                    <td className={`sd-bio-num${isOv('max') ? ' sd-bio-override' : ''}`}>{maxVal || '—'}</td>
+                    <td className="sd-bio-num sd-bio-n">{n || '—'}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       {/* Mijn vangsten */}
       <div className="sd-card">
         <h3 className="sd-card-title">Mijn vangsten</h3>
@@ -440,66 +478,72 @@ export default function SoortDetail({ records, speciesOverrides }) {
               ))}
             </div>
 
-            {Object.keys(ageStats).length > 1 && (
+            {Object.keys(ageStats).length > 0 && (
               <div className="sd-age-section">
-                <span className="sd-sub-title">Leeftijd</span>
-                <div className="sd-chips">
-                  {Object.entries(ageStats).sort((a, b) => b[1] - a[1]).map(([age, count]) => (
-                    <span key={age} className="sd-chip">{age}: {count}</span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {bioStats.length > 0 && !editMode && (
-              <div className="sd-bio-section">
-                <span className="sd-sub-title">Biometrie</span>
-                <table className="sd-bio-table">
-                  <thead>
-                    <tr>
-                      <th>Meting</th>
-                      <th>Min</th>
-                      <th>Gem.</th>
-                      <th>Max</th>
-                      <th>n</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {BIO_FIELDS.map(b => {
-                      const minVal = getBioValue(b.key, 'min');
-                      const avgVal = getBioValue(b.key, 'avg');
-                      const maxVal = getBioValue(b.key, 'max');
-                      const calc = bioStatsCalc.find(c => c.key === b.key);
-                      const n = calc?.stats?.n;
-                      if (!minVal && !avgVal && !maxVal) return null;
-                      const isOv = (stat) => soort[`bio_${b.key}_${stat}`] !== undefined && soort[`bio_${b.key}_${stat}`] !== '';
-                      return (
-                        <tr key={b.key}>
-                          <td className="sd-bio-field">{b.label} <span className="sd-bio-unit">({b.unit})</span></td>
-                          <td className={`sd-bio-num${isOv('min') ? ' sd-bio-override' : ''}`}>{minVal || '—'}</td>
-                          <td className={`sd-bio-num sd-bio-avg${isOv('avg') ? ' sd-bio-override' : ''}`}>{avgVal || '—'}</td>
-                          <td className={`sd-bio-num${isOv('max') ? ' sd-bio-override' : ''}`}>{maxVal || '—'}</td>
-                          <td className="sd-bio-num sd-bio-n">{n || '—'}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                <span className="sd-sub-title">Leeftijdsverdeling</span>
+                {(() => {
+                  const AGE_ORDER = ['1', '3', '4', '5', '6', '7', '8', '9', 'A', '2', '0'];
+                  const sorted = AGE_ORDER.filter(c => ageStats[c]).map(c => [c, ageStats[c]]);
+                  const maxCount = Math.max(...sorted.map(([, n]) => n));
+                  return (
+                    <div className="sd-age-chart">
+                      {sorted.map(([code, count]) => (
+                        <div key={code} className="sd-age-bar-row">
+                          <span className="sd-age-bar-label">{leeftijdLabel(code)}</span>
+                          <div className="sd-age-bar-track">
+                            <div className="sd-age-bar-fill" style={{ width: `${(count / maxCount) * 100}%` }} />
+                          </div>
+                          <span className="sd-age-bar-count">{count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
               </div>
             )}
 
             <div className="sd-recent-section">
               <span className="sd-sub-title">Recente vangsten</span>
-              {soortRecords.slice(0, 5).map(r => (
-                <div key={r.id} className="sd-recent-item">
-                  <span className="sd-recent-ring">{r.ringnummer}</span>
-                  <span className="sd-recent-date">{r.vangstdatum}</span>
-                  <span className="sd-recent-meta">
-                    {r.geslacht && r.geslacht !== 'U' && <>{r.geslacht}</>}
-                    {r.leeftijd && <> / {leeftijdLabel(r.leeftijd)}</>}
-                  </span>
-                </div>
-              ))}
+              {[...soortRecords]
+                .sort((a, b) => {
+                  const parseDate = d => {
+                    if (!d) return 0;
+                    const [dd, mm, yyyy] = d.split('-');
+                    return new Date(yyyy, mm - 1, dd).getTime();
+                  };
+                  const dateA = parseDate(a.vangstdatum);
+                  const dateB = parseDate(b.vangstdatum);
+                  if (dateB !== dateA) return dateB - dateA;
+                  // Zelfde datum: ringnummer als tiebreaker, maar alleen voor nieuwe vangsten
+                  const isTvA = a.metalenringinfo === 4 || a.metalenringinfo === '4';
+                  const isTvB = b.metalenringinfo === 4 || b.metalenringinfo === '4';
+                  if (!isTvA && !isTvB) {
+                    const ringNum = s => {
+                      const m = s?.replace(/\./g, '').match(/^[A-Za-z]*(\d+)[A-Za-z]*$/);
+                      return m ? parseInt(m[1], 10) : 0;
+                    };
+                    return ringNum(b.ringnummer) - ringNum(a.ringnummer);
+                  }
+                  return 0;
+                })
+                .slice(0, 10)
+                .map(r => {
+                  const isTerugvangst = r.metalenringinfo === 4 || r.metalenringinfo === '4';
+                  return (
+                    <div key={r.id} className={`sd-recent-item${isTerugvangst ? ' sd-recent-item--tv' : ''}`}>
+                      <span className="sd-recent-type">{isTerugvangst ? 'TV' : 'NV'}</span>
+                      <span
+                        className="sd-recent-ring ring-link"
+                        onClick={() => navigate('/records', { state: { openId: r.id } })}
+                      >{r.ringnummer}</span>
+                      <span className="sd-recent-date">{r.vangstdatum}</span>
+                      <span className="sd-recent-meta">
+                        {r.geslacht && r.geslacht !== 'U' && <>{r.geslacht}</>}
+                        {r.leeftijd && <> · {leeftijdLabel(r.leeftijd)}</>}
+                      </span>
+                    </div>
+                  );
+                })}
             </div>
           </>
         )}
