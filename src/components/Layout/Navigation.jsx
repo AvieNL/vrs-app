@@ -6,8 +6,7 @@ const ALL_TABS = [
   { path: '/', label: 'Nieuw', icon: '＋', requiresEdit: true },
   { path: '/records', label: 'Records', icon: '☰' },
   { path: '/stats', label: 'Stats', icon: '◔' },
-  { path: '/soorten', label: 'Soorten', icon: '🐦' },
-  { path: '/velden', label: 'Velden', icon: '▦' },
+  { path: '/soorten', label: 'Soorten', icon: '◉' },
 ];
 
 export default function Navigation() {

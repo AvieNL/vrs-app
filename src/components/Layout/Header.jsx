@@ -5,12 +5,16 @@ import { useRole } from '../../hooks/useRole';
 import SyncIndicator from '../Sync/SyncIndicator';
 import './Header.css';
 
+const ROL_LABELS = { admin: 'Admin', ringer: 'Ringer', viewer: 'Viewer' };
+
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
-  const { logout, profile } = useAuth();
-  const { isAdmin } = useRole();
+  const { logout, profile, simulatedRole, setSimulatedRole } = useAuth();
+  const { isSimulating, rol } = useRole();
+
+  const isRealAdmin = profile?.rol === 'admin';
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -33,41 +37,80 @@ export default function Header() {
     await logout();
   }
 
+  function switchRole(newRol) {
+    setSimulatedRole(newRol === profile?.rol ? null : newRol);
+  }
+
   const isStaging = import.meta.env.VITE_STAGING === 'true';
 
   return (
     <header className="app-header">
-      <h1>VRS App{isStaging && <span className="header-staging-badge">STAGING</span>}</h1>
-      {profile?.ringer_naam && (
-        <span className="header-ringer">{profile.ringer_naam}</span>
-      )}
-      <div className="header-sync">
-        <SyncIndicator />
-      </div>
-      <div className="header-menu" ref={menuRef}>
-        <button
-          className="hamburger-btn"
-          onClick={() => setMenuOpen(o => !o)}
-          aria-label="Menu"
-        >
-          &#9776;
-        </button>
-        {menuOpen && (
-          <div className="header-dropdown">
-            {isAdmin && (
-              <button onClick={() => goTo('/admin')} className="header-admin-btn">
-                ⚙ Admin panel
-              </button>
-            )}
-            <button onClick={() => goTo('/projecten')}>Projecten</button>
-            <button onClick={() => goTo('/ringstrengen')}>Ringstrengen</button>
-            <button onClick={() => goTo('/instellingen')}>Instellingen</button>
-            <button onClick={() => goTo('/over')}>Over</button>
-            <div className="header-dropdown-divider" />
-            <button onClick={handleLogout} className="header-logout-btn">Uitloggen</button>
-          </div>
+      {/* Hoofd-rij */}
+      <div className="header-inner">
+        <h1>VRS App{isStaging && <span className="header-staging-badge">STAGING</span>}</h1>
+        {profile?.ringer_naam && (
+          <span className="header-ringer">{profile.ringer_naam}</span>
         )}
+        <div className="header-sync">
+          <SyncIndicator />
+        </div>
+        <div className="header-menu" ref={menuRef}>
+          <button
+            className={`hamburger-btn${isSimulating ? ' hamburger-btn--simulating' : ''}`}
+            onClick={() => setMenuOpen(o => !o)}
+            aria-label="Menu"
+          >
+            &#9776;
+            {isSimulating && <span className="hamburger-sim-dot" />}
+          </button>
+          {menuOpen && (
+            <div className="header-dropdown">
+              {isRealAdmin && (
+                <button onClick={() => goTo('/admin')} className="header-admin-btn">
+                  ⚙ Admin panel
+                </button>
+              )}
+              {isRealAdmin && (
+                <button onClick={() => goTo('/databases')} className="header-admin-btn">
+                  ⊞ Databases
+                </button>
+              )}
+              <button onClick={() => goTo('/projecten')}>Projecten</button>
+              <button onClick={() => goTo('/ringstrengen')}>Ringstrengen</button>
+              <button onClick={() => goTo('/instellingen')}>Instellingen</button>
+              <button onClick={() => goTo('/over')}>Over</button>
+
+              {isRealAdmin && (
+                <div className="header-role-section">
+                  <span className="header-role-label">Rol simuleren</span>
+                  <div className="header-role-btns">
+                    {['admin', 'ringer', 'viewer'].map(r => (
+                      <button
+                        key={r}
+                        className={`header-role-btn${rol === r ? ' header-role-btn--active' : ''}`}
+                        onClick={() => switchRole(r)}
+                      >
+                        {ROL_LABELS[r]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="header-dropdown-divider" />
+              <button onClick={handleLogout} className="header-logout-btn">Uitloggen</button>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Simulatiebanner — zichtbaar als admin een andere rol simuleert */}
+      {isSimulating && (
+        <div className="header-sim-banner">
+          Simuleert: <strong>{ROL_LABELS[simulatedRole]}</strong>
+          <button onClick={() => setSimulatedRole(null)}>↩ Terug naar Admin</button>
+        </div>
+      )}
     </header>
   );
 }

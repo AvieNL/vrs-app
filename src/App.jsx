@@ -10,7 +10,7 @@ import StatsPage from './components/Stats/StatsPage';
 import ProjectDetail from './components/Stats/ProjectDetail';
 import SoortenPage from './components/Soorten/SoortenPage';
 import SoortDetail from './components/Soorten/SoortDetail';
-import VeldenPage from './components/Velden/VeldenPage';
+import DatabasesPage from './components/Databases/DatabasesPage';
 import OverPage from './components/Over/OverPage';
 import InstellingenPage from './components/Instellingen/InstellingenPage';
 import ProjectenPage from './components/Projecten/ProjectenPage';
@@ -152,7 +152,7 @@ function MainApp() {
           <Route path="/soorten/:naam" element={
             <SoortDetail records={records} speciesOverrides={speciesOverrides} />
           } />
-          <Route path="/velden" element={<VeldenPage />} />
+          <Route path="/databases" element={<DatabasesPage />} />
           <Route path="/over" element={<OverPage />} />
           <Route path="/projecten" element={
             <ProjectenPage projects={projects} onAdd={addProject} onUpdate={updateProject} onDelete={deleteProject} onRenameProject={renameProject} />

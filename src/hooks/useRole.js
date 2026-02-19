@@ -9,11 +9,14 @@ import { useAuth } from '../context/AuthContext';
  *   viewer — eigen data alleen lezen
  */
 export function useRole() {
-  const { profile } = useAuth();
-  const rol = profile?.rol || 'ringer';
+  const { profile, simulatedRole } = useAuth();
+  const realRol = profile?.rol || 'ringer';
+  const rol = simulatedRole || realRol;
 
   return {
     rol,
+    realRol,
+    isSimulating: !!simulatedRole,
     isAdmin:  rol === 'admin',
     isRinger: rol === 'ringer',
     isViewer: rol === 'viewer',

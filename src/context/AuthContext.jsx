@@ -7,6 +7,18 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [simulatedRole, setSimulatedRoleState] = useState(
+    () => sessionStorage.getItem('vrs-simulated-role') || null
+  );
+
+  function setSimulatedRole(role) {
+    if (role) {
+      sessionStorage.setItem('vrs-simulated-role', role);
+    } else {
+      sessionStorage.removeItem('vrs-simulated-role');
+    }
+    setSimulatedRoleState(role);
+  }
 
   useEffect(() => {
     // Controleer bestaande sessie bij opstarten
@@ -56,6 +68,7 @@ export function AuthProvider({ children }) {
   }
 
   async function logout() {
+    setSimulatedRole(null);
     await supabase.auth.signOut();
     // Wis lokale data om cross-user lekken te voorkomen
     const keysToRemove = ['vrs-records', 'vrs-projects', 'vrs-ringstreng', 'vrs-species-overrides', 'vrs-settings'];
@@ -74,7 +87,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, login, register, logout, updateProfile }}>
+    <AuthContext.Provider value={{ user, profile, loading, login, register, logout, updateProfile, simulatedRole, setSimulatedRole }}>
       {children}
     </AuthContext.Provider>
   );

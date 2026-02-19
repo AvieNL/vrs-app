@@ -1,0 +1,183 @@
+.databases-page {
+  padding-bottom: 32px;
+}
+
+.db-page-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+}
+
+.db-section {
+  margin-bottom: 32px;
+}
+
+.db-section-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.db-section-icon {
+  font-size: 1rem;
+}
+
+.db-section-version {
+  font-size: 0.65rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+  margin-left: 2px;
+}
+
+.db-section-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.db-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.db-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.db-card-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  min-height: auto;
+}
+
+.db-card-header:hover {
+  background: var(--surface-hover);
+}
+
+.db-card-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  flex: 1;
+}
+
+.db-card-count {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 10px;
+  padding: 2px 9px;
+  min-width: 32px;
+  text-align: center;
+}
+
+.db-card-rls {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--success);
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  border-radius: 10px;
+  padding: 2px 7px;
+  letter-spacing: 0.04em;
+}
+
+.db-card-chevron {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+}
+
+.db-card-body {
+  padding: 0 14px 14px;
+  border-top: 1px solid var(--border);
+}
+
+.db-card-desc,
+.db-card-policy {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 10px 0 10px;
+  line-height: 1.45;
+}
+
+.db-card-policy {
+  color: var(--text-secondary);
+}
+
+.db-schema {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.db-schema-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.db-schema-row:last-child {
+  border-bottom: none;
+}
+
+.db-field-name {
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  min-width: 140px;
+  flex-shrink: 0;
+}
+
+.db-field-type {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.db-field-pk {
+  color: #f59e0b;
+  font-weight: 700;
+}
+
+.db-field-index {
+  color: var(--accent);
+  opacity: 0.7;
+}
+
+.db-schema-pk .db-field-name {
+  color: #f59e0b;
+}
+
+.db-field-note {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+  flex: 1;
+  font-style: italic;
+}
