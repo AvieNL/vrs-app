@@ -10,16 +10,15 @@ import Dexie from 'dexie';
 export const db = new Dexie('vrs-app');
 
 db.version(1).stores({
-  // Primaire sleutel als eerste veld; overige velden zijn indices voor querying.
-  // Niet alle record-velden hoeven hier: IndexedDB slaat het volledige object op.
   vangsten:          'id, user_id, [user_id+timestamp], vogelnaam, vangstdatum, project, uploaded, bron',
   projecten:         'id, user_id, naam',
   ringstrengen:      'id, user_id',
   species_overrides: '[user_id+soort_naam], user_id, soort_naam',
-
-  // Sync-wachtrij: ++ = auto-increment primaire sleutel
   sync_queue: '++id, table_name, createdAt, attempts',
-
-  // Metadata (bijv. laatste sync-tijdstip)
   meta: 'key',
+});
+
+// Versie 2: deleted_at index voor soft delete van vangsten
+db.version(2).stores({
+  vangsten: 'id, user_id, [user_id+timestamp], vogelnaam, vangstdatum, project, uploaded, bron, deleted_at',
 });

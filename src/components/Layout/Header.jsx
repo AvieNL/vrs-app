@@ -33,9 +33,11 @@ export default function Header() {
     await logout();
   }
 
+  const isStaging = import.meta.env.VITE_STAGING === 'true';
+
   return (
     <header className="app-header">
-      <h1>VRS App</h1>
+      <h1>VRS App{isStaging && <span className="header-staging-badge">STAGING</span>}</h1>
       {profile?.ringer_naam && (
         <span className="header-ringer">{profile.ringer_naam}</span>
       )}

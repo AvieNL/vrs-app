@@ -185,12 +185,27 @@ async function executeQueueItem(item, userId) {
     if (error) throw error;
 
   } else if (operation === 'mark_uploaded') {
-    // data = { ids: [...] }
     const { error } = await supabase
       .from('vangsten')
       .update({ uploaded: true, updated_at: new Date().toISOString() })
       .eq('user_id', userId)
       .in('id', data.ids);
+    if (error) throw error;
+
+  } else if (operation === 'soft_delete') {
+    const { error } = await supabase
+      .from('vangsten')
+      .update({ deleted_at: data.deleted_at, updated_at: new Date().toISOString() })
+      .eq('id', data.id)
+      .eq('user_id', userId);
+    if (error) throw error;
+
+  } else if (operation === 'restore') {
+    const { error } = await supabase
+      .from('vangsten')
+      .update({ deleted_at: null, updated_at: new Date().toISOString() })
+      .eq('id', data.id)
+      .eq('user_id', userId);
     if (error) throw error;
   }
 }

@@ -1,9 +1,126 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRole } from '../../hooks/useRole';
+import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../lib/supabase';
 import './ProjectenPage.css';
+
+// Ingebouwde component voor ledenbeheeer per project
+function ProjectMembers({ project }) {
+  const { user } = useAuth();
+  const [open, setOpen] = useState(false);
+  const [members, setMembers] = useState([]);
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const isOwner = project.user_id === user?.id;
+
+  async function loadMembers() {
+    const { data } = await supabase.rpc('get_project_members', { p_project_id: project.id });
+    setMembers(data || []);
+  }
+
+  useEffect(() => {
+    if (open) loadMembers();
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function addMember() {
+    const trimmed = email.trim().toLowerCase();
+    if (!trimmed) return;
+    setLoading(true);
+    setError('');
+    try {
+      const { data: userId, error: lookupErr } = await supabase.rpc('lookup_user_id', { p_email: trimmed });
+      if (lookupErr || !userId) throw new Error('Geen account gevonden voor dit e-mailadres.');
+      if (userId === user.id) throw new Error('Je kunt jezelf niet toevoegen.');
+
+      const { error: insertErr } = await supabase
+        .from('project_members')
+        .insert({ project_id: project.id, user_id: userId });
+      if (insertErr) {
+        if (insertErr.code === '23505') throw new Error('Deze ringer is al lid van het project.');
+        throw insertErr;
+      }
+      setEmail('');
+      await loadMembers();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function removeMember(userId) {
+    await supabase.from('project_members').delete()
+      .eq('project_id', project.id)
+      .eq('user_id', userId);
+    await loadMembers();
+  }
+
+  if (!isOwner && !project.shared) return null;
+
+  return (
+    <div className="project-members">
+      <button
+        className="project-members-toggle"
+        onClick={() => setOpen(o => !o)}
+      >
+        {open ? '▾' : '▸'} {open ? 'Leden' : `Leden${members.length > 0 ? ` (${members.length})` : ''}`}
+      </button>
+      {open && (
+        <div className="project-members-panel">
+          {members.length === 0 ? (
+            <p className="project-members-empty">Nog geen leden toegevoegd.</p>
+          ) : (
+            members.map(m => (
+              <div key={m.user_id} className="project-member-row">
+                <span className="project-member-name">
+                  {m.ringer_naam || m.email}
+                  {m.email && m.ringer_naam && (
+                    <span className="project-member-email">{m.email}</span>
+                  )}
+                </span>
+                {isOwner && (
+                  <button
+                    className="project-member-remove"
+                    onClick={() => removeMember(m.user_id)}
+                    title="Verwijderen"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            ))
+          )}
+          {isOwner && (
+            <div className="project-members-add">
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addMember()}
+                placeholder="e-mailadres van ringer"
+              />
+              <button
+                className="btn-success"
+                onClick={addMember}
+                disabled={loading || !email.trim()}
+                style={{ minWidth: 'auto', minHeight: 'auto', padding: '6px 12px', fontSize: '0.85rem' }}
+              >
+                {loading ? '...' : 'Toevoegen'}
+              </button>
+            </div>
+          )}
+          {error && <p className="project-members-error">{error}</p>}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ProjectenPage({ projects, onAdd, onUpdate, onDelete, onRenameProject }) {
   const { canAdd, canEdit, canDelete } = useRole();
+  const { user } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [naam, setNaam] = useState('');
   const [locatie, setLocatie] = useState('');
@@ -37,7 +154,6 @@ export default function ProjectenPage({ projects, onAdd, onUpdate, onDelete, onR
   function saveEdit(p) {
     const newNaam = editNaam.trim();
     if (!newNaam) return;
-    // Als de naam is gewijzigd, ook records updaten
     if (newNaam !== p.naam && onRenameProject) {
       onRenameProject(p.naam, newNaam);
     }
@@ -80,76 +196,82 @@ export default function ProjectenPage({ projects, onAdd, onUpdate, onDelete, onR
         {projects.length === 0 ? (
           <div className="empty-state">Nog geen projecten</div>
         ) : (
-          projects.map(p => (
-            <div key={p.id} className="project-card">
-              {editId === p.id ? (
-                <div className="project-edit">
-                  <div className="form-group">
-                    <label>Naam</label>
-                    <input type="text" value={editNaam} onChange={e => setEditNaam(e.target.value)} />
-                  </div>
-                  <div className="form-row">
+          projects.map(p => {
+            const isOwn = p.user_id === user?.id;
+            const isShared = p.shared === true;
+            return (
+              <div key={p.id} className={`project-card${isShared ? ' project-card--shared' : ''}`}>
+                {editId === p.id ? (
+                  <div className="project-edit">
                     <div className="form-group">
-                      <label>Locatie</label>
-                      <input type="text" value={editLocatie} onChange={e => setEditLocatie(e.target.value)} />
+                      <label>Naam</label>
+                      <input type="text" value={editNaam} onChange={e => setEditNaam(e.target.value)} />
                     </div>
-                    <div className="form-group">
-                      <label>Nummer</label>
-                      <input type="text" value={editNummer} onChange={e => setEditNummer(e.target.value)} />
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Locatie</label>
+                        <input type="text" value={editLocatie} onChange={e => setEditLocatie(e.target.value)} />
+                      </div>
+                      <div className="form-group">
+                        <label>Nummer</label>
+                        <input type="text" value={editNummer} onChange={e => setEditNummer(e.target.value)} />
+                      </div>
+                    </div>
+                    <div className="project-edit-actions">
+                      <button type="button" className="btn-success" onClick={() => saveEdit(p)}
+                        style={{ minWidth: 'auto', padding: '6px 14px' }}>
+                        Opslaan
+                      </button>
+                      <button type="button" className="btn-secondary" onClick={cancelEdit}
+                        style={{ minWidth: 'auto', padding: '6px 14px' }}>
+                        Annuleer
+                      </button>
                     </div>
                   </div>
-                  <div className="project-edit-actions">
-                    <button type="button" className="btn-success" onClick={() => saveEdit(p)}
-                      style={{ minWidth: 'auto', padding: '6px 14px' }}>
-                      Opslaan
-                    </button>
-                    <button type="button" className="btn-secondary" onClick={cancelEdit}
-                      style={{ minWidth: 'auto', padding: '6px 14px' }}>
-                      Annuleer
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="project-info">
-                    <strong>{p.naam}</strong>
-                    <span className="project-meta">
-                      {p.nummer && <span className="project-nummer">#{p.nummer}</span>}
-                      {p.locatie && <span className="project-loc">{p.locatie}</span>}
-                    </span>
-                  </div>
-                  <div className="project-actions">
-                    {canEdit && (
+                ) : (
+                  <>
+                    <div className="project-info">
+                      <strong>{p.naam}</strong>
+                      <span className="project-meta">
+                        {p.nummer && <span className="project-nummer">#{p.nummer}</span>}
+                        {p.locatie && <span className="project-loc">{p.locatie}</span>}
+                        {isShared && <span className="project-shared-badge">Gedeeld</span>}
+                      </span>
+                      <ProjectMembers project={p} />
+                    </div>
+                    <div className="project-actions">
+                      {canEdit && isOwn && (
+                        <button
+                          className="btn-secondary"
+                          onClick={() => startEdit(p)}
+                          style={{ minWidth: 'auto', minHeight: 'auto', padding: '4px 10px', fontSize: '0.8rem' }}
+                        >
+                          Bewerk
+                        </button>
+                      )}
                       <button
-                        className="btn-secondary"
-                        onClick={() => startEdit(p)}
-                        style={{ minWidth: 'auto', minHeight: 'auto', padding: '4px 10px', fontSize: '0.8rem' }}
+                        className={`btn-secondary badge ${p.actief ? 'badge-success' : ''}`}
+                        onClick={() => canEdit && isOwn && onUpdate(p.id, { actief: !p.actief })}
+                        disabled={!canEdit || !isOwn}
+                        style={{ minWidth: 'auto', minHeight: 'auto', padding: '4px 10px' }}
                       >
-                        Bewerk
+                        {p.actief ? 'Actief' : 'Inactief'}
                       </button>
-                    )}
-                    <button
-                      className={`btn-secondary badge ${p.actief ? 'badge-success' : ''}`}
-                      onClick={() => canEdit && onUpdate(p.id, { actief: !p.actief })}
-                      disabled={!canEdit}
-                      style={{ minWidth: 'auto', minHeight: 'auto', padding: '4px 10px' }}
-                    >
-                      {p.actief ? 'Actief' : 'Inactief'}
-                    </button>
-                    {canDelete && (
-                      <button
-                        className="btn-danger"
-                        onClick={() => onDelete(p.id)}
-                        style={{ minWidth: 'auto', minHeight: 'auto', padding: '4px 10px', fontSize: '0.8rem' }}
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          ))
+                      {canDelete && isOwn && (
+                        <button
+                          className="btn-danger"
+                          onClick={() => onDelete(p.id)}
+                          style={{ minWidth: 'auto', minHeight: 'auto', padding: '4px 10px', fontSize: '0.8rem' }}
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })
         )}
       </div>
     </div>

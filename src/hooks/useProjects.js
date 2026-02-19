@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { generateId } from '../utils/storage';
 import { db } from '../lib/db';
@@ -28,6 +28,7 @@ export function useProjects() {
   const { user } = useAuth();
   const { addToQueue } = useSync();
   const pulledRef = useRef(false);
+  const [sharedProjects, setSharedProjects] = useState([]);
 
   const projects = useLiveQuery(
     () => {
@@ -42,11 +43,13 @@ export function useProjects() {
   useEffect(() => {
     if (!user) {
       pulledRef.current = false;
+      setSharedProjects([]);
       return;
     }
     if (pulledRef.current) return;
     pulledRef.current = true;
     pullFromSupabase();
+    pullSharedProjects();
   }, [user?.id]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   async function pullFromSupabase() {
@@ -82,6 +85,36 @@ export function useProjects() {
       key: `last_pull_projecten_${user.id}`,
       value: new Date().toISOString(),
     });
+  }
+
+  async function pullSharedProjects() {
+    const { data: memberships } = await supabase
+      .from('project_members')
+      .select('project_id')
+      .eq('user_id', user.id);
+
+    if (!memberships?.length) {
+      setSharedProjects([]);
+      return;
+    }
+
+    const ids = memberships.map(m => m.project_id);
+    const { data: shared } = await supabase
+      .from('projecten')
+      .select('*')
+      .in('id', ids);
+
+    if (shared) {
+      setSharedProjects(shared.map(p => ({
+        id: p.id,
+        user_id: p.user_id,
+        naam: p.naam,
+        locatie: p.locatie || '',
+        nummer: p.nummer || '',
+        actief: p.actief !== false,
+        shared: true,
+      })));
+    }
   }
 
   // Eerste run zonder Supabase-data: laad defaults
@@ -127,5 +160,7 @@ export function useProjects() {
     addToQueue('projecten', 'delete', { id, user_id: user.id });
   }
 
-  return { projects, addProject, updateProject, deleteProject };
+  const allProjects = [...projects, ...sharedProjects];
+
+  return { projects: allProjects, addProject, updateProject, deleteProject, refreshShared: pullSharedProjects };
 }

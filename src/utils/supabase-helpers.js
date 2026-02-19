@@ -11,6 +11,7 @@ export function toVangstRow(record, userId) {
     project: record.project || null,
     bron: record.bron || 'app',
     uploaded: record.uploaded || false,
+    deleted_at: record.deleted_at || null,
     data: record,
     updated_at: new Date().toISOString(),
   };
@@ -27,5 +28,6 @@ export function fromVangstRow(row) {
     id: row.id,
     bron: row.bron,
     uploaded: row.uploaded,
+    deleted_at: row.deleted_at || null,
   };
 }

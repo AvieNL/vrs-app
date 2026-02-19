@@ -64,3 +64,108 @@
   display: flex;
   gap: 8px;
 }
+
+/* Gedeeld project */
+.project-card--shared {
+  border-left: 3px solid var(--accent);
+}
+
+.project-shared-badge {
+  font-size: 0.7rem;
+  background: var(--accent-bg);
+  color: var(--accent);
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+/* Projectleden */
+.project-members {
+  margin-top: 6px;
+}
+
+.project-members-toggle {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 2px 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+.project-members-toggle:hover {
+  color: var(--accent);
+}
+
+.project-members-panel {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+}
+
+.project-members-empty {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.project-member-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.project-member-name {
+  font-size: 0.82rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.project-member-email {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.project-member-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 2px 6px;
+  min-width: 0;
+  min-height: 0;
+  border-radius: var(--radius-sm);
+}
+
+.project-member-remove:hover {
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.project-members-add {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.project-members-add input {
+  flex: 1;
+  font-size: 0.82rem;
+  padding: 6px 10px;
+  min-height: 0;
+}
+
+.project-members-error {
+  font-size: 0.78rem;
+  color: var(--danger);
+  margin: 0;
+}

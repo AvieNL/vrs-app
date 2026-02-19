@@ -17,14 +17,27 @@ export function useRecords() {
   const { addToQueue } = useSync();
   const pulledRef = useRef(false);
 
-  // Reactieve query vanuit Dexie — werkt automatisch bij, ook offline.
+  // Actieve vangsten (niet soft-deleted)
   const records = useLiveQuery(
     () => {
       if (!user) return [];
       return db.vangsten
         .orderBy('[user_id+timestamp]')
         .reverse()
-        .filter(r => r.user_id === user.id)
+        .filter(r => r.user_id === user.id && !r.deleted_at)
+        .toArray();
+    },
+    [user?.id],
+    []
+  ) ?? [];
+
+  // Soft-deleted vangsten (prullenbak)
+  const deletedRecords = useLiveQuery(
+    () => {
+      if (!user) return [];
+      return db.vangsten
+        .where('user_id').equals(user.id)
+        .filter(r => !!r.deleted_at)
         .toArray();
     },
     [user?.id],
@@ -104,6 +117,17 @@ export function useRecords() {
   }
 
   function deleteRecord(id) {
+    const deletedAt = new Date().toISOString();
+    db.vangsten.update(id, { deleted_at: deletedAt });
+    addToQueue('vangsten', 'soft_delete', { id, deleted_at: deletedAt, user_id: user.id });
+  }
+
+  function restoreRecord(id) {
+    db.vangsten.update(id, { deleted_at: null });
+    addToQueue('vangsten', 'restore', { id, user_id: user.id });
+  }
+
+  function permanentDeleteRecord(id) {
     db.vangsten.delete(id);
     addToQueue('vangsten', 'delete', { id, user_id: user.id });
   }
@@ -155,9 +179,12 @@ export function useRecords() {
 
   return {
     records,
+    deletedRecords,
     addRecord,
     updateRecord,
     deleteRecord,
+    restoreRecord,
+    permanentDeleteRecord,
     markAsUploaded,
     markAllAsUploaded,
     importRecords,

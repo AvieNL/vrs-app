@@ -22,8 +22,9 @@ function leeftijdLabel(code) {
   return LEEFTIJD_LABEL[code] || code;
 }
 
-export default function RecordsPage({ records, onDelete }) {
+export default function RecordsPage({ records, deletedRecords = [], onDelete, onRestore, onPermanentDelete }) {
   const [zoek, setZoek] = useState('');
+  const [prullenbakOpen, setPrullenbakOpen] = useState(false);
   const [expanded, setExpanded] = useState(null);
   const location = useLocation();
   const { canDelete } = useRole();
@@ -122,6 +123,48 @@ export default function RecordsPage({ records, onDelete }) {
           </div>
         )}
       </div>
+
+      {deletedRecords.length > 0 && (
+        <div className="prullenbak-section">
+          <button
+            className="prullenbak-toggle"
+            onClick={() => setPrullenbakOpen(o => !o)}
+          >
+            {prullenbakOpen ? '▾' : '▸'} Prullenbak ({deletedRecords.length})
+          </button>
+          {prullenbakOpen && (
+            <div className="prullenbak-list">
+              {deletedRecords.map(r => (
+                <div key={r.id} className="prullenbak-item">
+                  <div className="prullenbak-info">
+                    <strong>{r.vogelnaam || 'Onbekend'}</strong>
+                    {r.ringnummer && <span className="prullenbak-ring">{r.ringnummer}</span>}
+                    {r.vangstdatum && <span className="prullenbak-datum">{r.vangstdatum}</span>}
+                  </div>
+                  <div className="prullenbak-acties">
+                    {onRestore && canDelete && (
+                      <button
+                        className="btn-success prullenbak-btn"
+                        onClick={() => onRestore(r.id)}
+                      >
+                        Herstellen
+                      </button>
+                    )}
+                    {onPermanentDelete && canDelete && (
+                      <button
+                        className="btn-danger prullenbak-btn"
+                        onClick={() => onPermanentDelete(r.id)}
+                      >
+                        Definitief
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

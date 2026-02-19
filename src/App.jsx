@@ -72,7 +72,7 @@ function AppShell() {
 }
 
 function MainApp() {
-  const { records, addRecord, deleteRecord, markAllAsUploaded, importRecords, renameProject } = useRecords();
+  const { records, deletedRecords, addRecord, deleteRecord, restoreRecord, permanentDeleteRecord, markAllAsUploaded, importRecords, renameProject } = useRecords();
   const { projects, addProject, updateProject, deleteProject } = useProjects();
   const speciesOverrides = useSpeciesOverrides();
   const { settings, updateSettings } = useSettings();
@@ -96,7 +96,13 @@ function MainApp() {
             />
           } />
           <Route path="/records" element={
-            <RecordsPage records={records} onDelete={deleteRecord} />
+            <RecordsPage
+              records={records}
+              deletedRecords={deletedRecords}
+              onDelete={deleteRecord}
+              onRestore={restoreRecord}
+              onPermanentDelete={permanentDeleteRecord}
+            />
           } />
           <Route path="/stats" element={
             <StatsPage records={records} markAllAsUploaded={markAllAsUploaded} importRecords={importRecords} />
