@@ -91,5 +91,14 @@ export function useSpeciesOverrides() {
     };
   }, [overrides]);
 
-  return { getOverride, saveOverride, getMerged };
+  const resetOverride = useCallback(async (naam) => {
+    if (!user) return;
+    await db.species_overrides.delete([user.id, naam]);
+    addToQueue('species_overrides', 'species_override_delete', {
+      user_id: user.id,
+      soort_naam: naam,
+    });
+  }, [user, addToQueue]);
+
+  return { getOverride, saveOverride, getMerged, resetOverride };
 }

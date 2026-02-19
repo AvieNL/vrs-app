@@ -1,35 +1,69 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../lib/db';
+import { supabase } from '../lib/supabase';
 
-// Module-level cache zodat het JSON maar één keer geladen wordt,
-// ook als meerdere componenten tegelijk de hook gebruiken.
-let _cache = null;
-let _promise = null;
+const PULL_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 uur
 
-function loadSpeciesRef() {
-  if (_cache) return Promise.resolve(_cache);
-  if (!_promise) {
-    _promise = import('../data/species-reference.json').then(m => {
-      _cache = m.default;
-      return _cache;
-    });
-  }
-  return _promise;
+// Module-level vlag zodat gelijktijdige hook-instanties niet tegelijk pullen
+let _pulling = false;
+
+/**
+ * Geeft alle soorten terug uit de lokale Dexie-cache (offline-first).
+ * Pull van Supabase als de cache leeg is of ouder dan 24 uur.
+ */
+export function useSpeciesRef() {
+  const pulledRef = useRef(false);
+
+  const species = useLiveQuery(
+    () => db.species.toArray(),
+    [],
+    []
+  ) ?? [];
+
+  useEffect(() => {
+    if (pulledRef.current) return;
+    pulledRef.current = true;
+    pullIfNeeded();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return species;
 }
 
 /**
- * Laadt species-reference.json asynchroon (apart chunk, ~384 KB).
- * Geeft een lege array terug zolang het laden niet klaar is.
+ * Controleert of een Supabase-pull nodig is en voert deze uit.
+ * Exporteerbaar zodat SyncContext dit ook kan aanroepen.
  */
-export function useSpeciesRef() {
-  const [data, setData] = useState(_cache || []);
-
-  useEffect(() => {
-    if (_cache) {
-      setData(_cache);
-      return;
+export async function pullSpeciesIfNeeded(force = false) {
+  if (_pulling) return;
+  _pulling = true;
+  try {
+    if (!force) {
+      const count = await db.species.count();
+      if (count > 0) {
+        const meta = await db.meta.get('species_last_pull');
+        if (meta) {
+          const age = Date.now() - new Date(meta.value).getTime();
+          if (age < PULL_INTERVAL_MS) return; // Nog niet verlopen
+        }
+      }
     }
-    loadSpeciesRef().then(setData);
-  }, []);
 
-  return data;
+    const { data, error } = await supabase
+      .from('species')
+      .select('naam_nl, data');
+
+    if (error || !data || data.length === 0) return;
+
+    // data.map(r => r.data) geeft het volledige soortobject incl. naam_nl
+    const rows = data.map(r => r.data);
+    await db.species.bulkPut(rows);
+    await db.meta.put({ key: 'species_last_pull', value: new Date().toISOString() });
+  } finally {
+    _pulling = false;
+  }
+}
+
+async function pullIfNeeded() {
+  await pullSpeciesIfNeeded(false);
 }

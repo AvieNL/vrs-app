@@ -1,6 +1,9 @@
 import { useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSpeciesRef } from '../../hooks/useSpeciesRef';
+import { useRole } from '../../hooks/useRole';
+import { db } from '../../lib/db';
+import { supabase } from '../../lib/supabase';
 import './SoortDetail.css';
 
 const LEEFTIJD_LABEL = {
@@ -102,6 +105,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
   const navigate = useNavigate();
   const decodedNaam = decodeURIComponent(naam);
   const fileInputRef = useRef(null);
+  const { isAdmin } = useRole();
   const speciesRef = useSpeciesRef();
   const soorten = useMemo(
     () => speciesRef.filter(s => s.naam_nl && !s.naam_nl.includes('groene tekst')),
@@ -163,49 +167,92 @@ export default function SoortDetail({ records, speciesOverrides }) {
     setEditData({});
   };
 
-  const saveEdit = () => {
-    if (!speciesOverrides) return;
-    const changes = {};
-    const boekenChanges = {};
+  const saveEdit = async () => {
+    if (isAdmin) {
+      // Admin: sla volledige soortdata op in Supabase species tabel + Dexie
+      const adminData = {
+        ...defaultSoort,
+        boeken: { ...(defaultSoort?.boeken || {}) },
+      };
 
-    Object.values(EDITABLE_FIELDS).flat().forEach(f => {
-      const defaultVal = isBoekKey(f.key) ? (defaultSoort?.boeken?.[f.key] ?? '') : (defaultSoort?.[f.key] ?? '');
-      const newVal = editData[f.key] ?? '';
-      if (String(newVal) !== String(defaultVal)) {
+      Object.values(EDITABLE_FIELDS).flat().forEach(f => {
         if (isBoekKey(f.key)) {
-          boekenChanges[f.key] = newVal;
+          if (editData[f.key]) {
+            adminData.boeken[f.key] = editData[f.key];
+          } else {
+            delete adminData.boeken[f.key];
+          }
         } else {
-          changes[f.key] = newVal;
-        }
-      }
-    });
-
-    if (Object.keys(boekenChanges).length > 0) {
-      changes.boeken = boekenChanges;
-    }
-
-    // Bio overrides: only save if user changed from the stats-calculated value
-    BIO_FIELDS.forEach(f => {
-      ['min', 'max', 'avg'].forEach(stat => {
-        const key = `bio_${f.key}_${stat}`;
-        const editVal = editData[key] ?? '';
-        const calc = bioStatsCalc.find(b => b.key === f.key);
-        const statsVal = calc?.stats ? calc.stats[stat].toFixed(1) : '';
-        if (String(editVal) !== String(statsVal)) {
-          changes[key] = editVal;
+          adminData[f.key] = editData[f.key] ?? '';
         }
       });
-    });
 
-    const defaultNotities = defaultSoort?.ruitype_notities ?? '';
-    if (editData.ruitype_notities !== defaultNotities) {
-      changes.ruitype_notities = editData.ruitype_notities;
-    }
-    if (editData.foto && editData.foto !== (defaultSoort?.foto ?? '')) {
-      changes.foto = editData.foto;
+      BIO_FIELDS.forEach(f => {
+        ['min', 'max', 'avg'].forEach(stat => {
+          const key = `bio_${f.key}_${stat}`;
+          adminData[key] = editData[key] ?? '';
+        });
+      });
+
+      adminData.ruitype_notities = editData.ruitype_notities ?? '';
+      if (editData.foto !== undefined) adminData.foto = editData.foto;
+
+      const { error } = await supabase
+        .from('species')
+        .upsert({ naam_nl: decodedNaam, data: adminData });
+
+      if (error) {
+        alert('Opslaan mislukt: ' + error.message);
+        return;
+      }
+
+      await db.species.put(adminData);
+    } else {
+      // Ringer: sla delta op als override (alleen voor eigen view)
+      if (!speciesOverrides) return;
+      const changes = {};
+      const boekenChanges = {};
+
+      Object.values(EDITABLE_FIELDS).flat().forEach(f => {
+        const defaultVal = isBoekKey(f.key) ? (defaultSoort?.boeken?.[f.key] ?? '') : (defaultSoort?.[f.key] ?? '');
+        const newVal = editData[f.key] ?? '';
+        if (String(newVal) !== String(defaultVal)) {
+          if (isBoekKey(f.key)) {
+            boekenChanges[f.key] = newVal;
+          } else {
+            changes[f.key] = newVal;
+          }
+        }
+      });
+
+      if (Object.keys(boekenChanges).length > 0) {
+        changes.boeken = boekenChanges;
+      }
+
+      // Bio overrides: alleen opslaan als afwijkend van berekende statistieken
+      BIO_FIELDS.forEach(f => {
+        ['min', 'max', 'avg'].forEach(stat => {
+          const key = `bio_${f.key}_${stat}`;
+          const editVal = editData[key] ?? '';
+          const calc = bioStatsCalc.find(b => b.key === f.key);
+          const statsVal = calc?.stats ? calc.stats[stat].toFixed(1) : '';
+          if (String(editVal) !== String(statsVal)) {
+            changes[key] = editVal;
+          }
+        });
+      });
+
+      const defaultNotities = defaultSoort?.ruitype_notities ?? '';
+      if (editData.ruitype_notities !== defaultNotities) {
+        changes.ruitype_notities = editData.ruitype_notities;
+      }
+      if (editData.foto && editData.foto !== (defaultSoort?.foto ?? '')) {
+        changes.foto = editData.foto;
+      }
+
+      speciesOverrides.saveOverride(decodedNaam, changes);
     }
 
-    speciesOverrides.saveOverride(decodedNaam, changes);
     setEditMode(false);
     setEditData({});
   };
@@ -331,7 +378,18 @@ export default function SoortDetail({ records, speciesOverrides }) {
           </div>
         </div>
         {!editMode ? (
-          <button className="sd-edit-btn" onClick={startEdit} title="Bewerken">✏️</button>
+          <div className="sd-hero-actions">
+            <button className="sd-edit-btn" onClick={startEdit} title="Bewerken">✏️</button>
+            {!isAdmin && speciesOverrides && Object.keys(speciesOverrides.getOverride(decodedNaam)).length > 0 && (
+              <button
+                className="btn-secondary sd-reset-btn"
+                onClick={() => speciesOverrides.resetOverride(decodedNaam)}
+                title="Reset naar basisdata"
+              >
+                ↩ Reset
+              </button>
+            )}
+          </div>
         ) : (
           <div className="sd-edit-actions">
             <button className="btn-primary sd-save-btn" onClick={saveEdit}>Opslaan</button>

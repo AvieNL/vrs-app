@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useRef } f
 import { useAuth } from './AuthContext';
 import { supabase } from '../lib/supabase';
 import { db } from '../lib/db';
+import { pullSpeciesIfNeeded } from '../hooks/useSpeciesRef';
 
 const SyncContext = createContext(null);
 
@@ -85,6 +86,13 @@ export function SyncProvider({ children }) {
     if (!user || syncingRef.current || !navigator.onLine) return;
 
     const pending = await db.sync_queue.orderBy('id').toArray();
+    const speciesCount = await db.species.count();
+
+    // Pull species basisdata als de cache leeg is (ongeacht queue)
+    if (speciesCount === 0) {
+      pullSpeciesIfNeeded(false).catch(e => console.warn('Species pull mislukt:', e.message));
+    }
+
     if (pending.length === 0) return;
 
     syncingRef.current = true;
@@ -175,6 +183,14 @@ async function executeQueueItem(item, userId) {
     const { error } = await supabase
       .from('species_overrides')
       .upsert(data, { onConflict: 'user_id,soort_naam' });
+    if (error) throw error;
+
+  } else if (operation === 'species_override_delete') {
+    const { error } = await supabase
+      .from('species_overrides')
+      .delete()
+      .eq('user_id', data.user_id)
+      .eq('soort_naam', data.soort_naam);
     if (error) throw error;
 
   } else if (operation === 'profile_update') {
