@@ -57,6 +57,7 @@ export default function RingstrengenPage({ ringStrengen, records = [], onAdd, on
   const [toonForm, setToonForm] = useState(false);
   const [form, setForm] = useState(LEEG);
   const [bewerkId, setBewerkId] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   // Bereken stats per streng vanuit de records
   const statsPerStreng = useMemo(() => {
@@ -147,11 +148,20 @@ export default function RingstrengenPage({ ringStrengen, records = [], onAdd, on
                 )}
                 {stats.vol && <span className="ringstreng-vol-badge">Vol</span>}
                 <div className="ringstreng-iconen">
-                  {canEdit && (
+                  {canEdit && confirmDeleteId !== streng.id && (
                     <button className="ringstreng-icoon" onClick={() => startBewerken(streng)} title="Bewerken">✎</button>
                   )}
                   {canDelete && (
-                    <button className="ringstreng-icoon ringstreng-icoon--delete" onClick={() => onDelete(streng.id)} title="Verwijderen">✕</button>
+                    confirmDeleteId === streng.id ? (
+                      <>
+                        <button className="ringstreng-icoon ringstreng-icoon--delete" style={{ opacity: 1, fontSize: '0.82rem', padding: '2px 8px' }}
+                          onClick={() => { onDelete(streng.id); setConfirmDeleteId(null); }}>Ja</button>
+                        <button className="ringstreng-icoon" style={{ opacity: 1, fontSize: '0.82rem', padding: '2px 8px' }}
+                          onClick={() => setConfirmDeleteId(null)}>Nee</button>
+                      </>
+                    ) : (
+                      <button className="ringstreng-icoon ringstreng-icoon--delete" onClick={() => setConfirmDeleteId(streng.id)} title="Verwijderen">✕</button>
+                    )
                   )}
                 </div>
               </div>
