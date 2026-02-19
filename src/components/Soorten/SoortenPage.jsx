@@ -1,14 +1,16 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import speciesRef from '../../data/species-reference.json';
+import { useSpeciesRef } from '../../hooks/useSpeciesRef';
 import './SoortenPage.css';
-
-// Filter out the header row
-const soorten = speciesRef.filter(s => s.naam_nl && !s.naam_nl.includes('groene tekst'));
 
 export default function SoortenPage({ records }) {
   const [zoek, setZoek] = useState('');
   const navigate = useNavigate();
+  const speciesRef = useSpeciesRef();
+  const soorten = useMemo(
+    () => speciesRef.filter(s => s.naam_nl && !s.naam_nl.includes('groene tekst')),
+    [speciesRef]
+  );
 
   // Count records per species
   const countPerSoort = useMemo(() => {

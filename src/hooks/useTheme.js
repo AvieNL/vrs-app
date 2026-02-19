@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useSync } from '../context/SyncContext';
 
 export const COLORS = [
   { id: 'neutraal', label: 'Neutraal', darkDot: '#9ca3af', lightDot: '#374151' },
@@ -10,6 +12,9 @@ export const COLORS = [
 ];
 
 export function useTheme() {
+  const { profile, updateProfile } = useAuth();
+  const { addToQueue } = useSync();
+
   const [color, setColorState] = useState(() => {
     const stored = localStorage.getItem('vrs-color') || 'blauw';
     document.documentElement.setAttribute('data-color', stored);
@@ -22,6 +27,13 @@ export function useTheme() {
     return stored;
   });
 
+  // Synchroniseer vanuit profiel zodra het geladen is
+  useEffect(() => {
+    if (profile?.kleur) setColorState(profile.kleur);
+    if (profile?.modus) setModeState(profile.modus);
+  }, [profile?.kleur, profile?.modus]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Pas DOM en localStorage aan wanneer kleur/modus verandert
   useEffect(() => {
     document.documentElement.setAttribute('data-color', color);
     document.documentElement.setAttribute('data-mode', mode);
@@ -29,5 +41,17 @@ export function useTheme() {
     localStorage.setItem('vrs-mode', mode);
   }, [color, mode]);
 
-  return { color, mode, setColor: setColorState, setMode: setModeState };
+  function setColor(newColor) {
+    setColorState(newColor);
+    updateProfile({ kleur: newColor });
+    addToQueue('profiles', 'profile_update', { kleur: newColor, updated_at: new Date().toISOString() });
+  }
+
+  function setMode(newMode) {
+    setModeState(newMode);
+    updateProfile({ modus: newMode });
+    addToQueue('profiles', 'profile_update', { modus: newMode, updated_at: new Date().toISOString() });
+  }
+
+  return { color, mode, setColor, setMode };
 }

@@ -1,8 +1,11 @@
 import { useTheme, COLORS } from '../../hooks/useTheme';
+import { useSync } from '../../context/SyncContext';
+import CloudStatus from './CloudStatus';
 import './InstellingenPage.css';
 
 export default function InstellingenPage({ settings, onUpdateSettings }) {
   const { color, mode, setColor, setMode } = useTheme();
+  const { processQueue, syncing, pendingCount, isOnline, lastSynced } = useSync();
 
   return (
     <div className="page instellingen-page">
@@ -59,6 +62,30 @@ export default function InstellingenPage({ settings, onUpdateSettings }) {
             >
               Basis
             </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="section">
+        <h3>Cloud & account</h3>
+        <div className="section-content">
+          <CloudStatus />
+          <div className="sync-controls">
+            <button
+              className="btn-secondary sync-force-btn"
+              onClick={processQueue}
+              disabled={syncing || !isOnline || pendingCount === 0}
+            >
+              {syncing ? 'Synchroniseren...' : `Forceer sync${pendingCount > 0 ? ` (${pendingCount})` : ''}`}
+            </button>
+            {lastSynced && (
+              <span className="sync-last-time">
+                Laatste sync: {lastSynced.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
+            {!isOnline && (
+              <span className="sync-offline-note">Offline — sync niet mogelijk</span>
+            )}
           </div>
         </div>
       </div>

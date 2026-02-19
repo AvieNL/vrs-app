@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useRole } from '../../hooks/useRole';
 import './RecordsPage.css';
 
 const LEEFTIJD_LABEL = {
@@ -25,6 +26,7 @@ export default function RecordsPage({ records, onDelete }) {
   const [zoek, setZoek] = useState('');
   const [expanded, setExpanded] = useState(null);
   const location = useLocation();
+  const { canDelete } = useRole();
 
   useEffect(() => {
     const openId = location.state?.openId;
@@ -101,7 +103,7 @@ export default function RecordsPage({ records, onDelete }) {
                     {r.google_plaats && <div><span className="detail-label">Plaats:</span> {r.google_plaats}</div>}
                     {r.opmerkingen && <div><span className="detail-label">Opm.:</span> {r.opmerkingen}</div>}
                   </div>
-                  {onDelete && r.bron !== 'griel_import' && (
+                  {onDelete && canDelete && r.bron !== 'griel_import' && (
                     <button
                       className="btn-danger delete-btn"
                       onClick={e => { e.stopPropagation(); onDelete(r.id); }}

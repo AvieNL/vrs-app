@@ -1,0 +1,158 @@
+.admin-page h2 {
+  font-size: 1.2rem;
+  margin-bottom: 16px;
+}
+
+.admin-status {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  padding: 1rem 0;
+}
+
+.admin-error {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  font-size: 0.85rem;
+  padding: 0.75rem 1rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+/* Gebruikerslijst */
+.admin-users {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.admin-user-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--bg-tertiary);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: 0.875rem 1rem;
+}
+
+.admin-user-card.is-self {
+  border-color: var(--accent);
+}
+
+.admin-user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-user-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.admin-user-name em {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.admin-badge {
+  font-size: 0.65rem;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.admin-badge--self {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.admin-user-email {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin: 2px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-user-meta {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.admin-count {
+  color: var(--accent);
+}
+
+/* Rol selectie */
+.admin-user-rol {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.rol-select {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  padding: 6px 10px;
+  cursor: pointer;
+  min-width: 90px;
+}
+
+.rol-select:focus {
+  outline: none;
+  border-color: var(--border-focus);
+}
+
+.rol-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.rol-badge {
+  background: var(--accent-bg);
+  color: var(--accent);
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.admin-saving {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Uitnodiging hint */
+.admin-hint {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0 0 0.75rem;
+}
+
+.admin-hint:last-child {
+  margin-bottom: 0;
+}
+
+.admin-hint strong {
+  color: var(--text-primary);
+}

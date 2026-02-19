@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useRole } from '../../hooks/useRole';
 import './ProjectenPage.css';
 
 export default function ProjectenPage({ projects, onAdd, onUpdate, onDelete, onRenameProject }) {
+  const { canAdd, canEdit, canDelete } = useRole();
   const [showForm, setShowForm] = useState(false);
   const [naam, setNaam] = useState('');
   const [locatie, setLocatie] = useState('');
@@ -47,9 +49,11 @@ export default function ProjectenPage({ projects, onAdd, onUpdate, onDelete, onR
     <div className="page projecten-page">
       <div className="page-top">
         <h2>Projecten</h2>
-        <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
-          {showForm ? 'Annuleer' : '+ Nieuw'}
-        </button>
+        {canAdd && (
+          <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
+            {showForm ? 'Annuleer' : '+ Nieuw'}
+          </button>
+        )}
       </div>
 
       {showForm && (
@@ -115,27 +119,32 @@ export default function ProjectenPage({ projects, onAdd, onUpdate, onDelete, onR
                     </span>
                   </div>
                   <div className="project-actions">
-                    <button
-                      className="btn-secondary"
-                      onClick={() => startEdit(p)}
-                      style={{ minWidth: 'auto', minHeight: 'auto', padding: '4px 10px', fontSize: '0.8rem' }}
-                    >
-                      Bewerk
-                    </button>
+                    {canEdit && (
+                      <button
+                        className="btn-secondary"
+                        onClick={() => startEdit(p)}
+                        style={{ minWidth: 'auto', minHeight: 'auto', padding: '4px 10px', fontSize: '0.8rem' }}
+                      >
+                        Bewerk
+                      </button>
+                    )}
                     <button
                       className={`btn-secondary badge ${p.actief ? 'badge-success' : ''}`}
-                      onClick={() => onUpdate(p.id, { actief: !p.actief })}
+                      onClick={() => canEdit && onUpdate(p.id, { actief: !p.actief })}
+                      disabled={!canEdit}
                       style={{ minWidth: 'auto', minHeight: 'auto', padding: '4px 10px' }}
                     >
                       {p.actief ? 'Actief' : 'Inactief'}
                     </button>
-                    <button
-                      className="btn-danger"
-                      onClick={() => onDelete(p.id)}
-                      style={{ minWidth: 'auto', minHeight: 'auto', padding: '4px 10px', fontSize: '0.8rem' }}
-                    >
-                      ✕
-                    </button>
+                    {canDelete && (
+                      <button
+                        className="btn-danger"
+                        onClick={() => onDelete(p.id)}
+                        style={{ minWidth: 'auto', minHeight: 'auto', padding: '4px 10px', fontSize: '0.8rem' }}
+                      >
+                        ✕
+                      </button>
+                    )}
                   </div>
                 </>
               )}

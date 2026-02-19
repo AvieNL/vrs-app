@@ -76,3 +76,40 @@
 .header-dropdown button + button {
   border-top: 1px solid var(--border, #334155);
 }
+
+.header-dropdown-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+.header-admin-btn {
+  color: var(--accent) !important;
+  font-weight: 600;
+}
+
+.header-logout-btn {
+  color: var(--danger) !important;
+}
+
+.header-logout-btn:hover {
+  background: var(--danger-bg) !important;
+}
+
+.header-ringer {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  bottom: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.header-sync {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}

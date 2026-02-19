@@ -1,13 +1,10 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import speciesRef from '../../data/species-reference.json';
+import { useSpeciesRef } from '../../hooks/useSpeciesRef';
 import euringCodes from '../../data/euring-codes.json';
 import { euringReference } from '../../data/euring-reference.js';
 import RuiscoreDiagram from './RuiscoreDiagram';
 import LocatiePicker from './LocatiePicker';
 import './NieuwPage.css';
-
-// Filter out the header row from speciesRef
-const speciesData = speciesRef.filter(s => s.naam_nl && s.naam_lat);
 
 const TAAL_LABELS = {
   naam_nl: 'Nederlands',
@@ -428,6 +425,12 @@ function computeRanges(soortRecords) {
 }
 
 export default function NieuwPage({ onSave, projects, records, speciesOverrides, settings, ringStrengen = [], onAdvanceRing }) {
+  const speciesRefData = useSpeciesRef();
+  const speciesData = useMemo(
+    () => speciesRefData.filter(s => s.naam_nl && s.naam_lat),
+    [speciesRefData]
+  );
+
   const [form, setForm] = useState(() => ({
     ...EMPTY_FORM,
     ringer_initiaal: settings?.ringerInitiaal || '',
@@ -471,11 +474,11 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
 
   // Find species reference data for selected species
   const speciesInfo = useMemo(() => {
-    if (!form.vogelnaam) return null;
-    return speciesRef.find(
+    if (!form.vogelnaam || speciesRefData.length === 0) return null;
+    return speciesRefData.find(
       s => s.naam_nl && s.naam_nl.toLowerCase() === form.vogelnaam.toLowerCase()
     );
-  }, [form.vogelnaam]);
+  }, [form.vogelnaam, speciesRefData]);
 
   // Get EURING code
   const euringCode = useMemo(() => {
@@ -627,7 +630,7 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
     });
 
     return results.slice(0, 10);
-  }, [recentSet]);
+  }, [recentSet, speciesData]);
 
   function handleSpeciesInput(value) {
     update('vogelnaam', value);

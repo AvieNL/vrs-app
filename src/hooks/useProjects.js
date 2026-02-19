@@ -1,35 +1,130 @@
-import { useState, useEffect } from 'react';
-import { loadFromStorage, saveToStorage, generateId } from '../utils/storage';
-
-const STORAGE_KEY = 'vrs-projects';
+import { useEffect, useRef } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { generateId } from '../utils/storage';
+import { db } from '../lib/db';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
+import { useSync } from '../context/SyncContext';
 
 const DEFAULT_PROJECTS = [
-  { id: 'tuin', naam: 'Tuin - Ter Avest', locatie: 'Breedenbroek', nummer: '1925', actief: true },
+  { id: 'tuin',   naam: 'Tuin - Ter Avest',          locatie: 'Breedenbroek', nummer: '1925', actief: true },
   { id: 'overig', naam: 'Overig ringwerk - Ter Avest', locatie: 'Breedenbroek', nummer: '1722', actief: true },
-  { id: 'nk027', naam: 'NK027', locatie: 'Breedenbroek', nummer: '1926', actief: true },
+  { id: 'nk027',  naam: 'NK027',                       locatie: 'Breedenbroek', nummer: '1926', actief: true },
 ];
 
-export function useProjects() {
-  const [projects, setProjects] = useState(() =>
-    loadFromStorage(STORAGE_KEY, DEFAULT_PROJECTS)
-  );
+function toProjectRow(project, userId) {
+  return {
+    id: project.id,
+    user_id: userId,
+    naam: project.naam,
+    locatie: project.locatie || '',
+    nummer: project.nummer || '',
+    actief: project.actief !== false,
+    updated_at: new Date().toISOString(),
+  };
+}
 
+export function useProjects() {
+  const { user } = useAuth();
+  const { addToQueue } = useSync();
+  const pulledRef = useRef(false);
+
+  const projects = useLiveQuery(
+    () => {
+      if (!user) return [];
+      return db.projecten.where('user_id').equals(user.id).toArray();
+    },
+    [user?.id],
+    []
+  ) ?? [];
+
+  // Bij (her)inloggen: pull van Supabase
   useEffect(() => {
-    saveToStorage(STORAGE_KEY, projects);
-  }, [projects]);
+    if (!user) {
+      pulledRef.current = false;
+      return;
+    }
+    if (pulledRef.current) return;
+    pulledRef.current = true;
+    pullFromSupabase();
+  }, [user?.id]);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function pullFromSupabase() {
+    const localCount = await db.projecten.where('user_id').equals(user.id).count();
+    const meta = await db.meta.get(`last_pull_projecten_${user.id}`);
+    const lastPull = meta?.value;
+
+    let query = supabase.from('projecten').select('*').eq('user_id', user.id);
+    if (localCount > 0 && lastPull) {
+      query = query.gt('updated_at', lastPull);
+    }
+
+    const { data, error } = await query;
+    if (error || !data || data.length === 0) return;
+
+    const rows = data.map(r => ({
+      id: r.id,
+      user_id: user.id,
+      naam: r.naam,
+      locatie: r.locatie || '',
+      nummer: r.nummer || '',
+      actief: r.actief !== false,
+    }));
+
+    // Eerste run: geen data lokaal → gebruik Supabase data
+    if (localCount === 0) {
+      await db.projecten.bulkPut(rows);
+    } else {
+      // Incrementele update
+      await db.projecten.bulkPut(rows);
+    }
+    await db.meta.put({
+      key: `last_pull_projecten_${user.id}`,
+      value: new Date().toISOString(),
+    });
+  }
+
+  // Eerste run zonder Supabase-data: laad defaults
+  useEffect(() => {
+    if (!user || projects.length > 0) return;
+    // Geef de pull even tijd — laad defaults pas als Dexie én Supabase leeg zijn
+    const timer = setTimeout(async () => {
+      const count = await db.projecten.where('user_id').equals(user.id).count();
+      if (count === 0) {
+        const defaults = DEFAULT_PROJECTS.map(p => ({ ...p, user_id: user.id }));
+        await db.projecten.bulkPut(defaults);
+        defaults.forEach(p => addToQueue('projecten', 'upsert', toProjectRow(p, user.id)));
+      }
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [user?.id, projects.length]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   function addProject(project) {
-    const newProject = { ...project, id: generateId(), nummer: project.nummer || '', actief: true };
-    setProjects(prev => [...prev, newProject]);
+    if (!user) return null;
+    const newProject = {
+      ...project,
+      id: generateId(),
+      nummer: project.nummer || '',
+      actief: true,
+      user_id: user.id,
+    };
+    db.projecten.put(newProject);
+    addToQueue('projecten', 'upsert', toProjectRow(newProject, user.id));
     return newProject;
   }
 
   function updateProject(id, updates) {
-    setProjects(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+    db.projecten.get(id).then(existing => {
+      if (!existing) return;
+      const updated = { ...existing, ...updates };
+      db.projecten.put(updated);
+      addToQueue('projecten', 'upsert', toProjectRow(updated, user.id));
+    });
   }
 
   function deleteProject(id) {
-    setProjects(prev => prev.filter(p => p.id !== id));
+    db.projecten.delete(id);
+    addToQueue('projecten', 'delete', { id, user_id: user.id });
   }
 
   return { projects, addProject, updateProject, deleteProject };

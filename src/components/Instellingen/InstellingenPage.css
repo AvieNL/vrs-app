@@ -86,3 +86,139 @@
   background: var(--accent);
   color: var(--bg-primary);
 }
+
+/* Cloud status */
+.cloud-status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cloud-status__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cloud-status__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cloud-status__dot--online {
+  background: var(--success);
+  box-shadow: 0 0 0 2px var(--success-bg);
+}
+
+.cloud-status__label {
+  font-size: 0.85rem;
+  color: var(--success);
+  font-weight: 500;
+  flex: 1;
+}
+
+.cloud-status__refresh {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  line-height: 1;
+}
+
+.cloud-status__refresh:hover {
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.cloud-status__account {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cloud-status__email {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.cloud-status__rol {
+  font-size: 0.7rem;
+  background: var(--accent-bg);
+  color: var(--accent);
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cloud-status__loading {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.cloud-status__error {
+  font-size: 0.8rem;
+  color: var(--danger);
+}
+
+.cloud-status__counts {
+  display: flex;
+  gap: 1rem;
+}
+
+.cloud-status__count-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  min-width: 70px;
+}
+
+.cloud-status__count-num {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.cloud-status__count-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* Sync controls */
+.sync-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+
+.sync-force-btn {
+  font-size: 0.85rem;
+  padding: 8px 14px;
+  min-height: 36px;
+  min-width: 0;
+}
+
+.sync-last-time {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.sync-offline-note {
+  font-size: 0.78rem;
+  color: var(--warning, #f59e0b);
+}

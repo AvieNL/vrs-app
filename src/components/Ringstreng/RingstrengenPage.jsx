@@ -1,18 +1,7 @@
 import { useState, useMemo } from 'react';
-import speciesRef from '../../data/species-reference.json';
+import { useSpeciesRef } from '../../hooks/useSpeciesRef';
+import { useRole } from '../../hooks/useRole';
 import './RingstrengenPage.css';
-
-// Haal unieke ringmaten op uit de soortdata, filter ongeldige waarden
-const RINGMATEN = [...new Set(
-  speciesRef
-    .map(s => s.ringmaat)
-    .filter(m => m && !m.includes('-') && (/^\d/.test(m) || /^(S|laag S)\d/.test(m)))
-)].sort((a, b) => {
-  const numA = parseFloat(a.replace(/[^0-9.]/g, '')) || 0;
-  const numB = parseFloat(b.replace(/[^0-9.]/g, '')) || 0;
-  if (numA !== numB) return numA - numB;
-  return a.localeCompare(b);
-});
 
 // Ringnummer normaliseren: verwijder punten en zet naar lowercase
 function normalizeRing(s) {
@@ -50,6 +39,21 @@ function formatBedrag(n) {
 const LEEG = { ringmaat: '', beschrijving: '', van: '', tot: '', huidige: '', prijsPerRing: '' };
 
 export default function RingstrengenPage({ ringStrengen, records = [], onAdd, onUpdate, onDelete }) {
+  const { canAdd, canEdit, canDelete } = useRole();
+  const speciesRef = useSpeciesRef();
+  const RINGMATEN = useMemo(() => {
+    return [...new Set(
+      speciesRef
+        .map(s => s.ringmaat)
+        .filter(m => m && !m.includes('-') && (/^\d/.test(m) || /^(S|laag S)\d/.test(m)))
+    )].sort((a, b) => {
+      const numA = parseFloat(a.replace(/[^0-9.]/g, '')) || 0;
+      const numB = parseFloat(b.replace(/[^0-9.]/g, '')) || 0;
+      if (numA !== numB) return numA - numB;
+      return a.localeCompare(b);
+    });
+  }, [speciesRef]);
+
   const [toonForm, setToonForm] = useState(false);
   const [form, setForm] = useState(LEEG);
   const [bewerkId, setBewerkId] = useState(null);
@@ -143,8 +147,12 @@ export default function RingstrengenPage({ ringStrengen, records = [], onAdd, on
                 )}
                 {stats.vol && <span className="ringstreng-vol-badge">Vol</span>}
                 <div className="ringstreng-iconen">
-                  <button className="ringstreng-icoon" onClick={() => startBewerken(streng)} title="Bewerken">✎</button>
-                  <button className="ringstreng-icoon ringstreng-icoon--delete" onClick={() => onDelete(streng.id)} title="Verwijderen">✕</button>
+                  {canEdit && (
+                    <button className="ringstreng-icoon" onClick={() => startBewerken(streng)} title="Bewerken">✎</button>
+                  )}
+                  {canDelete && (
+                    <button className="ringstreng-icoon ringstreng-icoon--delete" onClick={() => onDelete(streng.id)} title="Verwijderen">✕</button>
+                  )}
                 </div>
               </div>
               <div className="ringstreng-range">
@@ -258,11 +266,11 @@ export default function RingstrengenPage({ ringStrengen, records = [], onAdd, on
             </div>
           </div>
         </div>
-      ) : (
+      ) : canAdd ? (
         <button className="btn-primary ringstreng-add-btn" onClick={() => setToonForm(true)}>
           + Nieuwe ringstreng
         </button>
-      )}
+      ) : null}
     </div>
   );
 }

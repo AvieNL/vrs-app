@@ -1,9 +1,7 @@
 import { useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import speciesRef from '../../data/species-reference.json';
+import { useSpeciesRef } from '../../hooks/useSpeciesRef';
 import './SoortDetail.css';
-
-const soorten = speciesRef.filter(s => s.naam_nl && !s.naam_nl.includes('groene tekst'));
 
 const LEEFTIJD_LABEL = {
   '0': '?', '1': 'pullus', '2': 'onb.', '3': '1kj', '4': '+1kj',
@@ -104,6 +102,11 @@ export default function SoortDetail({ records, speciesOverrides }) {
   const navigate = useNavigate();
   const decodedNaam = decodeURIComponent(naam);
   const fileInputRef = useRef(null);
+  const speciesRef = useSpeciesRef();
+  const soorten = useMemo(
+    () => speciesRef.filter(s => s.naam_nl && !s.naam_nl.includes('groene tekst')),
+    [speciesRef]
+  );
 
   const defaultSoort = soorten.find(s => s.naam_nl === decodedNaam);
   const soort = speciesOverrides
@@ -240,10 +243,19 @@ export default function SoortDetail({ records, speciesOverrides }) {
     return counts;
   }, [soortRecords]);
 
+  if (speciesRef.length === 0) {
+    return (
+      <div className="page">
+        <button className="btn-secondary" onClick={() => navigate('/soorten')}>← Terug</button>
+        <div className="empty-state">Laden...</div>
+      </div>
+    );
+  }
+
   if (!defaultSoort) {
     return (
       <div className="page">
-        <button className="btn-secondary" onClick={() => navigate('/soorten')}>Terug</button>
+        <button className="btn-secondary" onClick={() => navigate('/soorten')}>← Terug</button>
         <div className="empty-state">Soort niet gevonden</div>
       </div>
     );
