@@ -155,8 +155,18 @@ export default function SoortDetail({ records, speciesOverrides }) {
         const key = `bio_${f.key}_${stat}`;
         data[key] = getBioValue(f.key, stat);
       });
+      // Geslachtsspecifieke biometrie
+      ['M', 'F'].forEach(gender => {
+        ['min', 'avg', 'max'].forEach(stat => {
+          const key = `bio_${f.key}_${gender}_${stat}`;
+          data[key] = soort[key] ?? '';
+        });
+      });
     });
-    data.ruitype_notities = soort.ruitype_notities ?? '';
+    // Separate notities voor geslachts- en leeftijdsbepaling
+    // Fallback: toon oude ruitype_notities in het geslachtsveld als migratie
+    data.geslachts_notities = soort.geslachts_notities ?? soort.ruitype_notities ?? '';
+    data.leeftijds_notities = soort.leeftijds_notities ?? '';
     data.foto = soort.foto ?? '';
     setEditData(data);
     setEditMode(true);
@@ -192,9 +202,17 @@ export default function SoortDetail({ records, speciesOverrides }) {
           const key = `bio_${f.key}_${stat}`;
           adminData[key] = editData[key] ?? '';
         });
+        // Geslachtsspecifieke biometrie
+        ['M', 'F'].forEach(gender => {
+          ['min', 'avg', 'max'].forEach(stat => {
+            const key = `bio_${f.key}_${gender}_${stat}`;
+            adminData[key] = editData[key] ?? '';
+          });
+        });
       });
 
-      adminData.ruitype_notities = editData.ruitype_notities ?? '';
+      adminData.geslachts_notities = editData.geslachts_notities ?? '';
+      adminData.leeftijds_notities = editData.leeftijds_notities ?? '';
       if (editData.foto !== undefined) adminData.foto = editData.foto;
 
       const { error } = await supabase
@@ -240,11 +258,26 @@ export default function SoortDetail({ records, speciesOverrides }) {
             changes[key] = editVal;
           }
         });
+        // Geslachtsspecifieke biometrie overrides
+        ['M', 'F'].forEach(gender => {
+          ['min', 'avg', 'max'].forEach(stat => {
+            const key = `bio_${f.key}_${gender}_${stat}`;
+            const editVal = editData[key] ?? '';
+            const defaultVal = defaultSoort?.[key] ?? '';
+            if (String(editVal) !== String(defaultVal)) {
+              changes[key] = editVal;
+            }
+          });
+        });
       });
 
-      const defaultNotities = defaultSoort?.ruitype_notities ?? '';
-      if (editData.ruitype_notities !== defaultNotities) {
-        changes.ruitype_notities = editData.ruitype_notities;
+      const defaultGeslachts = defaultSoort?.geslachts_notities ?? defaultSoort?.ruitype_notities ?? '';
+      if (editData.geslachts_notities !== defaultGeslachts) {
+        changes.geslachts_notities = editData.geslachts_notities;
+      }
+      const defaultLeeftijds = defaultSoort?.leeftijds_notities ?? '';
+      if (editData.leeftijds_notities !== defaultLeeftijds) {
+        changes.leeftijds_notities = editData.leeftijds_notities;
       }
       if (editData.foto && editData.foto !== (defaultSoort?.foto ?? '')) {
         changes.foto = editData.foto;
@@ -309,7 +342,11 @@ export default function SoortDetail({ records, speciesOverrides }) {
   }
 
   const foto = editMode ? editData.foto : soort.foto;
-  const ruitypeNotities = editMode ? editData.ruitype_notities : soort.ruitype_notities;
+  // Geslachts- en leeftijdsbepaling: nieuwe velden, met fallback op ruitype_notities voor migratie
+  const geslachtsNotities = editMode
+    ? editData.geslachts_notities
+    : (soort.geslachts_notities || soort.ruitype_notities);
+  const leeftijdsNotities = editMode ? editData.leeftijds_notities : soort.leeftijds_notities;
 
   const renderField = (key, label, opts = {}) => {
     if (editMode) {
@@ -398,20 +435,38 @@ export default function SoortDetail({ records, speciesOverrides }) {
         )}
       </div>
 
-      {/* Ruitype notities */}
-      {(editMode || ruitypeNotities) && (
+      {/* Geslachtsbepaling */}
+      {(editMode || geslachtsNotities) && (
         <div className="sd-card">
-          <h3 className="sd-card-title">Leeftijds-/geslachtsbepaling</h3>
+          <h3 className="sd-card-title">Geslachtsbepaling</h3>
           {editMode ? (
             <textarea
               className="sd-edit-textarea"
-              value={editData.ruitype_notities || ''}
-              onChange={e => handleField('ruitype_notities', e.target.value)}
-              placeholder="Waar moet je op letten bij deze soort?"
+              value={editData.geslachts_notities || ''}
+              onChange={e => handleField('geslachts_notities', e.target.value)}
+              placeholder="Hoe is het geslacht te bepalen bij deze soort?"
               rows={3}
             />
           ) : (
-            <p className="sd-notities-text">{ruitypeNotities}</p>
+            <p className="sd-notities-text">{geslachtsNotities}</p>
+          )}
+        </div>
+      )}
+
+      {/* Leeftijdsbepaling */}
+      {(editMode || leeftijdsNotities) && (
+        <div className="sd-card">
+          <h3 className="sd-card-title">Leeftijdsbepaling</h3>
+          {editMode ? (
+            <textarea
+              className="sd-edit-textarea"
+              value={editData.leeftijds_notities || ''}
+              onChange={e => handleField('leeftijds_notities', e.target.value)}
+              placeholder="Hoe is de leeftijd te bepalen bij deze soort?"
+              rows={3}
+            />
+          ) : (
+            <p className="sd-notities-text">{leeftijdsNotities}</p>
           )}
         </div>
       )}
@@ -457,34 +512,35 @@ export default function SoortDetail({ records, speciesOverrides }) {
         <div className="sd-card">
           <h3 className="sd-card-title">Biometrie (min / gem / max)</h3>
           {BIO_FIELDS.map(f => (
-            <div key={f.key} className="sd-bio-edit-row">
-              <label className="sd-edit-label">{f.label} ({f.unit})</label>
-              <div className="sd-bio-edit-inputs">
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={editData[`bio_${f.key}_min`] ?? ''}
-                  onChange={e => handleField(`bio_${f.key}_min`, e.target.value)}
-                  className="sd-edit-input"
-                  placeholder="Min"
-                />
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={editData[`bio_${f.key}_avg`] ?? ''}
-                  onChange={e => handleField(`bio_${f.key}_avg`, e.target.value)}
-                  className="sd-edit-input"
-                  placeholder="Gem."
-                />
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={editData[`bio_${f.key}_max`] ?? ''}
-                  onChange={e => handleField(`bio_${f.key}_max`, e.target.value)}
-                  className="sd-edit-input"
-                  placeholder="Max"
-                />
-              </div>
+            <div key={f.key} className="sd-bio-edit-group">
+              <div className="sd-bio-edit-field-label">{f.label} ({f.unit})</div>
+              {[
+                { prefix: null, label: 'Alg.', cls: '' },
+                { prefix: 'M',  label: '♂',    cls: ' sd-bio-edit-subrow--m' },
+                { prefix: 'F',  label: '♀',    cls: ' sd-bio-edit-subrow--f' },
+              ].map(({ prefix, label, cls }) => (
+                <div key={prefix ?? 'alg'} className={`sd-bio-edit-subrow${cls}`}>
+                  <span className="sd-bio-gender-lbl">{label}</span>
+                  <div className="sd-bio-edit-inputs">
+                    {['min', 'avg', 'max'].map(stat => {
+                      const key = prefix
+                        ? `bio_${f.key}_${prefix}_${stat}`
+                        : `bio_${f.key}_${stat}`;
+                      return (
+                        <input
+                          key={stat}
+                          type="text"
+                          inputMode="decimal"
+                          value={editData[key] ?? ''}
+                          onChange={e => handleField(key, e.target.value)}
+                          className="sd-edit-input"
+                          placeholder={{ min: 'Min', avg: 'Gem.', max: 'Max' }[stat]}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           ))}
         </div>
@@ -505,23 +561,82 @@ export default function SoortDetail({ records, speciesOverrides }) {
               </tr>
             </thead>
             <tbody>
-              {BIO_FIELDS.map(b => {
+              {BIO_FIELDS.flatMap(b => {
                 const minVal = getBioValue(b.key, 'min');
                 const avgVal = getBioValue(b.key, 'avg');
                 const maxVal = getBioValue(b.key, 'max');
+                if (!minVal && !avgVal && !maxVal) return [];
                 const calc = bioStatsCalc.find(c => c.key === b.key);
                 const n = calc?.stats?.n;
-                if (!minVal && !avgVal && !maxVal) return null;
                 const isOv = (stat) => soort[`bio_${b.key}_${stat}`] !== undefined && soort[`bio_${b.key}_${stat}`] !== '';
-                return (
+                const rows = [
                   <tr key={b.key}>
                     <td className="sd-bio-field">{b.label} <span className="sd-bio-unit">({b.unit})</span></td>
                     <td className={`sd-bio-num${isOv('min') ? ' sd-bio-override' : ''}`}>{minVal || '—'}</td>
                     <td className={`sd-bio-num sd-bio-avg${isOv('avg') ? ' sd-bio-override' : ''}`}>{avgVal || '—'}</td>
                     <td className={`sd-bio-num${isOv('max') ? ' sd-bio-override' : ''}`}>{maxVal || '—'}</td>
                     <td className="sd-bio-num sd-bio-n">{n || '—'}</td>
-                  </tr>
-                );
+                  </tr>,
+                ];
+                // Geslachtsspecifieke rijen
+                [['M', '♂', 'sd-bio-row-m'], ['F', '♀', 'sd-bio-row-f']].forEach(([g, sym, cls]) => {
+                  const gMin = soort[`bio_${b.key}_${g}_min`];
+                  const gAvg = soort[`bio_${b.key}_${g}_avg`];
+                  const gMax = soort[`bio_${b.key}_${g}_max`];
+                  if (gMin || gAvg || gMax) {
+                    rows.push(
+                      <tr key={`${b.key}-${g}`} className={cls}>
+                        <td className="sd-bio-field sd-bio-field--gender">
+                          <span className="sd-bio-gender-tag">{sym}</span> {b.label}
+                        </td>
+                        <td className="sd-bio-num">{gMin || '—'}</td>
+                        <td className="sd-bio-num sd-bio-avg">{gAvg || '—'}</td>
+                        <td className="sd-bio-num">{gMax || '—'}</td>
+                        <td className="sd-bio-num sd-bio-n">—</td>
+                      </tr>
+                    );
+                  }
+                });
+                return rows;
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Biometrie per geslacht — toon ook als er geen algemene stats zijn */}
+      {!editMode && !bioStats.length && BIO_FIELDS.some(f =>
+        soort[`bio_${f.key}_M_min`] || soort[`bio_${f.key}_M_max`] ||
+        soort[`bio_${f.key}_F_min`] || soort[`bio_${f.key}_F_max`]
+      ) && (
+        <div className="sd-card">
+          <h3 className="sd-card-title">Biometrie per geslacht</h3>
+          <table className="sd-bio-table">
+            <thead>
+              <tr><th>Meting</th><th>Min</th><th>Gem.</th><th>Max</th><th></th></tr>
+            </thead>
+            <tbody>
+              {BIO_FIELDS.flatMap(b => {
+                const rows = [];
+                [['M', '♂', 'sd-bio-row-m'], ['F', '♀', 'sd-bio-row-f']].forEach(([g, sym, cls]) => {
+                  const gMin = soort[`bio_${b.key}_${g}_min`];
+                  const gAvg = soort[`bio_${b.key}_${g}_avg`];
+                  const gMax = soort[`bio_${b.key}_${g}_max`];
+                  if (gMin || gAvg || gMax) {
+                    rows.push(
+                      <tr key={`${b.key}-${g}`} className={cls}>
+                        <td className="sd-bio-field sd-bio-field--gender">
+                          <span className="sd-bio-gender-tag">{sym}</span> {b.label} <span className="sd-bio-unit">({b.unit})</span>
+                        </td>
+                        <td className="sd-bio-num">{gMin || '—'}</td>
+                        <td className="sd-bio-num sd-bio-avg">{gAvg || '—'}</td>
+                        <td className="sd-bio-num">{gMax || '—'}</td>
+                        <td className="sd-bio-num sd-bio-n">—</td>
+                      </tr>
+                    );
+                  }
+                });
+                return rows;
               })}
             </tbody>
           </table>

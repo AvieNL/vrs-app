@@ -547,6 +547,65 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
     return merged;
   }, [bioRangesFromRecords, soortOverride]);
 
+  // Geslachtsspecifieke bereiken vanuit soortdata + overrides
+  const bioGenderRanges = useMemo(() => {
+    const BIO_KEYS = ['vleugel', 'gewicht', 'handpenlengte', 'staartlengte', 'kop_snavel', 'tarsus_lengte', 'tarsus_dikte', 'snavel_schedel'];
+    const result = { M: {}, F: {} };
+    for (const gender of ['M', 'F']) {
+      for (const key of BIO_KEYS) {
+        // Override heeft prioriteit boven basisdata
+        const ovMin = parseVal(soortOverride[`bio_${key}_${gender}_min`]);
+        const ovMax = parseVal(soortOverride[`bio_${key}_${gender}_max`]);
+        const baseMin = parseVal(speciesInfo?.[`bio_${key}_${gender}_min`]);
+        const baseMax = parseVal(speciesInfo?.[`bio_${key}_${gender}_max`]);
+        const min = !isNaN(ovMin) ? ovMin : (!isNaN(baseMin) ? baseMin : NaN);
+        const max = !isNaN(ovMax) ? ovMax : (!isNaN(baseMax) ? baseMax : NaN);
+        if (!isNaN(min) && !isNaN(max)) {
+          // Kleine marge (5%) om grensgevallen niet te snel uit te sluiten
+          const margin = (max - min) * 0.05 || Math.abs(min) * 0.02;
+          result[gender][key] = {
+            min, max,
+            rangeMin: +(min - margin).toFixed(1),
+            rangeMax: +(max + margin).toFixed(1),
+          };
+        }
+      }
+    }
+    return result;
+  }, [soortOverride, speciesInfo]);
+
+  // Geslachtshint op basis van biometrie
+  const genderHint = useMemo(() => {
+    const mR = bioGenderRanges.M;
+    const fR = bioGenderRanges.F;
+    // Alleen zinvol als er velden zijn met zowel M- als F-bereik
+    const dualFields = Object.keys(mR).filter(k => fR[k]);
+    if (dualFields.length === 0) return null;
+
+    let mScore = 0; // velden die duidelijk op ♂ wijzen
+    let fScore = 0; // velden die duidelijk op ♀ wijzen
+    let checked = 0;
+
+    for (const key of dualFields) {
+      const val = parseVal(form[key]);
+      if (isNaN(val) || val <= 0) continue;
+      const inM = val >= mR[key].rangeMin && val <= mR[key].rangeMax;
+      const inF = val >= fR[key].rangeMin && val <= fR[key].rangeMax;
+      checked++;
+      if (inM && !inF) mScore++;
+      else if (inF && !inM) fScore++;
+    }
+
+    if (checked === 0) return null;
+    // Suggereer geslacht als alle bekeken velden in dezelfde richting wijzen,
+    // of als de meerderheid (≥ 2 velden) duidelijk één kant op wijst
+    if (mScore > 0 && fScore === 0) return 'M';
+    if (fScore > 0 && mScore === 0) return 'F';
+    if (mScore >= 2 && mScore > fScore * 2) return 'M';
+    if (fScore >= 2 && fScore > mScore * 2) return 'F';
+    return null;
+  }, [form, bioGenderRanges]);
+
   // Check current form values against ranges
   const warnings = useMemo(() => {
     const w = [];
@@ -961,6 +1020,21 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
                   </select>
                 </div>
               </div>
+              {genderHint && (() => {
+                const hintLabel = genderHint === 'M' ? '♂ man' : '♀ vrouw';
+                const ingevuld = form.geslacht === 'M' || form.geslacht === 'F';
+                const klopt = form.geslacht === genderHint;
+                return (
+                  <div className={`gender-bio-hint ${klopt ? 'gender-bio-hint--match' : ingevuld ? 'gender-bio-hint--mismatch' : 'gender-bio-hint--suggest'}`}>
+                    {klopt
+                      ? `Biometrie bevestigt ${hintLabel}`
+                      : ingevuld
+                        ? `Biometrie wijst op ${hintLabel} — controleer het ingevoerde geslacht`
+                        : `Op basis van biometrie: waarschijnlijk ${hintLabel}`
+                    }
+                  </div>
+                );
+              })()}
 
               <div className="form-group">
                 <label>Leeftijd</label>

@@ -218,14 +218,85 @@
 }
 
 /* Bio edit rows */
-.sd-bio-edit-row {
-  margin-bottom: 10px;
+.sd-bio-edit-group {
+  margin-bottom: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.sd-bio-edit-field-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 5px 8px 4px;
+  background: var(--bg-tertiary);
+  letter-spacing: 0.02em;
+}
+
+.sd-bio-edit-subrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-top: 1px solid var(--border);
+}
+
+.sd-bio-edit-subrow--m {
+  background: rgba(56, 189, 248, 0.04);
+}
+
+.sd-bio-edit-subrow--f {
+  background: rgba(232, 121, 249, 0.04);
+}
+
+.sd-bio-gender-lbl {
+  font-size: 0.78rem;
+  font-weight: 600;
+  width: 30px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.sd-bio-edit-subrow--m .sd-bio-gender-lbl {
+  color: var(--accent);
+}
+
+.sd-bio-edit-subrow--f .sd-bio-gender-lbl {
+  color: #e879f9;
 }
 
 .sd-bio-edit-inputs {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
+  gap: 6px;
+  flex: 1;
+}
+
+/* Geslachtsrijen in leestabel */
+.sd-bio-row-m td,
+.sd-bio-row-f td {
+  font-size: 0.78rem;
+  opacity: 0.9;
+}
+
+.sd-bio-field--gender {
+  padding-left: 8px !important;
+}
+
+.sd-bio-gender-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-block;
+  width: 16px;
+}
+
+.sd-bio-row-m .sd-bio-gender-tag {
+  color: var(--accent);
+}
+
+.sd-bio-row-f .sd-bio-gender-tag {
+  color: #e879f9;
 }
 
 /* Notities */
