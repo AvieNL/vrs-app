@@ -228,57 +228,40 @@ export default function ProjectenPage({ projects, onAdd, onUpdate, onDelete, onR
                   </div>
                 ) : (
                   <>
-                    <div className="project-info">
-                      <strong>{p.naam}</strong>
-                      <span className="project-meta">
-                        {p.nummer && <span className="project-nummer">#{p.nummer}</span>}
-                        {p.locatie && <span className="project-loc">{p.locatie}</span>}
-                        {isShared && <span className="project-shared-badge">Gedeeld</span>}
-                      </span>
-                      <ProjectMembers project={p} />
-                    </div>
-                    <div className="project-actions">
-                      {canEdit && isOwn && (
-                        <button
-                          className="btn-secondary btn-sm"
-                          onClick={() => startEdit(p)}
-                        >
-                          Bewerk
-                        </button>
-                      )}
-                      <button
-                        className={`btn-secondary btn-sm badge ${p.actief ? 'badge-success' : ''}`}
-                        onClick={() => canEdit && isOwn && onUpdate(p.id, { actief: !p.actief })}
-                        disabled={!canEdit || !isOwn}
-                      >
-                        {p.actief ? 'Actief' : 'Inactief'}
-                      </button>
-                      {canDelete && isOwn && (
-                        confirmDeleteId === p.id ? (
-                          <>
-                            <button
-                              className="btn-danger btn-sm"
-                              onClick={() => { onDelete(p.id); setConfirmDeleteId(null); }}
-                            >
-                              Zeker?
-                            </button>
-                            <button
-                              className="btn-secondary btn-sm"
-                              onClick={() => setConfirmDeleteId(null)}
-                            >
-                              Nee
-                            </button>
-                          </>
-                        ) : (
+                    <div className="project-header">
+                      <div className="project-info">
+                        <strong>{p.naam}</strong>
+                        <span className="project-meta">
+                          {p.nummer && <span className="project-nummer">#{p.nummer}</span>}
+                          {p.locatie && <span className="project-loc">{p.locatie}</span>}
+                          {isShared && <span className="project-shared-badge">Gedeeld</span>}
                           <button
-                            className="btn-danger btn-sm"
-                            onClick={() => setConfirmDeleteId(p.id)}
+                            className={`btn-secondary btn-sm badge ${p.actief ? 'badge-success' : ''}`}
+                            onClick={() => canEdit && isOwn && onUpdate(p.id, { actief: !p.actief })}
+                            disabled={!canEdit || !isOwn}
                           >
-                            Verwijder
+                            {p.actief ? 'Actief' : 'Inactief'}
                           </button>
-                        )
+                        </span>
+                      </div>
+                      {confirmDeleteId === p.id ? (
+                        <div className="project-confirm">
+                          Verwijderen?
+                          <button className="btn-danger btn-sm" onClick={() => { onDelete(p.id); setConfirmDeleteId(null); }}>Ja</button>
+                          <button className="btn-secondary btn-sm" onClick={() => setConfirmDeleteId(null)}>Nee</button>
+                        </div>
+                      ) : (
+                        <div className="project-actions">
+                          {canEdit && isOwn && (
+                            <button className="project-icoon" onClick={() => startEdit(p)} title="Bewerken">✎</button>
+                          )}
+                          {canDelete && isOwn && (
+                            <button className="project-icoon project-icoon--delete" onClick={() => setConfirmDeleteId(p.id)} title="Verwijderen">✕</button>
+                          )}
+                        </div>
                       )}
                     </div>
+                    <ProjectMembers project={p} />
                   </>
                 )}
               </div>
