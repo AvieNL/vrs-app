@@ -3,6 +3,9 @@
 -- Voer dit UIT in: Supabase dashboard → SQL Editor → New query
 -- =====================================================
 
+-- Verwijder eerst de oude versie (return type is gewijzigd)
+DROP FUNCTION IF EXISTS public.get_project_members(TEXT);
+
 -- Vervang get_project_members zodat de eigenaar ook terugkomt
 -- is_owner = true betekent dat deze persoon de eigenaar is
 CREATE OR REPLACE FUNCTION public.get_project_members(p_project_id TEXT)
