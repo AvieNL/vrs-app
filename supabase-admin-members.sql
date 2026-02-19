@@ -3,14 +3,28 @@
 -- Voer dit UIT in: Supabase dashboard → SQL Editor → New query
 -- =====================================================
 
+-- Check welke admins er zijn
+SELECT id, email, rol FROM public.profiles WHERE rol = 'admin';
+
+-- Check bestaande project_members
+SELECT pm.project_id, pm.user_id, p.naam
+FROM public.project_members pm
+JOIN public.projecten p ON p.id = pm.project_id;
+
 -- STAP 1: Voeg bestaande admins toe aan alle bestaande projecten
 INSERT INTO public.project_members (project_id, user_id)
 SELECT p.id, pr.id
 FROM   public.projecten p
 CROSS  JOIN public.profiles pr
 WHERE  pr.rol = 'admin'
-  AND  pr.id <> p.user_id   -- eigenaar niet nogmaals toevoegen
+  AND  pr.id <> p.user_id
 ON CONFLICT DO NOTHING;
+
+-- Laat zien wat er nu in project_members staat
+SELECT pm.project_id, pm.user_id, proj.naam AS project_naam, prof.email
+FROM public.project_members pm
+JOIN public.projecten proj ON proj.id = pm.project_id
+JOIN public.profiles prof ON prof.id = pm.user_id;
 
 -- STAP 2: Trigger zodat nieuwe projecten automatisch alle admins als lid krijgen
 CREATE OR REPLACE FUNCTION public.auto_add_admins_to_project()
