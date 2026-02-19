@@ -80,7 +80,9 @@ function ProjectMembers({ project }) {
                     <span className="project-member-email">{m.email}</span>
                   )}
                 </span>
-                {isOwner && (
+                {m.is_owner ? (
+                  <span className="project-member-badge">Eigenaar</span>
+                ) : isOwner && (
                   <button
                     className="project-member-remove"
                     onClick={() => removeMember(m.user_id)}
