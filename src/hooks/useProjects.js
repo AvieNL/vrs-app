@@ -53,17 +53,13 @@ export function useProjects() {
   }, [user?.id]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   async function pullFromSupabase() {
-    const localCount = await db.projecten.where('user_id').equals(user.id).count();
-    const meta = await db.meta.get(`last_pull_projecten_${user.id}`);
-    const lastPull = meta?.value;
+    // Haal altijd alle projecten op (projecten zijn klein, altijd volledige sync)
+    const { data, error } = await supabase
+      .from('projecten')
+      .select('*')
+      .eq('user_id', user.id);
 
-    let query = supabase.from('projecten').select('*').eq('user_id', user.id);
-    if (localCount > 0 && lastPull) {
-      query = query.gt('updated_at', lastPull);
-    }
-
-    const { data, error } = await query;
-    if (error || !data || data.length === 0) return;
+    if (error || !data) return;
 
     const rows = data.map(r => ({
       id: r.id,
@@ -74,13 +70,17 @@ export function useProjects() {
       actief: r.actief !== false,
     }));
 
-    // Eerste run: geen data lokaal → gebruik Supabase data
-    if (localCount === 0) {
-      await db.projecten.bulkPut(rows);
-    } else {
-      // Incrementele update
-      await db.projecten.bulkPut(rows);
+    // Zet Supabase-data in Dexie
+    await db.projecten.bulkPut(rows);
+
+    // Verwijder lokale projecten die niet meer in Supabase staan (bijv. na server-side delete)
+    const remoteIds = new Set(data.map(r => r.id));
+    const localProjects = await db.projecten.where('user_id').equals(user.id).toArray();
+    const toDelete = localProjects.filter(p => !remoteIds.has(p.id)).map(p => p.id);
+    if (toDelete.length > 0) {
+      await db.projecten.bulkDelete(toDelete);
     }
+
     await db.meta.put({
       key: `last_pull_projecten_${user.id}`,
       value: new Date().toISOString(),
