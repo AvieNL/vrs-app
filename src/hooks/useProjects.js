@@ -122,12 +122,17 @@ export function useProjects() {
     if (!user || projects.length > 0) return;
     // Geef de pull even tijd — laad defaults pas als Dexie én Supabase leeg zijn
     const timer = setTimeout(async () => {
-      const count = await db.projecten.where('user_id').equals(user.id).count();
-      if (count === 0) {
-        const defaults = DEFAULT_PROJECTS.map(p => ({ ...p, user_id: user.id }));
-        await db.projecten.bulkPut(defaults);
-        defaults.forEach(p => addToQueue('projecten', 'upsert', toProjectRow(p, user.id)));
-      }
+      const localCount = await db.projecten.where('user_id').equals(user.id).count();
+      if (localCount > 0) return;
+      // Ook Supabase controleren: pull kan nog bezig zijn
+      const { count: remoteCount } = await supabase
+        .from('projecten')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+      if ((remoteCount ?? 0) > 0) return;
+      const defaults = DEFAULT_PROJECTS.map(p => ({ ...p, user_id: user.id }));
+      await db.projecten.bulkPut(defaults);
+      defaults.forEach(p => addToQueue('projecten', 'upsert', toProjectRow(p, user.id)));
     }, 2000);
     return () => clearTimeout(timer);
   }, [user?.id, projects.length]);  // eslint-disable-line react-hooks/exhaustive-deps
