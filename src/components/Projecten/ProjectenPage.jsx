@@ -102,10 +102,9 @@ function ProjectMembers({ project }) {
                 placeholder="e-mailadres van ringer"
               />
               <button
-                className="btn-success"
+                className="btn-success btn-sm"
                 onClick={addMember}
                 disabled={loading || !email.trim()}
-                style={{ minWidth: 'auto', minHeight: 'auto', padding: '6px 12px', fontSize: '0.85rem' }}
               >
                 {loading ? '...' : 'Toevoegen'}
               </button>
@@ -129,6 +128,7 @@ export default function ProjectenPage({ projects, onAdd, onUpdate, onDelete, onR
   const [editNaam, setEditNaam] = useState('');
   const [editLocatie, setEditLocatie] = useState('');
   const [editNummer, setEditNummer] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   function handleAdd(e) {
     e.preventDefault();
@@ -218,12 +218,10 @@ export default function ProjectenPage({ projects, onAdd, onUpdate, onDelete, onR
                       </div>
                     </div>
                     <div className="project-edit-actions">
-                      <button type="button" className="btn-success" onClick={() => saveEdit(p)}
-                        style={{ minWidth: 'auto', padding: '6px 14px' }}>
+                      <button type="button" className="btn-success btn-sm" onClick={() => saveEdit(p)}>
                         Opslaan
                       </button>
-                      <button type="button" className="btn-secondary" onClick={cancelEdit}
-                        style={{ minWidth: 'auto', padding: '6px 14px' }}>
+                      <button type="button" className="btn-secondary btn-sm" onClick={cancelEdit}>
                         Annuleer
                       </button>
                     </div>
@@ -242,29 +240,43 @@ export default function ProjectenPage({ projects, onAdd, onUpdate, onDelete, onR
                     <div className="project-actions">
                       {canEdit && isOwn && (
                         <button
-                          className="btn-secondary"
+                          className="btn-secondary btn-sm"
                           onClick={() => startEdit(p)}
-                          style={{ minWidth: 'auto', minHeight: 'auto', padding: '4px 10px', fontSize: '0.8rem' }}
                         >
                           Bewerk
                         </button>
                       )}
                       <button
-                        className={`btn-secondary badge ${p.actief ? 'badge-success' : ''}`}
+                        className={`btn-secondary btn-sm badge ${p.actief ? 'badge-success' : ''}`}
                         onClick={() => canEdit && isOwn && onUpdate(p.id, { actief: !p.actief })}
                         disabled={!canEdit || !isOwn}
-                        style={{ minWidth: 'auto', minHeight: 'auto', padding: '4px 10px' }}
                       >
                         {p.actief ? 'Actief' : 'Inactief'}
                       </button>
                       {canDelete && isOwn && (
-                        <button
-                          className="btn-danger"
-                          onClick={() => onDelete(p.id)}
-                          style={{ minWidth: 'auto', minHeight: 'auto', padding: '4px 10px', fontSize: '0.8rem' }}
-                        >
-                          ✕
-                        </button>
+                        confirmDeleteId === p.id ? (
+                          <>
+                            <button
+                              className="btn-danger btn-sm"
+                              onClick={() => { onDelete(p.id); setConfirmDeleteId(null); }}
+                            >
+                              Zeker?
+                            </button>
+                            <button
+                              className="btn-secondary btn-sm"
+                              onClick={() => setConfirmDeleteId(null)}
+                            >
+                              Nee
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            className="btn-danger btn-sm"
+                            onClick={() => setConfirmDeleteId(p.id)}
+                          >
+                            Verwijder
+                          </button>
+                        )
                       )}
                     </div>
                   </>

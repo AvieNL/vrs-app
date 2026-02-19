@@ -399,6 +399,13 @@ button:active {
   color: var(--bg-primary);
 }
 
+.btn-sm {
+  min-width: auto;
+  min-height: auto;
+  padding: 5px 12px;
+  font-size: 0.82rem;
+}
+
 a {
   color: var(--accent);
   text-decoration: none;
