@@ -3,6 +3,23 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useRole } from '../../hooks/useRole';
 import './RecordsPage.css';
 
+function geslachtIcoon(g) {
+  if (g === 'M') return <span className="gender-m">♂</span>;
+  if (g === 'V' || g === 'F') return <span className="gender-f">♀</span>;
+  return null;
+}
+
+function fmtTijd(t) {
+  if (!t) return '';
+  const s = String(t).replace(':', '');
+  if (s.length === 4) return s.slice(0, 2) + ':' + s.slice(2);
+  return t;
+}
+
+function stripDots(ring) {
+  return ring ? ring.replace(/\./g, '') : '';
+}
+
 const LEEFTIJD_LABEL = {
   '0': '?',
   '1': 'pullus',
@@ -76,7 +93,9 @@ export default function RecordsPage({ records, deletedRecords = [], onDelete, on
         {filtered.length === 0 ? (
           <div className="empty-state">Geen vangsten gevonden</div>
         ) : (
-          filtered.slice(0, 100).map(r => (
+          filtered.slice(0, 100).map(r => {
+            const isTerugvangst = r.metalenringinfo === 4 || r.metalenringinfo === '4';
+            return (
             <div
               key={r.id}
               id={`record-${r.id}`}
@@ -84,9 +103,13 @@ export default function RecordsPage({ records, deletedRecords = [], onDelete, on
               onClick={() => setExpanded(expanded === r.id ? null : r.id)}
             >
               <div className="record-header">
+                <span className={`record-type${isTerugvangst ? ' record-type--tv' : ''}`}>{isTerugvangst ? 'TV' : 'NV'}</span>
                 <div className="record-main">
                   <strong>{r.vogelnaam || 'Onbekend'}</strong>
-                  <span className="record-ring ring-link" onClick={e => { e.stopPropagation(); setExpanded(r.id); setTimeout(() => { document.getElementById(`record-${r.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 50); }}>{r.ringnummer}</span>
+                  <div className="record-ring-row">
+                    <span className="record-ring ring-link" onClick={e => { e.stopPropagation(); setExpanded(r.id); setTimeout(() => { document.getElementById(`record-${r.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 50); }}>{stripDots(r.ringnummer)}</span>
+                    {r.geslacht && r.geslacht !== 'U' && geslachtIcoon(r.geslacht)}
+                  </div>
                 </div>
                 <div className="record-meta">
                   <span>{r.vangstdatum}</span>
@@ -98,7 +121,7 @@ export default function RecordsPage({ records, deletedRecords = [], onDelete, on
                 <div className="record-details">
                   <div className="detail-grid">
                     {r.leeftijd && <div><span className="detail-label">Leeftijd:</span> {leeftijdLabel(r.leeftijd)}</div>}
-                    {r.geslacht && <div><span className="detail-label">Geslacht:</span> {r.geslacht}</div>}
+                    {r.geslacht && r.geslacht !== 'U' && <div><span className="detail-label">Geslacht:</span> {geslachtIcoon(r.geslacht)}</div>}
                     {r.vangstmethode && <div><span className="detail-label">Methode:</span> {r.vangstmethode}</div>}
                     {r.project && <div><span className="detail-label">Project:</span> {r.project}</div>}
                     {r.vleugel && <div><span className="detail-label">Vleugel:</span> {r.vleugel} mm</div>}
@@ -107,9 +130,9 @@ export default function RecordsPage({ records, deletedRecords = [], onDelete, on
                     {r.staartlengte && <div><span className="detail-label">Staart:</span> {r.staartlengte} mm</div>}
                     {r.tarsus_lengte && <div><span className="detail-label">Tarsus:</span> {r.tarsus_lengte} mm</div>}
                     {r.vet && <div><span className="detail-label">Vet:</span> {r.vet}</div>}
-                    {r.tijd && <div><span className="detail-label">Tijd:</span> {r.tijd}</div>}
+                    {r.tijd && <div><span className="detail-label">Tijd:</span> {fmtTijd(r.tijd)}</div>}
                     {r.google_plaats && <div><span className="detail-label">Plaats:</span> {r.google_plaats}</div>}
-                    {r.opmerkingen && <div><span className="detail-label">Opm.:</span> {r.opmerkingen}</div>}
+                    {r.opmerkingen && <div><span className="detail-label">Opmerkingen:</span> {r.opmerkingen}</div>}
                   </div>
                   {canDelete && r.bron !== 'griel_import' && (
                     <div className="record-actions">
@@ -132,7 +155,8 @@ export default function RecordsPage({ records, deletedRecords = [], onDelete, on
                 </div>
               )}
             </div>
-          ))
+            );
+          })
         )}
         {filtered.length > 100 && (
           <div className="empty-state">
@@ -155,7 +179,7 @@ export default function RecordsPage({ records, deletedRecords = [], onDelete, on
                 <div key={r.id} className="prullenbak-item">
                   <div className="prullenbak-info">
                     <strong>{r.vogelnaam || 'Onbekend'}</strong>
-                    {r.ringnummer && <span className="prullenbak-ring">{r.ringnummer}</span>}
+                    {r.ringnummer && <span className="prullenbak-ring">{stripDots(r.ringnummer)}</span>}
                     {r.vangstdatum && <span className="prullenbak-datum">{r.vangstdatum}</span>}
                   </div>
                   <div className="prullenbak-acties">
