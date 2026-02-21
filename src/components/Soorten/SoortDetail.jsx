@@ -17,9 +17,18 @@ function renderMarkdown(text) {
     .replace(/_(.*?)_/gs, '<u>$1</u>');
 }
 
-// Textarea met B/I/U-opmaakbalk
-function FormattedTextarea({ value, onChange, placeholder, rows }) {
+// Textarea met B/I/U-opmaakbalk die automatisch meegroeit
+function FormattedTextarea({ value, onChange, placeholder }) {
   const ref = useRef(null);
+
+  // Pas hoogte aan aan inhoud
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }, [value]);
+
   const insert = (marker) => {
     const el = ref.current;
     if (!el) return;
@@ -40,7 +49,7 @@ function FormattedTextarea({ value, onChange, placeholder, rows }) {
         <button type="button" className="sd-fmt-btn sd-fmt-italic" onMouseDown={e => { e.preventDefault(); insert('*'); }}>I</button>
         <button type="button" className="sd-fmt-btn sd-fmt-under" onMouseDown={e => { e.preventDefault(); insert('_'); }}>U</button>
       </div>
-      <textarea ref={ref} className="sd-edit-textarea" value={value} onChange={onChange} placeholder={placeholder} rows={rows} />
+      <textarea ref={ref} className="sd-edit-textarea sd-edit-textarea--auto" value={value} onChange={onChange} placeholder={placeholder} rows={1} />
     </div>
   );
 }
@@ -152,6 +161,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
 
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState({});
+  const [vangstenOpen, setVangstenOpen] = useState(false);
 
   const soortRecords = useMemo(() => {
     if (!decodedNaam) return [];
@@ -347,6 +357,8 @@ export default function SoortDetail({ records, speciesOverrides }) {
     });
     return counts;
   }, [soortRecords]);
+
+  const tvCount = soortRecords.filter(r => r.metalenringinfo === 4 || r.metalenringinfo === '4').length;
 
   if (speciesRef.length === 0) {
     return (
@@ -864,8 +876,16 @@ export default function SoortDetail({ records, speciesOverrides }) {
 
       {/* Mijn vangsten */}
       <div className="sd-card">
-        <h3 className="sd-card-title">Mijn vangsten</h3>
-        {soortRecords.length === 0 ? (
+        <div className="sd-vangsten-header" onClick={() => setVangstenOpen(o => !o)}>
+          <h3 className="sd-card-title sd-card-title--toggle">
+            Mijn vangsten
+            {soortRecords.length > 0 && (
+              <span className="sd-vangsten-count">{soortRecords.length}</span>
+            )}
+          </h3>
+          <span className={`sd-vangsten-toggle${vangstenOpen ? ' sd-vangsten-toggle--open' : ''}`}>▼</span>
+        </div>
+        {vangstenOpen && (soortRecords.length === 0 ? (
           <p className="sd-empty">Nog geen vangsten van deze soort</p>
         ) : (
           <>
@@ -874,6 +894,12 @@ export default function SoortDetail({ records, speciesOverrides }) {
                 <div className="sd-stat-value">{soortRecords.length}</div>
                 <div className="sd-stat-label">Totaal</div>
               </div>
+              {tvCount > 0 && (
+                <div className="sd-stat">
+                  <div className="sd-stat-value sd-stat-value--tv">{tvCount}</div>
+                  <div className="sd-stat-label">Terugv.</div>
+                </div>
+              )}
               {Object.entries(genderStats).map(([g, count]) => (
                 <div key={g} className="sd-stat">
                   <div className="sd-stat-value">{count}</div>
@@ -948,9 +974,15 @@ export default function SoortDetail({ records, speciesOverrides }) {
                     </div>
                   );
                 })}
+              <button
+                className="sd-all-records-link"
+                onClick={() => navigate('/records', { state: { filterSoort: decodedNaam } })}
+              >
+                Alle {soortRecords.length} vangsten van {soort.naam_nl} →
+              </button>
             </div>
           </>
-        )}
+        ))}
       </div>
     </div>
   );

@@ -42,6 +42,12 @@ export default function RecordsPage({ records, deletedRecords = [], onDelete, on
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state?.openId]);
 
+  useEffect(() => {
+    const filterSoort = location.state?.filterSoort;
+    if (filterSoort) setZoek(filterSoort);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state?.filterSoort]);
+
   const filtered = useMemo(() => {
     if (!zoek) return records;
     const lower = zoek.toLowerCase();

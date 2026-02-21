@@ -315,6 +315,12 @@
 .sd-fmt-italic { font-style: italic; }
 .sd-fmt-under  { text-decoration: underline; }
 
+.sd-edit-textarea--auto {
+  resize: none;
+  overflow: hidden;
+  min-height: 60px;
+}
+
 /* Notities weergave — markdown inline-stijlen */
 .sd-notities-text strong { font-weight: 700; color: var(--text-primary); }
 .sd-notities-text em     { font-style: italic; }
@@ -514,6 +520,71 @@
 .sd-empty {
   color: var(--text-muted);
   font-size: 0.85rem;
+}
+
+/* Inklapbare header van Mijn vangsten */
+.sd-vangsten-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 0;
+}
+
+.sd-card-title--toggle {
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sd-vangsten-count {
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--accent-bg);
+  color: var(--accent);
+  padding: 1px 7px;
+  border-radius: 10px;
+}
+
+.sd-vangsten-toggle {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  transition: transform 0.2s;
+  margin-left: 4px;
+}
+
+.sd-vangsten-toggle--open {
+  transform: rotate(180deg);
+}
+
+/* Terugvangsten teller */
+.sd-stat-value--tv {
+  color: var(--warning);
+}
+
+/* Link naar alle vangsten in RecordsPage */
+.sd-all-records-link {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: center;
+  min-height: unset;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.sd-all-records-link:hover {
+  border-color: var(--accent);
+  background: var(--accent-bg);
 }
 
 /* Stats row */
