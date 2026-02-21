@@ -299,6 +299,26 @@
   color: #e879f9;
 }
 
+/* Geslacht-iconen in nestgegevens (broed/zorg) */
+.sd-gender-icon--m {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.sd-gender-icon--f {
+  color: #e879f9;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.sd-gender-edit-hint {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
 /* Geslachts- / leeftijdsbepaling blokken */
 .sd-det-fields,
 .sd-det-view {

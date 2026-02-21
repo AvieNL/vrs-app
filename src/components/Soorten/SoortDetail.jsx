@@ -75,8 +75,8 @@ const EDITABLE_FIELDS = {
     { key: 'nest_eieren', label: 'Eieren' },
     { key: 'nest_ei_dagen', label: 'Broedtijd (dagen)' },
     { key: 'nest_jong_dagen', label: 'Nestjong (dagen)' },
-    { key: 'broed', label: 'Broed' },
-    { key: 'zorg', label: 'Zorg' },
+    { key: 'broed', label: 'Broed', gender: true },
+    { key: 'zorg', label: 'Zorg', gender: true },
   ],
   boeken: ALL_BOEKEN,
 };
@@ -352,6 +352,20 @@ export default function SoortDetail({ records, speciesOverrides }) {
     return keys.some(k => bioUserOverride[k] !== undefined && bioUserOverride[k] !== '');
   });
 
+  const renderGenderIcons = (val) => {
+    if (!val) return <span>—</span>;
+    const v = val.toUpperCase();
+    const hasM = v.includes('M');
+    const hasF = v.includes('V') || v.includes('F');
+    return (
+      <>
+        {hasM && <span className="sd-gender-icon--m">♂</span>}
+        {hasF && <span className="sd-gender-icon--f">♀</span>}
+        {!hasM && !hasF && <span>{val}</span>}
+      </>
+    );
+  };
+
   const renderField = (key, label, opts = {}) => {
     if (editMode) {
       const val = editData[key] ?? '';
@@ -361,19 +375,30 @@ export default function SoortDetail({ records, speciesOverrides }) {
           <input
             type="text"
             value={val}
-            onChange={e => handleField(key, e.target.value)}
+            onChange={e => handleField(key, opts.gender ? e.target.value.toUpperCase() : e.target.value)}
             className="sd-edit-input"
-            placeholder={opts.placeholder || ''}
+            placeholder={opts.gender ? 'M, V of F, of combinatie (bijv. MV)' : (opts.placeholder || '')}
           />
+          {opts.gender && (
+            <span className="sd-gender-edit-hint">M = ♂ &nbsp;·&nbsp; V of F = ♀</span>
+          )}
         </div>
       );
     }
     const val = isBoekKey(key) ? soort.boeken?.[key] : soort[key];
     if (!val && !opts.showEmpty) return null;
+    let display;
+    if (opts.gender) {
+      display = renderGenderIcons(val);
+    } else if (isBoekKey(key) && val) {
+      display = <span>p.&nbsp;{val}</span>;
+    } else {
+      display = val || '—';
+    }
     return (
       <div className="sd-row" key={key}>
         <span className="sd-label">{label}</span>
-        <span className={`sd-value ${opts.italic ? 'sd-italic' : ''}`}>{val || '—'}</span>
+        <span className={`sd-value ${opts.italic ? 'sd-italic' : ''}`}>{display}</span>
       </div>
     );
   };
@@ -552,7 +577,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
         <div className="sd-card">
           <h3 className="sd-card-title">Nestgegevens</h3>
           {EDITABLE_FIELDS.nest.map(f =>
-            renderField(f.key, f.label, { showEmpty: editMode })
+            renderField(f.key, f.label, { showEmpty: editMode, gender: f.gender })
           )}
         </div>
       )}
