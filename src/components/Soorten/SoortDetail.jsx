@@ -12,19 +12,6 @@ const LEEFTIJD_LABEL = {
 };
 function leeftijdLabel(code) { return LEEFTIJD_LABEL[code] || code; }
 
-function parseVal(v) {
-  if (v === undefined || v === null || v === '') return NaN;
-  return parseFloat(String(v).replace(',', '.'));
-}
-
-function calcStats(records, field) {
-  const vals = records.map(r => parseVal(r[field])).filter(v => !isNaN(v) && v > 0);
-  if (vals.length === 0) return null;
-  const min = Math.min(...vals);
-  const max = Math.max(...vals);
-  const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
-  return { min, max, avg, n: vals.length };
-}
 
 function resizeImage(file, maxWidth = 400) {
   return new Promise((resolve) => {
@@ -120,25 +107,14 @@ export default function SoortDetail({ records, speciesOverrides }) {
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState({});
 
-  // Calculate bioStats early so we can use them in startEdit
   const soortRecords = useMemo(() => {
     if (!decodedNaam) return [];
     const lower = decodedNaam.toLowerCase();
     return records.filter(r => r.vogelnaam && r.vogelnaam.toLowerCase() === lower);
   }, [records, decodedNaam]);
 
-  const bioStatsCalc = useMemo(() => {
-    return BIO_FIELDS.map(f => ({ ...f, stats: calcStats(soortRecords, f.key) }));
-  }, [soortRecords]);
-
-  // Merged bio: override > stats from records
-  const getBioValue = (field, stat) => {
-    const overrideKey = `bio_${field}_${stat}`;
-    if (soort[overrideKey] !== undefined && soort[overrideKey] !== '') return soort[overrideKey];
-    const calc = bioStatsCalc.find(b => b.key === field);
-    if (calc?.stats) return calc.stats[stat]?.toFixed(1);
-    return '';
-  };
+  // Biometriewaarde: uit samengevoegde soortdata (admin-base + gebruikersoverride)
+  const getBioValue = (field, stat) => soort[`bio_${field}_${stat}`] ?? '';
 
   const startEdit = () => {
     const data = {};
@@ -149,9 +125,9 @@ export default function SoortDetail({ records, speciesOverrides }) {
         data[f.key] = soort[f.key] ?? '';
       }
     });
-    // Bio fields: prefill with override or stats
+    // Bio fields: prefill met huidige waarden (admin-basis of eigen override)
     BIO_FIELDS.forEach(f => {
-      ['min', 'max', 'avg'].forEach(stat => {
+      ['min', 'max'].forEach(stat => {
         const key = `bio_${f.key}_${stat}`;
         data[key] = getBioValue(f.key, stat);
       });
@@ -202,13 +178,12 @@ export default function SoortDetail({ records, speciesOverrides }) {
       });
 
       BIO_FIELDS.forEach(f => {
-        ['min', 'max', 'avg'].forEach(stat => {
+        ['min', 'max'].forEach(stat => {
           const key = `bio_${f.key}_${stat}`;
           adminData[key] = editData[key] ?? '';
         });
-        // Geslachtsspecifieke biometrie
         ['M', 'F'].forEach(gender => {
-          ['min', 'avg', 'max'].forEach(stat => {
+          ['min', 'max'].forEach(stat => {
             const key = `bio_${f.key}_${gender}_${stat}`;
             adminData[key] = editData[key] ?? '';
           });
@@ -253,14 +228,13 @@ export default function SoortDetail({ records, speciesOverrides }) {
         changes.boeken = boekenChanges;
       }
 
-      // Bio overrides: alleen opslaan als afwijkend van berekende statistieken
+      // Bio overrides: alleen opslaan als afwijkend van admin-basisdata
       BIO_FIELDS.forEach(f => {
-        ['min', 'max', 'avg'].forEach(stat => {
+        ['min', 'max'].forEach(stat => {
           const key = `bio_${f.key}_${stat}`;
           const editVal = editData[key] ?? '';
-          const calc = bioStatsCalc.find(b => b.key === f.key);
-          const statsVal = calc?.stats ? calc.stats[stat].toFixed(1) : '';
-          if (String(editVal) !== String(statsVal)) {
+          const defaultVal = defaultSoort?.[key] ?? '';
+          if (String(editVal) !== String(defaultVal)) {
             changes[key] = editVal;
           }
         });
@@ -306,10 +280,6 @@ export default function SoortDetail({ records, speciesOverrides }) {
     const dataUrl = await resizeImage(file);
     setEditData(prev => ({ ...prev, foto: dataUrl }));
   };
-
-  const bioStats = useMemo(() => {
-    return bioStatsCalc.filter(f => f.stats);
-  }, [bioStatsCalc]);
 
   const genderStats = useMemo(() => {
     const counts = {};
@@ -646,7 +616,6 @@ export default function SoortDetail({ records, speciesOverrides }) {
                 <th>Meting</th>
                 <th>Min</th>
                 <th>Max</th>
-                <th>n</th>
               </tr>
             </thead>
             <tbody>
@@ -655,8 +624,6 @@ export default function SoortDetail({ records, speciesOverrides }) {
                 const maxKey = `bio_${b.key}_max`;
                 const minVal = getBioValue(b.key, 'min');
                 const maxVal = getBioValue(b.key, 'max');
-                const calc = bioStatsCalc.find(c => c.key === b.key);
-                const n = calc?.stats?.n;
                 const rows = [];
                 if (minVal || maxVal) {
                   rows.push(
@@ -664,7 +631,6 @@ export default function SoortDetail({ records, speciesOverrides }) {
                       <td className="sd-bio-field">{b.label} <span className="sd-bio-unit">({b.unit})</span></td>
                       <td className={bioCellCls(minKey)}>{minVal || '—'}</td>
                       <td className={bioCellCls(maxKey)}>{maxVal || '—'}</td>
-                      <td className="sd-bio-num sd-bio-n">{n || '—'}</td>
                     </tr>
                   );
                 }
@@ -681,7 +647,6 @@ export default function SoortDetail({ records, speciesOverrides }) {
                         </td>
                         <td className={bioCellCls(gMinKey)}>{gMin || '—'}</td>
                         <td className={bioCellCls(gMaxKey)}>{gMax || '—'}</td>
-                        <td className="sd-bio-num sd-bio-n">—</td>
                       </tr>
                     );
                   }
