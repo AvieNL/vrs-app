@@ -63,6 +63,9 @@ const EDITABLE_FIELDS = {
     { key: 'naam_lat', label: 'Latijn' },
     { key: 'naam_en', label: 'Engels' },
     { key: 'naam_de', label: 'Duits' },
+    { key: 'naam_fr', label: 'Frans' },
+  ],
+  taxonomie: [
     { key: 'familie', label: 'Familie' },
     { key: 'orde', label: 'Orde' },
   ],
@@ -449,7 +452,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
       display = val || '—';
     }
     return (
-      <div className="sd-row" key={key}>
+      <div className={`sd-row${opts.muted ? ' sd-row--muted' : ''}`} key={key}>
         <span className="sd-label">{label}</span>
         <span className={`sd-value ${opts.italic ? 'sd-italic' : ''}`}>{display}</span>
       </div>
@@ -672,6 +675,11 @@ export default function SoortDetail({ records, speciesOverrides }) {
         <h3 className="sd-card-title">Namen</h3>
         {EDITABLE_FIELDS.namen.map(f =>
           renderField(f.key, f.label, { italic: f.key === 'naam_lat', showEmpty: editMode })
+        )}
+        <div className="sd-section-divider" />
+        <span className="sd-section-label">Taxonomie</span>
+        {EDITABLE_FIELDS.taxonomie.map(f =>
+          renderField(f.key, f.label, { showEmpty: editMode, muted: true })
         )}
       </div>
 

@@ -231,6 +231,32 @@
   font-style: italic;
 }
 
+/* Sectie-scheiding binnen een card (bijv. namen vs. taxonomie) */
+.sd-section-divider {
+  border: none;
+  border-top: 1px solid rgba(71, 85, 105, 0.3);
+  margin: 8px 0 4px;
+}
+
+.sd-section-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.sd-row--muted .sd-value {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.sd-row--muted .sd-label {
+  font-size: 0.82rem;
+}
+
 /* Edit rows */
 .sd-edit-row {
   margin-bottom: 8px;
