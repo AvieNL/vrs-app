@@ -108,11 +108,11 @@ const ALL_BOEKEN = [
 
 const EDITABLE_FIELDS = {
   namen: [
-    { key: 'naam_lat', label: 'Latijn' },
-    { key: 'naam_en', label: 'Engels' },
-    { key: 'naam_de', label: 'Duits' },
-    { key: 'naam_fr', label: 'Frans' },
-    { key: 'naam_es', label: 'Spaans' },
+    { key: 'naam_lat', label: '🌐 Latijn' },
+    { key: 'naam_en', label: '🇬🇧 Engels' },
+    { key: 'naam_de', label: '🇩🇪 Duits' },
+    { key: 'naam_fr', label: '🇫🇷 Frans' },
+    { key: 'naam_es', label: '🇪🇸 Spaans' },
   ],
   taxonomie: [
     { key: 'familie', label: 'Familie' },
