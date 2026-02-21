@@ -48,7 +48,7 @@ function resizeImage(file, maxWidth = 400) {
 
 const BIO_FIELDS = [
   { key: 'vleugel', label: 'Vleugel', unit: 'mm' },
-  { key: 'gewicht', label: 'Gewicht', unit: 'g', noAvg: true },
+  { key: 'gewicht', label: 'Gewicht', unit: 'g' },
   { key: 'handpenlengte', label: 'P8 / Handpen', unit: 'mm' },
   { key: 'staartlengte', label: 'Staart', unit: 'mm' },
   { key: 'kop_snavel', label: 'Kop+snavel', unit: 'mm' },
@@ -589,8 +589,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
                 <div key={prefix ?? 'alg'} className={`sd-bio-edit-subrow${cls}`}>
                   <span className="sd-bio-gender-lbl">{label}</span>
                   <div className="sd-bio-edit-inputs">
-                    {['min', 'avg', 'max'].map(stat => {
-                      if (stat === 'avg' && f.noAvg) return null;
+                    {['min', 'max'].map(stat => {
                       const key = prefix
                         ? `bio_${f.key}_${prefix}_${stat}`
                         : `bio_${f.key}_${stat}`;
@@ -602,7 +601,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
                           value={editData[key] ?? ''}
                           onChange={e => handleField(key, e.target.value)}
                           className="sd-edit-input"
-                          placeholder={{ min: 'Min', avg: 'Gem.', max: 'Max' }[stat]}
+                          placeholder={{ min: 'Min', max: 'Max' }[stat]}
                         />
                       );
                     })}
@@ -623,7 +622,6 @@ export default function SoortDetail({ records, speciesOverrides }) {
               <tr>
                 <th>Meting</th>
                 <th>Min</th>
-                <th>Gem.</th>
                 <th>Max</th>
                 <th>n</th>
               </tr>
@@ -641,7 +639,6 @@ export default function SoortDetail({ records, speciesOverrides }) {
                   <tr key={b.key}>
                     <td className="sd-bio-field">{b.label} <span className="sd-bio-unit">({b.unit})</span></td>
                     <td className={`sd-bio-num${isOv('min') ? ' sd-bio-override' : ''}`}>{minVal || '—'}</td>
-                    <td className={`sd-bio-num sd-bio-avg${isOv('avg') ? ' sd-bio-override' : ''}`}>{b.noAvg ? '—' : (avgVal || '—')}</td>
                     <td className={`sd-bio-num${isOv('max') ? ' sd-bio-override' : ''}`}>{maxVal || '—'}</td>
                     <td className="sd-bio-num sd-bio-n">{n || '—'}</td>
                   </tr>,
@@ -658,7 +655,6 @@ export default function SoortDetail({ records, speciesOverrides }) {
                           <span className="sd-bio-gender-tag">{sym}</span> {b.label}
                         </td>
                         <td className="sd-bio-num">{gMin || '—'}</td>
-                        <td className="sd-bio-num sd-bio-avg">{b.noAvg ? '—' : (gAvg || '—')}</td>
                         <td className="sd-bio-num">{gMax || '—'}</td>
                         <td className="sd-bio-num sd-bio-n">—</td>
                       </tr>
@@ -681,7 +677,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
           <h3 className="sd-card-title">Biometrie per geslacht</h3>
           <table className="sd-bio-table">
             <thead>
-              <tr><th>Meting</th><th>Min</th><th>Gem.</th><th>Max</th><th></th></tr>
+              <tr><th>Meting</th><th>Min</th><th>Max</th><th></th></tr>
             </thead>
             <tbody>
               {BIO_FIELDS.flatMap(b => {
@@ -697,7 +693,6 @@ export default function SoortDetail({ records, speciesOverrides }) {
                           <span className="sd-bio-gender-tag">{sym}</span> {b.label} <span className="sd-bio-unit">({b.unit})</span>
                         </td>
                         <td className="sd-bio-num">{gMin || '—'}</td>
-                        <td className="sd-bio-num sd-bio-avg">{b.noAvg ? '—' : (gAvg || '—')}</td>
                         <td className="sd-bio-num">{gMax || '—'}</td>
                         <td className="sd-bio-num sd-bio-n">—</td>
                       </tr>
