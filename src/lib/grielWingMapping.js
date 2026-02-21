@@ -1,12 +1,14 @@
 export function toGrielWingScores(scores) {
   return {
-    primaries:   group(scores, 'hp', 10),
-    secondaries: group(scores, 'ap', 6),
-    tertials:    group(scores, 't',  3),
+    primaries:       group(scores, 'P',  10),
+    secondaries:     group(scores, 'S',  6),
+    tertials:        group(scores, 'Tt', 3),
+    alula:           group(scores, 'AL', 3),
+    primary_coverts: group(scores, 'CC', 3),
     coverts: {
-      greater: group(scores, 'gd', 10),
-      median:  group(scores, 'md', 8),
-      lesser:  group(scores, 'kd', 6),
+      greater: group(scores, 'GC', 5),
+      median:  group(scores, 'MC', 3),
+      lesser:  group(scores, 'LC', 2),
     },
   };
 }

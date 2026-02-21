@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { db } from '../../lib/db';
 import { generateId } from '../../utils/storage';
 import { fetchWingScoring, upsertWingScoring } from '../../lib/supabaseWingScoring';
-import { ALL_FEATHER_IDS, ensureFeatherKeys } from './featherIds';
+import { ALL_FEATHER_IDS, FEATHER_ID_SET, ensureFeatherKeys } from './featherIds';
 import { applyFeatherStyles } from './applyStyles';
 import WingSvg from './WingSvg';
 import WingScoringPanel from './WingScoringPanel';
@@ -113,9 +113,8 @@ export default function WingScoringPage() {
   }
 
   function handleFeatherClick(e) {
-    const el = e.target.closest('.feather');
-    if (!el?.id) return;
-    const id = el.id;
+    const id = e.target.id;
+    if (!id || !FEATHER_ID_SET.has(id)) return;
     setScores(prev => {
       const cur = prev[id]?.score ?? 0;
       const next = e.shiftKey ? Math.max(0, cur - 1) : (cur + 1) % 6;
@@ -126,10 +125,9 @@ export default function WingScoringPage() {
   }
 
   function handleFeatherContextMenu(e) {
-    const el = e.target.closest('.feather');
-    if (!el?.id) return;
+    const id = e.target.id;
+    if (!id || !FEATHER_ID_SET.has(id)) return;
     e.preventDefault();
-    const id = el.id;
     setScores(prev => {
       const cur = prev[id]?.score ?? 0;
       const updated = { ...prev, [id]: { score: Math.max(0, cur - 1) } };

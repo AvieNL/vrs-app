@@ -62,6 +62,15 @@
   display: block;
 }
 
+.wing-svg-container polygon {
+  cursor: pointer;
+  transition: opacity 0.1s;
+}
+
+.wing-svg-container polygon:hover {
+  opacity: 0.75;
+}
+
 /* Panel */
 .wing-panel {
   display: flex;
