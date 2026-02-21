@@ -18,7 +18,6 @@ import RingstrengenPage from './components/Ringstreng/RingstrengenPage';
 import LoginPage from './components/Auth/LoginPage';
 import MigrationBanner from './components/Sync/MigrationBanner';
 import AdminPage from './components/Admin/AdminPage';
-import WingScoringPage from './components/Wing/WingScoringPage';
 import { useRecords } from './hooks/useRecords';
 import { useProjects } from './hooks/useProjects';
 import { useSpeciesOverrides } from './hooks/useSpeciesOverrides';
@@ -171,7 +170,6 @@ function MainApp() {
             />
           } />
           <Route path="/admin" element={<AdminPage />} />
-          <Route path="/wing-scoring" element={<WingScoringPage />} />
         </Routes>
       </main>
       <Navigation />

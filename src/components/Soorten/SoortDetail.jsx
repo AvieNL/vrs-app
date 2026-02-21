@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useSpeciesRef } from '../../hooks/useSpeciesRef';
 import { useRole } from '../../hooks/useRole';
 import { db } from '../../lib/db';
@@ -573,11 +573,6 @@ export default function SoortDetail({ records, speciesOverrides }) {
         )}
         {!editMode && soort.ruitype && (
           <RuitypeInfo ruitype={soort.ruitype} />
-        )}
-        {!editMode && (
-          <Link to="/wing-scoring" className="sd-wing-link">
-            ✦ Vleugelscore
-          </Link>
         )}
       </div>
 
