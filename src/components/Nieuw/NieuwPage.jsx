@@ -391,6 +391,15 @@ function parseVal(v) {
 }
 
 // Compute min/max ranges from records for a species, with 10% margin
+function renderGeslachtTekst(str) {
+  if (!str) return str;
+  return String(str).split(/([MVF])/).map((part, i) => {
+    if (part === 'M') return <span key={i} className="gender-m">♂</span>;
+    if (part === 'V' || part === 'F') return <span key={i} className="gender-f">♀</span>;
+    return part || null;
+  });
+}
+
 function computeRanges(soortRecords) {
   const fields = [
     { key: 'vleugel', label: 'Vleugel' },
@@ -1525,9 +1534,9 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
               </div>
               {speciesInfo && (speciesInfo.nest_eileg || speciesInfo.broed) && (
                 <div className="broed-info-hint">
-                  {speciesInfo.broed && <span>Broedt: <strong>{speciesInfo.broed}</strong></span>}
-                  {speciesInfo.nest_eileg && <span>Eileg: <strong>{speciesInfo.nest_eileg}</strong></span>}
-                  {speciesInfo.nest_broedels && <span>Broedels: <strong>{speciesInfo.nest_broedels}</strong></span>}
+                  {speciesInfo.broed && <span>Broedt: <strong>{renderGeslachtTekst(speciesInfo.broed)}</strong></span>}
+                  {speciesInfo.nest_eileg && <span>Eileg: <strong>{renderGeslachtTekst(speciesInfo.nest_eileg)}</strong></span>}
+                  {speciesInfo.nest_broedels && <span>Broedels: <strong>{renderGeslachtTekst(speciesInfo.nest_broedels)}</strong></span>}
                 </div>
               )}
             </div>
