@@ -1,0 +1,147 @@
+/* ─── RuitypeInfo — gedeelde component ──────────────────────────────────────
+ * Gedeeld door SoortDetail en NieuwPage.
+ * Klasses gebruiken 'rui-' prefix (apart van NieuwPage's 'ruitype-' prefix).
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+.rui-blok {
+  margin-top: 8px;
+}
+
+.rui-blok--accent {
+  background: var(--warning-bg);
+  border-left: 3px solid var(--warning);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── Kalender ────────────────────────────────────────────────────────────── */
+
+.rui-kalender {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.rui-kal-rij {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.rui-kal-zijlabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--accent);
+  width: 26px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.rui-kal-balk {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+}
+
+.rui-kal-seg {
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 4px 1px;
+  position: relative;
+  overflow: visible;
+}
+
+.rui-kal-seg:not(:last-child)::after {
+  content: '›';
+  position: absolute;
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1;
+  z-index: 1;
+}
+
+.rui-kal-seg--pull { color: var(--text-secondary); }
+.rui-kal-seg--juv  { color: var(--success); }
+.rui-kal-seg--rui  { color: var(--warning); }
+.rui-kal-seg--vol  { color: var(--text-secondary); }
+.rui-kal-seg--akj  { color: var(--text-muted); font-style: italic; }
+
+.rui-kal-maanden {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  margin-left: 32px;
+}
+
+.rui-kal-maand {
+  font-size: 0.6rem;
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 2px 0;
+}
+
+.rui-kal-maand--dec {
+  border-right: 2px solid var(--accent);
+}
+
+.rui-kal-maand--jan {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* ── Seizoenstekst ───────────────────────────────────────────────────────── */
+
+.rui-tekst {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.rui-groep {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 2px 6px;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.rui-groep--separator {
+  padding-top: 6px;
+  border-top: 1px dashed var(--border);
+}
+
+.rui-seizoen {
+  font-weight: 700;
+  color: var(--warning);
+  white-space: nowrap;
+}
+
+.rui-opties {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rui-optie {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--text-primary);
+}
+
+.rui-cond {
+  color: var(--text-secondary);
+}
+
+.rui-val {
+  font-weight: 600;
+  white-space: nowrap;
+}

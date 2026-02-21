@@ -4,6 +4,7 @@ import { useSpeciesRef } from '../../hooks/useSpeciesRef';
 import { useRole } from '../../hooks/useRole';
 import { db } from '../../lib/db';
 import { supabase } from '../../lib/supabase';
+import RuitypeInfo from './RuitypeInfo';
 import './SoortDetail.css';
 
 const LEEFTIJD_LABEL = {
@@ -569,6 +570,9 @@ export default function SoortDetail({ records, speciesOverrides }) {
         <h3 className="sd-card-title">Ring & Rui</h3>
         {EDITABLE_FIELDS.ring.map(f =>
           renderField(f.key, f.label, { showEmpty: editMode })
+        )}
+        {!editMode && soort.ruitype && (
+          <RuitypeInfo ruitype={soort.ruitype} />
         )}
       </div>
 
