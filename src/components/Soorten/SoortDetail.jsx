@@ -48,7 +48,7 @@ function resizeImage(file, maxWidth = 400) {
 
 const BIO_FIELDS = [
   { key: 'vleugel', label: 'Vleugel', unit: 'mm' },
-  { key: 'gewicht', label: 'Gewicht', unit: 'g' },
+  { key: 'gewicht', label: 'Gewicht', unit: 'g', noAvg: true },
   { key: 'handpenlengte', label: 'P8 / Handpen', unit: 'mm' },
   { key: 'staartlengte', label: 'Staart', unit: 'mm' },
   { key: 'kop_snavel', label: 'Kop+snavel', unit: 'mm' },
@@ -163,10 +163,14 @@ export default function SoortDetail({ records, speciesOverrides }) {
         });
       });
     });
-    // Separate notities voor geslachts- en leeftijdsbepaling
-    // Fallback: toon oude ruitype_notities in het geslachtsveld als migratie
-    data.geslachts_notities = soort.geslachts_notities ?? soort.ruitype_notities ?? '';
-    data.leeftijds_notities = soort.leeftijds_notities ?? '';
+    // Geslachtsbepaling: apart voor man en vrouw
+    // Migratie: oude geslachts_notities / ruitype_notities valt terug op ♂-veld
+    data.geslachts_notities_m = soort.geslachts_notities_m ?? soort.geslachts_notities ?? soort.ruitype_notities ?? '';
+    data.geslachts_notities_f = soort.geslachts_notities_f ?? '';
+    // Leeftijdsbepaling: apart voor voorjaar en najaar
+    // Migratie: oude leeftijds_notities valt terug op voorjaar-veld
+    data.leeftijds_notities_vj = soort.leeftijds_notities_vj ?? soort.leeftijds_notities ?? '';
+    data.leeftijds_notities_nj = soort.leeftijds_notities_nj ?? '';
     data.foto = soort.foto ?? '';
     setEditData(data);
     setEditMode(true);
@@ -211,8 +215,10 @@ export default function SoortDetail({ records, speciesOverrides }) {
         });
       });
 
-      adminData.geslachts_notities = editData.geslachts_notities ?? '';
-      adminData.leeftijds_notities = editData.leeftijds_notities ?? '';
+      adminData.geslachts_notities_m = editData.geslachts_notities_m ?? '';
+      adminData.geslachts_notities_f = editData.geslachts_notities_f ?? '';
+      adminData.leeftijds_notities_vj = editData.leeftijds_notities_vj ?? '';
+      adminData.leeftijds_notities_nj = editData.leeftijds_notities_nj ?? '';
       if (editData.foto !== undefined) adminData.foto = editData.foto;
 
       const { error } = await supabase
@@ -271,14 +277,14 @@ export default function SoortDetail({ records, speciesOverrides }) {
         });
       });
 
-      const defaultGeslachts = defaultSoort?.geslachts_notities ?? defaultSoort?.ruitype_notities ?? '';
-      if (editData.geslachts_notities !== defaultGeslachts) {
-        changes.geslachts_notities = editData.geslachts_notities;
-      }
-      const defaultLeeftijds = defaultSoort?.leeftijds_notities ?? '';
-      if (editData.leeftijds_notities !== defaultLeeftijds) {
-        changes.leeftijds_notities = editData.leeftijds_notities;
-      }
+      const defGeslM = defaultSoort?.geslachts_notities_m ?? defaultSoort?.geslachts_notities ?? defaultSoort?.ruitype_notities ?? '';
+      if (editData.geslachts_notities_m !== defGeslM) changes.geslachts_notities_m = editData.geslachts_notities_m;
+      const defGeslF = defaultSoort?.geslachts_notities_f ?? '';
+      if (editData.geslachts_notities_f !== defGeslF) changes.geslachts_notities_f = editData.geslachts_notities_f;
+      const defLeeftVj = defaultSoort?.leeftijds_notities_vj ?? defaultSoort?.leeftijds_notities ?? '';
+      if (editData.leeftijds_notities_vj !== defLeeftVj) changes.leeftijds_notities_vj = editData.leeftijds_notities_vj;
+      const defLeeftNj = defaultSoort?.leeftijds_notities_nj ?? '';
+      if (editData.leeftijds_notities_nj !== defLeeftNj) changes.leeftijds_notities_nj = editData.leeftijds_notities_nj;
       if (editData.foto && editData.foto !== (defaultSoort?.foto ?? '')) {
         changes.foto = editData.foto;
       }
@@ -342,11 +348,16 @@ export default function SoortDetail({ records, speciesOverrides }) {
   }
 
   const foto = editMode ? editData.foto : soort.foto;
-  // Geslachts- en leeftijdsbepaling: nieuwe velden, met fallback op ruitype_notities voor migratie
-  const geslachtsNotities = editMode
-    ? editData.geslachts_notities
-    : (soort.geslachts_notities || soort.ruitype_notities);
-  const leeftijdsNotities = editMode ? editData.leeftijds_notities : soort.leeftijds_notities;
+  // Geslachtsbepaling per geslacht (migratie: oud veld → ♂)
+  const geslachtsM = editMode
+    ? editData.geslachts_notities_m
+    : (soort.geslachts_notities_m || soort.geslachts_notities || soort.ruitype_notities);
+  const geslachtsF = editMode ? editData.geslachts_notities_f : soort.geslachts_notities_f;
+  // Leeftijdsbepaling per seizoen (migratie: oud veld → voorjaar)
+  const leeftijdsVj = editMode
+    ? editData.leeftijds_notities_vj
+    : (soort.leeftijds_notities_vj || soort.leeftijds_notities);
+  const leeftijdsNj = editMode ? editData.leeftijds_notities_nj : soort.leeftijds_notities_nj;
 
   const renderField = (key, label, opts = {}) => {
     if (editMode) {
@@ -436,37 +447,93 @@ export default function SoortDetail({ records, speciesOverrides }) {
       </div>
 
       {/* Geslachtsbepaling */}
-      {(editMode || geslachtsNotities) && (
+      {(editMode || geslachtsM || geslachtsF) && (
         <div className="sd-card">
           <h3 className="sd-card-title">Geslachtsbepaling</h3>
           {editMode ? (
-            <textarea
-              className="sd-edit-textarea"
-              value={editData.geslachts_notities || ''}
-              onChange={e => handleField('geslachts_notities', e.target.value)}
-              placeholder="Hoe is het geslacht te bepalen bij deze soort?"
-              rows={3}
-            />
+            <div className="sd-det-fields">
+              <div className="sd-det-block sd-det-block--m">
+                <span className="sd-det-label sd-det-label--m">♂ Man</span>
+                <textarea
+                  className="sd-edit-textarea"
+                  value={editData.geslachts_notities_m || ''}
+                  onChange={e => handleField('geslachts_notities_m', e.target.value)}
+                  placeholder="Kenmerken voor man..."
+                  rows={3}
+                />
+              </div>
+              <div className="sd-det-block sd-det-block--f">
+                <span className="sd-det-label sd-det-label--f">♀ Vrouw</span>
+                <textarea
+                  className="sd-edit-textarea"
+                  value={editData.geslachts_notities_f || ''}
+                  onChange={e => handleField('geslachts_notities_f', e.target.value)}
+                  placeholder="Kenmerken voor vrouw..."
+                  rows={3}
+                />
+              </div>
+            </div>
           ) : (
-            <p className="sd-notities-text">{geslachtsNotities}</p>
+            <div className="sd-det-view">
+              {geslachtsM && (
+                <div className="sd-det-block">
+                  <span className="sd-det-label sd-det-label--m">♂ Man</span>
+                  <p className="sd-notities-text">{geslachtsM}</p>
+                </div>
+              )}
+              {geslachtsF && (
+                <div className="sd-det-block">
+                  <span className="sd-det-label sd-det-label--f">♀ Vrouw</span>
+                  <p className="sd-notities-text">{geslachtsF}</p>
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}
 
       {/* Leeftijdsbepaling */}
-      {(editMode || leeftijdsNotities) && (
+      {(editMode || leeftijdsVj || leeftijdsNj) && (
         <div className="sd-card">
           <h3 className="sd-card-title">Leeftijdsbepaling</h3>
           {editMode ? (
-            <textarea
-              className="sd-edit-textarea"
-              value={editData.leeftijds_notities || ''}
-              onChange={e => handleField('leeftijds_notities', e.target.value)}
-              placeholder="Hoe is de leeftijd te bepalen bij deze soort?"
-              rows={3}
-            />
+            <div className="sd-det-fields">
+              <div className="sd-det-block sd-det-block--vj">
+                <span className="sd-det-label sd-det-label--vj">Voorjaar</span>
+                <textarea
+                  className="sd-edit-textarea"
+                  value={editData.leeftijds_notities_vj || ''}
+                  onChange={e => handleField('leeftijds_notities_vj', e.target.value)}
+                  placeholder="Leeftijdsbepaling in voorjaar..."
+                  rows={3}
+                />
+              </div>
+              <div className="sd-det-block sd-det-block--nj">
+                <span className="sd-det-label sd-det-label--nj">Najaar</span>
+                <textarea
+                  className="sd-edit-textarea"
+                  value={editData.leeftijds_notities_nj || ''}
+                  onChange={e => handleField('leeftijds_notities_nj', e.target.value)}
+                  placeholder="Leeftijdsbepaling in najaar..."
+                  rows={3}
+                />
+              </div>
+            </div>
           ) : (
-            <p className="sd-notities-text">{leeftijdsNotities}</p>
+            <div className="sd-det-view">
+              {leeftijdsVj && (
+                <div className="sd-det-block">
+                  <span className="sd-det-label sd-det-label--vj">Voorjaar</span>
+                  <p className="sd-notities-text">{leeftijdsVj}</p>
+                </div>
+              )}
+              {leeftijdsNj && (
+                <div className="sd-det-block">
+                  <span className="sd-det-label sd-det-label--nj">Najaar</span>
+                  <p className="sd-notities-text">{leeftijdsNj}</p>
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}
@@ -523,6 +590,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
                   <span className="sd-bio-gender-lbl">{label}</span>
                   <div className="sd-bio-edit-inputs">
                     {['min', 'avg', 'max'].map(stat => {
+                      if (stat === 'avg' && f.noAvg) return null;
                       const key = prefix
                         ? `bio_${f.key}_${prefix}_${stat}`
                         : `bio_${f.key}_${stat}`;
@@ -573,7 +641,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
                   <tr key={b.key}>
                     <td className="sd-bio-field">{b.label} <span className="sd-bio-unit">({b.unit})</span></td>
                     <td className={`sd-bio-num${isOv('min') ? ' sd-bio-override' : ''}`}>{minVal || '—'}</td>
-                    <td className={`sd-bio-num sd-bio-avg${isOv('avg') ? ' sd-bio-override' : ''}`}>{avgVal || '—'}</td>
+                    <td className={`sd-bio-num sd-bio-avg${isOv('avg') ? ' sd-bio-override' : ''}`}>{b.noAvg ? '—' : (avgVal || '—')}</td>
                     <td className={`sd-bio-num${isOv('max') ? ' sd-bio-override' : ''}`}>{maxVal || '—'}</td>
                     <td className="sd-bio-num sd-bio-n">{n || '—'}</td>
                   </tr>,
@@ -590,7 +658,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
                           <span className="sd-bio-gender-tag">{sym}</span> {b.label}
                         </td>
                         <td className="sd-bio-num">{gMin || '—'}</td>
-                        <td className="sd-bio-num sd-bio-avg">{gAvg || '—'}</td>
+                        <td className="sd-bio-num sd-bio-avg">{b.noAvg ? '—' : (gAvg || '—')}</td>
                         <td className="sd-bio-num">{gMax || '—'}</td>
                         <td className="sd-bio-num sd-bio-n">—</td>
                       </tr>
@@ -629,7 +697,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
                           <span className="sd-bio-gender-tag">{sym}</span> {b.label} <span className="sd-bio-unit">({b.unit})</span>
                         </td>
                         <td className="sd-bio-num">{gMin || '—'}</td>
-                        <td className="sd-bio-num sd-bio-avg">{gAvg || '—'}</td>
+                        <td className="sd-bio-num sd-bio-avg">{b.noAvg ? '—' : (gAvg || '—')}</td>
                         <td className="sd-bio-num">{gMax || '—'}</td>
                         <td className="sd-bio-num sd-bio-n">—</td>
                       </tr>

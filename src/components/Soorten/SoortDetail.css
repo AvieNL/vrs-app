@@ -299,6 +299,38 @@
   color: #e879f9;
 }
 
+/* Geslachts- / leeftijdsbepaling blokken */
+.sd-det-fields,
+.sd-det-view {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sd-det-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sd-det-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 2px 0;
+}
+
+.sd-det-label--m  { color: var(--accent); }
+.sd-det-label--f  { color: #e879f9; }
+.sd-det-label--vj { color: var(--success); }
+.sd-det-label--nj { color: var(--warning); }
+
+.sd-det-block--m  { border-left: 3px solid var(--accent);   padding-left: 8px; }
+.sd-det-block--f  { border-left: 3px solid #e879f9;         padding-left: 8px; }
+.sd-det-block--vj { border-left: 3px solid var(--success);  padding-left: 8px; }
+.sd-det-block--nj { border-left: 3px solid var(--warning);  padding-left: 8px; }
+
 /* Notities */
 .sd-notities-text {
   font-size: 0.85rem;
