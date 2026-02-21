@@ -172,6 +172,23 @@
   font-size: 0.9rem;
 }
 
+.sd-delete-btn {
+  position: absolute;
+  top: 0;
+  right: 40px;
+  background: transparent;
+  border-radius: 8px;
+  padding: 6px 10px;
+  min-height: 36px;
+  min-width: 36px;
+  font-size: 0.9rem;
+  opacity: 0.5;
+}
+.sd-delete-btn:hover {
+  opacity: 1;
+  background: var(--danger-bg, rgba(239,68,68,0.15));
+}
+
 /* Sticky topbalk in edit mode: vogelnaam + knoppen */
 .sd-edit-topbar {
   position: sticky;

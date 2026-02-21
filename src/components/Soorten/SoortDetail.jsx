@@ -221,6 +221,13 @@ export default function SoortDetail({ records, speciesOverrides }) {
     setEditData({});
   };
 
+  const deleteSoort = async () => {
+    if (!window.confirm(`Weet je zeker dat je "${decodedNaam}" wilt verwijderen? Dit kan niet ongedaan gemaakt worden.`)) return;
+    await supabase.from('species').delete().eq('naam_nl', decodedNaam);
+    await db.species.delete(decodedNaam);
+    navigate('/soorten');
+  };
+
   const saveEdit = async () => {
     if (isAdmin) {
       // Admin: sla volledige soortdata op in Supabase species tabel + Dexie
@@ -644,6 +651,9 @@ export default function SoortDetail({ records, speciesOverrides }) {
         {!editMode && (
           <div className="sd-hero-actions">
             <button className="sd-edit-btn" onClick={startEdit} title="Bewerken">✏️</button>
+            {isAdmin && (
+              <button className="sd-delete-btn" onClick={deleteSoort} title="Soort verwijderen">🗑️</button>
+            )}
             {!isAdmin && speciesOverrides && Object.keys(speciesOverrides.getOverride(decodedNaam)).length > 0 && (
               <button
                 className="btn-secondary sd-reset-btn"
