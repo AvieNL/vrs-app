@@ -61,7 +61,7 @@ function Seizoenen({ items }) {
 // ─── Type A ────────────────────────────────────────────────────────────────
 function RuitypeA() {
   return (
-    <div className="rui-blok rui-blok--accent">
+    <div className="rui-blok">
       <Kalender
         juv={[
           { type: 'pull', span: 1, tekst: 'pull.' },
@@ -88,7 +88,7 @@ function RuitypeA() {
 // ─── Type B ────────────────────────────────────────────────────────────────
 function RuitypeB() {
   return (
-    <div className="rui-blok rui-blok--accent">
+    <div className="rui-blok">
       <Kalender
         juv={[
           { type: 'pull', span: 1, tekst: 'pull.' },
@@ -121,7 +121,7 @@ function RuitypeB() {
 // ─── Type C ────────────────────────────────────────────────────────────────
 function RuitypeC() {
   return (
-    <div className="rui-blok rui-blok--accent">
+    <div className="rui-blok">
       <Kalender
         juv={[
           { type: 'pull', span: 1, tekst: 'pull.' },
@@ -157,7 +157,7 @@ function RuitypeC() {
 // ─── Type D ────────────────────────────────────────────────────────────────
 function RuitypeD() {
   return (
-    <div className="rui-blok rui-blok--accent">
+    <div className="rui-blok">
       <Kalender
         juv={[
           { type: 'pull', span: 1, tekst: 'pull.' },
