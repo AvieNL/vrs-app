@@ -261,9 +261,17 @@ export default function SoortDetail({ records, speciesOverrides }) {
       if (editData.foto !== undefined) adminData.foto = editData.foto;
       adminData.foto_crop = editData.foto_crop ?? null;
 
+      const newNaamNl = adminData.naam_nl || decodedNaam;
+      const naamGewijzigd = newNaamNl !== decodedNaam;
+
+      if (naamGewijzigd) {
+        await supabase.from('species').delete().eq('naam_nl', decodedNaam);
+        await db.species.delete(decodedNaam);
+      }
+
       const { error } = await supabase
         .from('species')
-        .upsert({ naam_nl: decodedNaam, data: adminData });
+        .upsert({ naam_nl: newNaamNl, data: adminData });
 
       if (error) {
         alert('Opslaan mislukt: ' + error.message);
@@ -271,6 +279,13 @@ export default function SoortDetail({ records, speciesOverrides }) {
       }
 
       await db.species.put(adminData);
+
+      if (naamGewijzigd) {
+        setEditMode(false);
+        setEditData({});
+        navigate('/soorten' + encodeURIComponent(newNaamNl));
+        return;
+      }
     } else {
       // Ringer: sla delta op als override (alleen voor eigen view)
       if (!speciesOverrides) return;
