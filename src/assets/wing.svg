@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  wing.svg — productie-SVG (links) met losse veren als aparte <path> elementen.
+  - IDs: hp1–hp10, ap1–ap6, t1–t3, gd1–gd10, md1–md8, kd1–kd6
+  - Standaard: fill="none" (geen inkleuring), stroke zwart.
+  - Klaar voor DOM-selectie (document.getElementById("hp3") etc.)
+  - viewBox: 0 0 1200 520
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" width="1200" height="520" role="img" aria-label="Bird wing with individually addressable feathers">
+  <defs>
+    <style>
+      :root { --wing-stroke:#000; --wing-stroke-width:4; --wing-vein-width:2; }
+
+      /* Veren (clickable targets) */
+      .feather {
+        fill: none;
+        stroke: var(--wing-stroke);
+        stroke-width: var(--wing-stroke-width);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        vector-effect: non-scaling-stroke;
+        cursor: pointer;
+      }
+
+      /* Subtiele ‘schacht’ lijnen (niet clickable) */
+      .vein {
+        fill: none;
+        stroke: var(--wing-stroke);
+        stroke-width: var(--wing-vein-width);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        vector-effect: non-scaling-stroke;
+        opacity: 0.85;
+        pointer-events: none;
+      }
+
+      /* Hover (optioneel in web) */
+      .feather:hover {
+        stroke-width: calc(var(--wing-stroke-width) + 0.5);
+      }
+    </style>
+  </defs>
+
+  <!-- Referentielijn (bot/arm) -->
+  <path class="vein" d="M190,290 C270,190 400,135 520,150 C610,162 685,210 740,255" />
+
+  <!-- =========================
+       HANDPENNEN (primaries) hp1..hp10
+       =========================
+       Geplaatst als waaier: proximaal (hp1) -> distaal (hp10)
+  -->
+  <path id="hp1"  class="feather" d="M735,255 C800,175 900,150 985,162 C915,205 845,272 780,350 C765,332 750,300 735,255 Z" />
+  <path id="hp2"  class="feather" d="M755,258 C830,165 940,140 1040,155 C960,205 880,282 805,372 C787,350 770,312 755,258 Z" />
+  <path id="hp3"  class="feather" d="M775,262 C865,155 990,130 1105,148 C1015,208 925,300 835,402 C815,378 795,335 775,262 Z" />
+  <path id="hp4"  class="feather" d="M795,267 C900,150 1040,122 1165,142 C1065,215 965,320 870,435 C848,410 825,362 795,267 Z" />
+  <path id="hp5"  class="feather" d="M812,274 C930,152 1085,125 1195,152 C1085,232 975,355 885,468 C860,440 835,390 812,274 Z" />
+  <path id="hp6"  class="feather" d="M828,282 C955,160 1110,140 1200,180 C1085,260 970,395 890,500 C862,468 845,420 828,282 Z" />
+  <path id="hp7"  class="feather" d="M840,292 C970,175 1120,165 1200,225 C1080,300 965,435 885,520 C860,495 850,445 840,292 Z" />
+  <path id="hp8"  class="feather" d="M848,304 C980,195 1120,195 1188,270 C1060,335 945,470 870,520 C850,498 848,450 848,304 Z" />
+  <path id="hp9"  class="feather" d="M852,318 C985,215 1110,230 1170,315 C1040,370 920,495 850,520 C835,502 852,410 852,318 Z" />
+  <path id="hp10" class="feather" d="M850,334 C980,240 1095,270 1145,360 C1015,410 900,510 832,520 C820,505 840,412 850,334 Z" />
+
+  <!-- Schachten (handpennen) -->
+  <path class="vein" d="M748,262 C815,210 885,198 950,192" />
+  <path class="vein" d="M768,268 C845,210 925,192 1015,185" />
+  <path class="vein" d="M790,274 C875,210 970,188 1085,178" />
+  <path class="vein" d="M812,282 C900,220 1005,200 1160,195" />
+
+  <!-- =========================
+       ARMPENNEN (secondaries) ap1..ap6
+       ========================= -->
+  <path id="ap1" class="feather" d="M600,255 C635,175 720,145 795,155 C740,182 680,230 635,300 C622,286 610,270 600,255 Z" />
+  <path id="ap2" class="feather" d="M565,252 C595,170 675,138 750,145 C698,180 640,232 595,312 C582,296 572,276 565,252 Z" />
+  <path id="ap3" class="feather" d="M530,252 C555,172 630,138 705,140 C655,178 600,238 555,325 C542,308 535,284 530,252 Z" />
+  <path id="ap4" class="feather" d="M495,255 C515,178 585,142 655,140 C610,180 560,245 515,338 C503,320 498,292 495,255 Z" />
+  <path id="ap5" class="feather" d="M460,262 C475,190 535,152 600,148 C560,190 515,262 475,350 C462,332 458,302 460,262 Z" />
+  <path id="ap6" class="feather" d="M425,272 C435,205 490,165 550,160 C515,205 478,285 445,360 C430,340 424,310 425,272 Z" />
+
+  <!-- Schachten (armpennen) -->
+  <path class="vein" d="M590,258 C650,212 710,192 780,185" />
+  <path class="vein" d="M555,258 C610,215 665,192 735,182" />
+  <path class="vein" d="M520,260 C572,220 625,198 695,185" />
+
+  <!-- =========================
+       TERTIALS t1..t3
+       ========================= -->
+  <path id="t1" class="feather" d="M360,295 C360,238 395,195 450,175 C430,215 420,265 418,318 C395,315 375,308 360,295 Z" />
+  <path id="t2" class="feather" d="M330,312 C325,255 350,210 402,185 C390,228 388,285 392,338 C368,336 348,328 330,312 Z" />
+  <path id="t3" class="feather" d="M305,333 C295,278 312,230 360,205 C355,248 360,308 370,360 C345,358 322,348 305,333 Z" />
+
+  <!-- =========================
+       GROTE DEKVEREN gd1..gd10
+       ========================= -->
+  <path id="gd1"  class="feather" d="M690,215 C710,185 745,170 785,172 C758,188 732,210 710,240 C702,232 696,224 690,215 Z" />
+  <path id="gd2"  class="feather" d="M665,208 C685,178 720,162 758,162 C732,180 708,205 688,238 C680,230 672,220 665,208 Z" />
+  <path id="gd3"  class="feather" d="M640,202 C660,172 693,155 730,155 C705,175 682,202 665,238 C655,226 646,214 640,202 Z" />
+  <path id="gd4"  class="feather" d="M615,198 C634,168 665,150 700,148 C678,170 655,200 640,240 C630,228 622,214 615,198 Z" />
+  <path id="gd5"  class="feather" d="M590,196 C607,166 638,148 670,145 C650,168 628,200 615,242 C605,230 598,214 590,196 Z" />
+  <path id="gd6"  class="feather" d="M565,196 C580,168 607,150 635,145 C618,170 598,205 588,248 C576,235 570,218 565,196 Z" />
+  <path id="gd7"  class="feather" d="M540,198 C552,172 578,155 605,150 C590,178 572,218 565,258 C552,244 545,224 540,198 Z" />
+  <path id="gd8"  class="feather" d="M515,204 C525,178 548,160 572,155 C560,185 545,230 540,270 C526,256 520,232 515,204 Z" />
+  <path id="gd9"  class="feather" d="M490,212 C498,188 518,170 540,165 C532,198 522,245 520,284 C505,272 496,245 490,212 Z" />
+  <path id="gd10" class="feather" d="M468,224 C472,200 488,182 508,175 C505,210 500,258 502,300 C485,288 474,258 468,224 Z" />
+
+  <!-- =========================
+       MIDDELSTE DEKVEREN md1..md8
+       ========================= -->
+  <path id="md1" class="feather" d="M655,178 C670,155 695,142 725,142 C705,154 686,170 672,192 C665,187 660,183 655,178 Z" />
+  <path id="md2" class="feather" d="M630,170 C645,148 670,135 698,135 C680,148 662,165 650,188 C642,182 636,176 630,170 Z" />
+  <path id="md3" class="feather" d="M605,164 C618,142 640,130 665,130 C650,145 634,165 624,190 C616,182 610,174 605,164 Z" />
+  <path id="md4" class="feather" d="M580,160 C592,140 612,128 635,125 C622,142 608,165 600,192 C590,182 585,172 580,160 Z" />
+  <path id="md5" class="feather" d="M555,160 C565,140 582,128 602,125 C590,144 578,170 572,200 C560,190 556,178 555,160 Z" />
+  <path id="md6" class="feather" d="M532,162 C540,142 555,132 572,130 C562,150 552,178 548,208 C536,198 532,184 532,162 Z" />
+  <path id="md7" class="feather" d="M510,168 C515,148 528,140 542,138 C535,158 530,188 528,218 C515,210 510,192 510,168 Z" />
+  <path id="md8" class="feather" d="M490,178 C492,160 502,152 513,150 C510,170 508,200 508,228 C495,220 490,202 490,178 Z" />
+
+  <!-- =========================
+       KLEINE DEKVEREN kd1..kd6
+       ========================= -->
+  <path id="kd1" class="feather" d="M610,142 C620,126 638,116 660,116 C645,124 632,136 622,150 C616,148 613,145 610,142 Z" />
+  <path id="kd2" class="feather" d="M585,136 C594,120 610,110 630,110 C618,120 606,134 598,150 C592,146 588,141 585,136 Z" />
+  <path id="kd3" class="feather" d="M560,132 C568,116 582,106 600,106 C590,118 580,134 574,152 C568,148 564,141 560,132 Z" />
+  <path id="kd4" class="feather" d="M536,130 C542,114 555,106 570,106 C562,120 554,138 550,158 C544,152 540,144 536,130 Z" />
+  <path id="kd5" class="feather" d="M514,132 C518,116 528,110 540,110 C535,125 532,145 532,165 C524,158 518,148 514,132 Z" />
+  <path id="kd6" class="feather" d="M495,138 C496,122 504,118 512,118 C510,134 510,156 512,176 C504,168 498,156 495,138 Z" />
+
+  <!-- Alula (optioneel; geen vereiste id-set, maar handig) -->
+  <path id="alula" class="feather" d="M740,180 C760,155 790,145 820,150 C798,162 778,180 760,205 C752,198 746,190 740,180 Z" />
+</svg>

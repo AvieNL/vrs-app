@@ -27,3 +27,8 @@ db.version(2).stores({
 db.version(3).stores({
   species: 'naam_nl',
 });
+
+// Versie 4: vleugelscore per vangst en zijde (L/R)
+db.version(4).stores({
+  wing_scoring: 'id, capture_id, [capture_id+side], updated_at',
+});
