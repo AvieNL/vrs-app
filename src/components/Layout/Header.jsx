@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useRole } from '../../hooks/useRole';
+import { pullSpeciesIfNeeded } from '../../hooks/useSpeciesRef';
 import SyncIndicator from '../Sync/SyncIndicator';
 import './Header.css';
 
@@ -43,6 +44,17 @@ export default function Header() {
 
   const isStaging = import.meta.env.VITE_STAGING === 'true';
 
+  const [refreshingSpecies, setRefreshingSpecies] = useState(false);
+  async function handleRefreshSpecies() {
+    setRefreshingSpecies(true);
+    setMenuOpen(false);
+    try {
+      await pullSpeciesIfNeeded(true);
+    } finally {
+      setRefreshingSpecies(false);
+    }
+  }
+
   return (
     <header className="app-header">
       {/* Hoofd-rij */}
@@ -73,6 +85,15 @@ export default function Header() {
               {isRealAdmin && (
                 <button onClick={() => goTo('/databases')} className="header-admin-btn">
                   ⊞ Databases
+                </button>
+              )}
+              {isRealAdmin && (
+                <button
+                  onClick={handleRefreshSpecies}
+                  className="header-admin-btn"
+                  disabled={refreshingSpecies}
+                >
+                  {refreshingSpecies ? '⟳ Bezig...' : '⟳ Ververs soortdata'}
                 </button>
               )}
               <button onClick={() => goTo('/projecten')}>Projecten</button>
