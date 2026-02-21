@@ -172,65 +172,43 @@
   font-size: 0.9rem;
 }
 
-/* Sticky topbalk in edit mode */
+/* Sticky topbalk in edit mode: vogelnaam + knoppen */
 .sd-edit-topbar {
   position: sticky;
   top: 0;
   z-index: 40;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-bottom: 2px solid var(--accent);
   padding: 8px 16px;
-  margin: 4px -16px 12px;
+  margin: 0 -16px 12px;
 }
 
 .sd-edit-topbar-indicator {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--accent);
-  white-space: nowrap;
+  font-size: 1rem;
   flex-shrink: 0;
 }
 
 .sd-edit-topbar-name {
+  flex: 1;
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 
-/* Vaste onderbalk met Opslaan / Annuleren — boven de navigatiebalk */
-.sd-edit-bottombar {
-  position: fixed;
-  bottom: 56px;
-  left: 0;
-  right: 0;
-  z-index: 110;
-  display: flex;
-  gap: 10px;
-  background: var(--bg-secondary);
-  border-top: 2px solid var(--accent);
-  padding: 10px 16px;
-}
-
-.sd-save-btn {
-  flex: 2;
-  font-size: 0.9rem;
-}
-
-.sd-cancel-btn {
-  flex: 1;
-  font-size: 0.9rem;
-}
-
-/* Extra ruimte onderaan in edit mode zodat de fixed balk geen content afdekt */
-.sd-edit-mode {
-  padding-bottom: 140px;
+.sd-topbar-btn {
+  padding: 5px 14px;
+  font-size: 0.82rem;
+  min-height: 34px;
+  min-width: unset;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Cards */

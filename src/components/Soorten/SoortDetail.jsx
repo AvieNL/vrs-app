@@ -462,14 +462,18 @@ export default function SoortDetail({ records, speciesOverrides }) {
 
   return (
     <div className={`page soort-detail${editMode ? ' sd-edit-mode' : ''}`}>
-      <button className="btn-secondary sd-back" onClick={() => navigate('/soorten')}>
-        ← Terug
-      </button>
+      {!editMode && (
+        <button className="btn-secondary sd-back" onClick={() => navigate('/soorten')}>
+          ← Terug
+        </button>
+      )}
 
       {editMode && (
         <div className="sd-edit-topbar">
-          <span className="sd-edit-topbar-indicator">✏️ Bewerken</span>
+          <span className="sd-edit-topbar-indicator">✏️</span>
           <span className="sd-edit-topbar-name">{soort.naam_nl}</span>
+          <button className="btn-secondary sd-topbar-btn" onClick={cancelEdit}>Annuleren</button>
+          <button className="btn-primary sd-topbar-btn" onClick={saveEdit}>Opslaan</button>
         </div>
       )}
 
@@ -918,12 +922,6 @@ export default function SoortDetail({ records, speciesOverrides }) {
           </>
         )}
       </div>
-      {editMode && (
-        <div className="sd-edit-bottombar">
-          <button className="btn-secondary sd-cancel-btn" onClick={cancelEdit}>Annuleren</button>
-          <button className="btn-primary sd-save-btn" onClick={saveEdit}>Opslaan</button>
-        </div>
-      )}
     </div>
   );
 }
