@@ -453,10 +453,44 @@
   color: var(--text-muted);
 }
 
-.sd-bio-override {
-  color: var(--warning);
+/* Databron-kleuren biometrie */
+.sd-bio-lit {
+  color: var(--text-primary);
+}
+
+.sd-bio-user-ov {
+  color: var(--accent);
   font-style: italic;
 }
+
+/* Legenda */
+.sd-bio-legend {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(71, 85, 105, 0.2);
+  flex-wrap: wrap;
+}
+
+.sd-bio-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.sd-bio-legend-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sd-bio-legend-dot--lit  { background: var(--text-primary); }
+.sd-bio-legend-dot--user { background: var(--accent); }
 
 /* Recente vangsten */
 .sd-recent-section {

@@ -359,6 +359,29 @@ export default function SoortDetail({ records, speciesOverrides }) {
     : (soort.leeftijds_notities_vj || soort.leeftijds_notities);
   const leeftijdsNj = editMode ? editData.leeftijds_notities_nj : soort.leeftijds_notities_nj;
 
+  // Biometrie: databron per cel bepalen voor weergavekleur + legenda
+  const bioUserOverride = speciesOverrides?.getOverride(decodedNaam) || {};
+  const hasBioData = BIO_FIELDS.some(b =>
+    getBioValue(b.key, 'min') || getBioValue(b.key, 'max') ||
+    soort[`bio_${b.key}_M_min`] || soort[`bio_${b.key}_M_max`] ||
+    soort[`bio_${b.key}_F_min`] || soort[`bio_${b.key}_F_max`]
+  );
+  const bioCellCls = (key) => {
+    if (bioUserOverride[key] !== undefined && bioUserOverride[key] !== '') return 'sd-bio-num sd-bio-user-ov';
+    if (defaultSoort?.[key] !== undefined && defaultSoort?.[key] !== '') return 'sd-bio-num sd-bio-lit';
+    return 'sd-bio-num';
+  };
+  const hasAdminBio = BIO_FIELDS.some(b =>
+    defaultSoort?.[`bio_${b.key}_min`] || defaultSoort?.[`bio_${b.key}_max`] ||
+    defaultSoort?.[`bio_${b.key}_M_min`] || defaultSoort?.[`bio_${b.key}_F_min`]
+  );
+  const hasUserBio = BIO_FIELDS.some(b => {
+    const keys = ['min', 'max'].flatMap(s =>
+      [`bio_${b.key}_${s}`, `bio_${b.key}_M_${s}`, `bio_${b.key}_F_${s}`]
+    );
+    return keys.some(k => bioUserOverride[k] !== undefined && bioUserOverride[k] !== '');
+  });
+
   const renderField = (key, label, opts = {}) => {
     if (editMode) {
       const val = editData[key] ?? '';
@@ -614,7 +637,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
       )}
 
       {/* Biometrie */}
-      {bioStats.length > 0 && !editMode && (
+      {!editMode && hasBioData && (
         <div className="sd-card">
           <h3 className="sd-card-title">Biometrie</h3>
           <table className="sd-bio-table">
@@ -628,34 +651,36 @@ export default function SoortDetail({ records, speciesOverrides }) {
             </thead>
             <tbody>
               {BIO_FIELDS.flatMap(b => {
+                const minKey = `bio_${b.key}_min`;
+                const maxKey = `bio_${b.key}_max`;
                 const minVal = getBioValue(b.key, 'min');
-                const avgVal = getBioValue(b.key, 'avg');
                 const maxVal = getBioValue(b.key, 'max');
-                if (!minVal && !avgVal && !maxVal) return [];
                 const calc = bioStatsCalc.find(c => c.key === b.key);
                 const n = calc?.stats?.n;
-                const isOv = (stat) => soort[`bio_${b.key}_${stat}`] !== undefined && soort[`bio_${b.key}_${stat}`] !== '';
-                const rows = [
-                  <tr key={b.key}>
-                    <td className="sd-bio-field">{b.label} <span className="sd-bio-unit">({b.unit})</span></td>
-                    <td className={`sd-bio-num${isOv('min') ? ' sd-bio-override' : ''}`}>{minVal || '—'}</td>
-                    <td className={`sd-bio-num${isOv('max') ? ' sd-bio-override' : ''}`}>{maxVal || '—'}</td>
-                    <td className="sd-bio-num sd-bio-n">{n || '—'}</td>
-                  </tr>,
-                ];
-                // Geslachtsspecifieke rijen
+                const rows = [];
+                if (minVal || maxVal) {
+                  rows.push(
+                    <tr key={b.key}>
+                      <td className="sd-bio-field">{b.label} <span className="sd-bio-unit">({b.unit})</span></td>
+                      <td className={bioCellCls(minKey)}>{minVal || '—'}</td>
+                      <td className={bioCellCls(maxKey)}>{maxVal || '—'}</td>
+                      <td className="sd-bio-num sd-bio-n">{n || '—'}</td>
+                    </tr>
+                  );
+                }
                 [['M', '♂', 'sd-bio-row-m'], ['F', '♀', 'sd-bio-row-f']].forEach(([g, sym, cls]) => {
-                  const gMin = soort[`bio_${b.key}_${g}_min`];
-                  const gAvg = soort[`bio_${b.key}_${g}_avg`];
-                  const gMax = soort[`bio_${b.key}_${g}_max`];
-                  if (gMin || gAvg || gMax) {
+                  const gMinKey = `bio_${b.key}_${g}_min`;
+                  const gMaxKey = `bio_${b.key}_${g}_max`;
+                  const gMin = soort[gMinKey];
+                  const gMax = soort[gMaxKey];
+                  if (gMin || gMax) {
                     rows.push(
                       <tr key={`${b.key}-${g}`} className={cls}>
                         <td className="sd-bio-field sd-bio-field--gender">
                           <span className="sd-bio-gender-tag">{sym}</span> {b.label}
                         </td>
-                        <td className="sd-bio-num">{gMin || '—'}</td>
-                        <td className="sd-bio-num">{gMax || '—'}</td>
+                        <td className={bioCellCls(gMinKey)}>{gMin || '—'}</td>
+                        <td className={bioCellCls(gMaxKey)}>{gMax || '—'}</td>
                         <td className="sd-bio-num sd-bio-n">—</td>
                       </tr>
                     );
@@ -665,44 +690,22 @@ export default function SoortDetail({ records, speciesOverrides }) {
               })}
             </tbody>
           </table>
-        </div>
-      )}
-
-      {/* Biometrie per geslacht — toon ook als er geen algemene stats zijn */}
-      {!editMode && !bioStats.length && BIO_FIELDS.some(f =>
-        soort[`bio_${f.key}_M_min`] || soort[`bio_${f.key}_M_max`] ||
-        soort[`bio_${f.key}_F_min`] || soort[`bio_${f.key}_F_max`]
-      ) && (
-        <div className="sd-card">
-          <h3 className="sd-card-title">Biometrie per geslacht</h3>
-          <table className="sd-bio-table">
-            <thead>
-              <tr><th>Meting</th><th>Min</th><th>Max</th><th></th></tr>
-            </thead>
-            <tbody>
-              {BIO_FIELDS.flatMap(b => {
-                const rows = [];
-                [['M', '♂', 'sd-bio-row-m'], ['F', '♀', 'sd-bio-row-f']].forEach(([g, sym, cls]) => {
-                  const gMin = soort[`bio_${b.key}_${g}_min`];
-                  const gAvg = soort[`bio_${b.key}_${g}_avg`];
-                  const gMax = soort[`bio_${b.key}_${g}_max`];
-                  if (gMin || gAvg || gMax) {
-                    rows.push(
-                      <tr key={`${b.key}-${g}`} className={cls}>
-                        <td className="sd-bio-field sd-bio-field--gender">
-                          <span className="sd-bio-gender-tag">{sym}</span> {b.label} <span className="sd-bio-unit">({b.unit})</span>
-                        </td>
-                        <td className="sd-bio-num">{gMin || '—'}</td>
-                        <td className="sd-bio-num">{gMax || '—'}</td>
-                        <td className="sd-bio-num sd-bio-n">—</td>
-                      </tr>
-                    );
-                  }
-                });
-                return rows;
-              })}
-            </tbody>
-          </table>
+          {(hasAdminBio || hasUserBio) && (
+            <div className="sd-bio-legend">
+              {hasAdminBio && (
+                <span className="sd-bio-legend-item">
+                  <span className="sd-bio-legend-dot sd-bio-legend-dot--lit" />
+                  Literatuurdata
+                </span>
+              )}
+              {hasUserBio && (
+                <span className="sd-bio-legend-item">
+                  <span className="sd-bio-legend-dot sd-bio-legend-dot--user" />
+                  Door jou ingevoerd
+                </span>
+              )}
+            </div>
+          )}
         </div>
       )}
 
