@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useRole } from '../../hooks/useRole';
 import './RecordsPage.css';
 
@@ -27,6 +27,7 @@ export default function RecordsPage({ records, deletedRecords = [], onDelete, on
   const [prullenbakOpen, setPrullenbakOpen] = useState(false);
   const [expanded, setExpanded] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
   const { canDelete } = useRole();
 
   useEffect(() => {
@@ -110,13 +111,23 @@ export default function RecordsPage({ records, deletedRecords = [], onDelete, on
                     {r.google_plaats && <div><span className="detail-label">Plaats:</span> {r.google_plaats}</div>}
                     {r.opmerkingen && <div><span className="detail-label">Opm.:</span> {r.opmerkingen}</div>}
                   </div>
-                  {onDelete && canDelete && r.bron !== 'griel_import' && (
-                    <button
-                      className="btn-danger delete-btn"
-                      onClick={e => { e.stopPropagation(); onDelete(r.id); }}
-                    >
-                      Verwijderen
-                    </button>
+                  {canDelete && r.bron !== 'griel_import' && (
+                    <div className="record-actions">
+                      {!r.uploaded && (
+                        <button
+                          className="record-action-btn record-edit-btn"
+                          title="Wijzigen"
+                          onClick={e => { e.stopPropagation(); navigate('/', { state: { editRecord: r } }); }}
+                        >✏️</button>
+                      )}
+                      {onDelete && (
+                        <button
+                          className="record-action-btn record-delete-btn"
+                          title="Verwijderen"
+                          onClick={e => { e.stopPropagation(); onDelete(r.id); }}
+                        >🗑️</button>
+                      )}
+                    </div>
                   )}
                 </div>
               )}

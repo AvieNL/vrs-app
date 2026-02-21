@@ -454,10 +454,36 @@
   background: #fff;
 }
 
-.save-btn {
-  width: 100%;
-  font-size: 1rem;
-  margin-top: 8px;
+/* Sticky topbar */
+.nieuw-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-primary);
+  padding: 8px 16px;
+  margin: 0 -16px 8px;
+  border-bottom: 2px solid var(--accent);
+}
+
+.nieuw-topbar-titel {
+  flex: 1;
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-primary);
+}
+
+.nieuw-topbar-btn {
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  min-height: 34px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .save-toast {

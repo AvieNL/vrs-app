@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useSpeciesRef } from '../../hooks/useSpeciesRef';
 import euringCodes from '../../data/euring-codes.json';
 import { euringReference } from '../../data/euring-reference.js';
@@ -433,18 +434,20 @@ function computeRanges(soortRecords) {
   return ranges;
 }
 
-export default function NieuwPage({ onSave, projects, records, speciesOverrides, settings, ringStrengen = [], onAdvanceRing }) {
+export default function NieuwPage({ onSave, onUpdate, projects, records, speciesOverrides, settings, ringStrengen = [], onAdvanceRing }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const editRecord = location.state?.editRecord ?? null;
   const speciesRefData = useSpeciesRef();
   const speciesData = useMemo(
     () => speciesRefData.filter(s => s.naam_nl && s.naam_lat),
     [speciesRefData]
   );
 
-  const [form, setForm] = useState(() => ({
-    ...EMPTY_FORM,
-    ringer_initiaal: settings?.ringerInitiaal || '',
-    ringer_nummer: settings?.ringerNummer || '',
-  }));
+  const [form, setForm] = useState(() => editRecord
+    ? { ...EMPTY_FORM, ...editRecord }
+    : { ...EMPTY_FORM, ringer_initiaal: settings?.ringerInitiaal || '', ringer_nummer: settings?.ringerNummer || '' }
+  );
   const [sections, setSections] = useState({
     essentieel: true,
     vangstdetails: false,
@@ -759,11 +762,12 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
   function handleSubmit(e) {
     e.preventDefault();
     if (!form.vogelnaam || !form.ringnummer) return;
-    onSave({
-      ...form,
-      euring_code: euringCode,
-    });
-    // Ringstreng teller ophogen als het ringnummer auto-ingevuld was
+    if (editRecord) {
+      onUpdate(editRecord.id, { ...form, euring_code: euringCode });
+      navigate('/records');
+      return;
+    }
+    onSave({ ...form, euring_code: euringCode });
     if (!isTerugvangst && autoFilledRingId.current && onAdvanceRing) {
       onAdvanceRing(autoFilledRingId.current);
       autoFilledRingId.current = null;
@@ -915,6 +919,21 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
   return (
     <div className="page nieuw-page">
       <form onSubmit={handleSubmit}>
+        {/* Sticky topbar */}
+        <div className="nieuw-topbar">
+          <span className="nieuw-topbar-titel">
+            {editRecord ? `✏️ ${editRecord.vogelnaam || 'Vangst'}` : 'Nieuwe vangst'}
+          </span>
+          {editRecord && (
+            <button type="button" className="btn-secondary nieuw-topbar-btn" onClick={() => navigate('/records')}>
+              Annuleren
+            </button>
+          )}
+          <button type="submit" className="btn-primary nieuw-topbar-btn">
+            {editRecord ? 'Opslaan' : 'Opslaan'}
+          </button>
+        </div>
+
         {saved && (
           <div className="save-toast">Vangst opgeslagen!</div>
         )}
@@ -922,7 +941,7 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
         {/* Sectie 1: Essentieel */}
         <div className="section">
           <div className="section-header" onClick={() => toggleSection('essentieel')}>
-            <h3>Nieuwe vangst</h3>
+            <h3>{editRecord ? 'Vangst wijzigen' : 'Nieuwe vangst'}</h3>
             <span className={`toggle ${sections.essentieel ? 'open' : ''}`}>▾</span>
           </div>
           {sections.essentieel && (
@@ -1810,9 +1829,6 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
           )}
         </div>
 
-        <button type="submit" className="btn-primary save-btn">
-          Vangst Opslaan
-        </button>
       </form>
     </div>
   );

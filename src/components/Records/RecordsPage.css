@@ -75,10 +75,29 @@
   color: var(--text-muted);
 }
 
-.delete-btn {
+.record-actions {
+  display: flex;
+  gap: 6px;
   margin-top: 12px;
-  width: 100%;
-  font-size: 0.85rem;
+}
+
+.record-action-btn {
+  background: var(--bg-tertiary);
+  border: none;
+  border-radius: 8px;
+  padding: 6px 10px;
+  min-height: 36px;
+  min-width: 36px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.record-action-btn:hover { opacity: 1; }
+
+.record-delete-btn:hover {
+  background: var(--danger-bg, rgba(239,68,68,0.15));
 }
 
 /* Prullenbak */
