@@ -281,6 +281,45 @@
   font-size: 0.82rem;
 }
 
+/* Opmaakbalk boven textarea (B / I / U) */
+.sd-fmt-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sd-fmt-toolbar {
+  display: flex;
+  gap: 4px;
+}
+
+.sd-fmt-btn {
+  min-height: 28px;
+  min-width: 28px;
+  padding: 0 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.sd-fmt-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.sd-fmt-bold  { font-style: normal; }
+.sd-fmt-italic { font-style: italic; }
+.sd-fmt-under  { text-decoration: underline; }
+
+/* Notities weergave — markdown inline-stijlen */
+.sd-notities-text strong { font-weight: 700; color: var(--text-primary); }
+.sd-notities-text em     { font-style: italic; }
+.sd-notities-text u      { text-decoration: underline; }
+
 /* Edit rows */
 .sd-edit-row {
   margin-bottom: 8px;
@@ -621,11 +660,27 @@
 .sd-bio-legend-dot--lit  { background: var(--text-primary); }
 .sd-bio-legend-dot--user { background: var(--accent); }
 
-/* Twee-koloms grid voor velden (nest, boeken) */
-.sd-fields-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0 12px;
+/* Nestgegevens + Determinatieboeken naast elkaar */
+.sd-two-cards {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  margin-bottom: 12px;
+}
+
+.sd-two-cards > .sd-card {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.sd-two-cards .sd-label {
+  min-width: 60px;
+  font-size: 0.8rem;
+}
+
+.sd-two-cards .sd-value {
+  font-size: 0.8rem;
 }
 
 /* Recente vangsten */

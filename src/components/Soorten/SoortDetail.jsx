@@ -7,6 +7,44 @@ import { supabase } from '../../lib/supabase';
 import RuitypeInfo from './RuitypeInfo';
 import './SoortDetail.css';
 
+// Eenvoudige markdown-renderer: **bold**, *italic*, _underline_
+function renderMarkdown(text) {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\*\*(.*?)\*\*/gs, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/gs, '<em>$1</em>')
+    .replace(/_(.*?)_/gs, '<u>$1</u>');
+}
+
+// Textarea met B/I/U-opmaakbalk
+function FormattedTextarea({ value, onChange, placeholder, rows }) {
+  const ref = useRef(null);
+  const insert = (marker) => {
+    const el = ref.current;
+    if (!el) return;
+    const s = el.selectionStart, e = el.selectionEnd;
+    const selected = value.slice(s, e);
+    const newVal = value.slice(0, s) + marker + selected + marker + value.slice(e);
+    onChange({ target: { value: newVal } });
+    requestAnimationFrame(() => {
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(s + marker.length, e + marker.length);
+    });
+  };
+  return (
+    <div className="sd-fmt-wrapper">
+      <div className="sd-fmt-toolbar">
+        <button type="button" className="sd-fmt-btn sd-fmt-bold" onMouseDown={e => { e.preventDefault(); insert('**'); }}>B</button>
+        <button type="button" className="sd-fmt-btn sd-fmt-italic" onMouseDown={e => { e.preventDefault(); insert('*'); }}>I</button>
+        <button type="button" className="sd-fmt-btn sd-fmt-under" onMouseDown={e => { e.preventDefault(); insert('_'); }}>U</button>
+      </div>
+      <textarea ref={ref} className="sd-edit-textarea" value={value} onChange={onChange} placeholder={placeholder} rows={rows} />
+    </div>
+  );
+}
+
 const LEEFTIJD_LABEL = {
   '0': '?', '1': 'pullus', '2': 'onb.', '3': '1kj', '4': '+1kj',
   '5': '2kj', '6': '+2kj', '7': '3kj', '8': '+3kj', '9': '4kj+', 'A': '+4kj',
@@ -593,8 +631,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
             <div className="sd-det-fields">
               <div className="sd-det-block sd-det-block--m">
                 <span className="sd-det-label sd-det-label--m">♂ Man</span>
-                <textarea
-                  className="sd-edit-textarea"
+                <FormattedTextarea
                   value={editData.geslachts_notities_m || ''}
                   onChange={e => handleField('geslachts_notities_m', e.target.value)}
                   placeholder="Kenmerken voor man..."
@@ -603,8 +640,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
               </div>
               <div className="sd-det-block sd-det-block--f">
                 <span className="sd-det-label sd-det-label--f">♀ Vrouw</span>
-                <textarea
-                  className="sd-edit-textarea"
+                <FormattedTextarea
                   value={editData.geslachts_notities_f || ''}
                   onChange={e => handleField('geslachts_notities_f', e.target.value)}
                   placeholder="Kenmerken voor vrouw..."
@@ -617,13 +653,13 @@ export default function SoortDetail({ records, speciesOverrides }) {
               {geslachtsM && (
                 <div className="sd-det-block">
                   <span className="sd-det-label sd-det-label--m">♂ Man</span>
-                  <p className="sd-notities-text">{geslachtsM}</p>
+                  <p className="sd-notities-text" dangerouslySetInnerHTML={{ __html: renderMarkdown(geslachtsM) }} />
                 </div>
               )}
               {geslachtsF && (
                 <div className="sd-det-block">
                   <span className="sd-det-label sd-det-label--f">♀ Vrouw</span>
-                  <p className="sd-notities-text">{geslachtsF}</p>
+                  <p className="sd-notities-text" dangerouslySetInnerHTML={{ __html: renderMarkdown(geslachtsF) }} />
                 </div>
               )}
             </div>
@@ -639,8 +675,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
             <div className="sd-det-fields">
               <div className="sd-det-block sd-det-block--vj">
                 <span className="sd-det-label sd-det-label--vj">Voorjaar</span>
-                <textarea
-                  className="sd-edit-textarea"
+                <FormattedTextarea
                   value={editData.leeftijds_notities_vj || ''}
                   onChange={e => handleField('leeftijds_notities_vj', e.target.value)}
                   placeholder="Leeftijdsbepaling in voorjaar..."
@@ -649,8 +684,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
               </div>
               <div className="sd-det-block sd-det-block--nj">
                 <span className="sd-det-label sd-det-label--nj">Najaar</span>
-                <textarea
-                  className="sd-edit-textarea"
+                <FormattedTextarea
                   value={editData.leeftijds_notities_nj || ''}
                   onChange={e => handleField('leeftijds_notities_nj', e.target.value)}
                   placeholder="Leeftijdsbepaling in najaar..."
@@ -663,13 +697,13 @@ export default function SoortDetail({ records, speciesOverrides }) {
               {leeftijdsVj && (
                 <div className="sd-det-block">
                   <span className="sd-det-label sd-det-label--vj">Voorjaar</span>
-                  <p className="sd-notities-text">{leeftijdsVj}</p>
+                  <p className="sd-notities-text" dangerouslySetInnerHTML={{ __html: renderMarkdown(leeftijdsVj) }} />
                 </div>
               )}
               {leeftijdsNj && (
                 <div className="sd-det-block">
                   <span className="sd-det-label sd-det-label--nj">Najaar</span>
-                  <p className="sd-notities-text">{leeftijdsNj}</p>
+                  <p className="sd-notities-text" dangerouslySetInnerHTML={{ __html: renderMarkdown(leeftijdsNj) }} />
                 </div>
               )}
             </div>
@@ -701,29 +735,25 @@ export default function SoortDetail({ records, speciesOverrides }) {
         )}
       </div>
 
-      {/* Nestgegevens */}
-      {(editMode || (soort.nest_eileg && soort.nest_eileg !== 'maanden')) && (
-        <div className="sd-card">
-          <h3 className="sd-card-title">Nestgegevens</h3>
-          <div className="sd-fields-grid">
+      {/* Nestgegevens + Determinatieboeken naast elkaar */}
+      <div className="sd-two-cards">
+        {(editMode || (soort.nest_eileg && soort.nest_eileg !== 'maanden')) && (
+          <div className="sd-card">
+            <h3 className="sd-card-title">Nestgegevens</h3>
             {EDITABLE_FIELDS.nest.map(f =>
               renderField(f.key, f.label, { showEmpty: editMode, gender: f.gender })
             )}
           </div>
-        </div>
-      )}
-
-      {/* Determinatieboeken */}
-      {(editMode || (soort.boeken && Object.keys(soort.boeken).length > 0)) && (
-        <div className="sd-card">
-          <h3 className="sd-card-title">Determinatieboeken</h3>
-          <div className="sd-fields-grid">
+        )}
+        {(editMode || (soort.boeken && Object.keys(soort.boeken).length > 0)) && (
+          <div className="sd-card">
+            <h3 className="sd-card-title">Determinatieboeken</h3>
             {EDITABLE_FIELDS.boeken.map(f =>
               renderField(f.key, f.label, { showEmpty: editMode })
             )}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Biometrie (bewerkbaar) */}
       {editMode && (
