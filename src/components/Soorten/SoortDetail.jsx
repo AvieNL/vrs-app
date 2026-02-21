@@ -172,6 +172,11 @@ export default function SoortDetail({ records, speciesOverrides }) {
 
   // Biometriewaarde: uit samengevoegde soortdata (admin-base + gebruikersoverride)
   const getBioValue = (field, stat) => soort[`bio_${field}_${stat}`] ?? '';
+  const fmtBio = val => {
+    if (val === '' || val == null) return val;
+    const n = parseFloat(String(val).replace(',', '.'));
+    return !isNaN(n) && n % 1 === 0 ? String(Math.round(n)) : val;
+  };
 
   const startEdit = () => {
     const data = {};
@@ -808,8 +813,8 @@ export default function SoortDetail({ records, speciesOverrides }) {
                         rows.push(
                           <tr key={b.key}>
                             <td className="sd-bio-field">{b.label} <span className="sd-bio-unit">({b.unit})</span></td>
-                            <td className={bioCellCls(minKey)}>{minVal || '—'}</td>
-                            <td className={bioCellCls(maxKey)}>{maxVal || '—'}</td>
+                            <td className={bioCellCls(minKey)}>{fmtBio(minVal) || '—'}</td>
+                            <td className={bioCellCls(maxKey)}>{fmtBio(maxVal) || '—'}</td>
                           </tr>
                         );
                       }
@@ -824,8 +829,8 @@ export default function SoortDetail({ records, speciesOverrides }) {
                               <td className="sd-bio-field sd-bio-field--gender">
                                 <span className="sd-bio-gender-tag">{sym}</span> {b.label}
                               </td>
-                              <td className={bioCellCls(gMinKey)}>{gMin || '—'}</td>
-                              <td className={bioCellCls(gMaxKey)}>{gMax || '—'}</td>
+                              <td className={bioCellCls(gMinKey)}>{fmtBio(gMin) || '—'}</td>
+                              <td className={bioCellCls(gMaxKey)}>{fmtBio(gMax) || '—'}</td>
                             </tr>
                           );
                         }
