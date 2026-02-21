@@ -301,7 +301,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
       if (naamGewijzigd) {
         setEditMode(false);
         setEditData({});
-        navigate('/soorten' + encodeURIComponent(newNaamNl));
+        navigate('/soorten/' + encodeURIComponent(newNaamNl));
         return;
       }
     } else {
