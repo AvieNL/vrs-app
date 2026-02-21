@@ -690,9 +690,11 @@ export default function SoortDetail({ records, speciesOverrides }) {
       {(editMode || (soort.nest_eileg && soort.nest_eileg !== 'maanden')) && (
         <div className="sd-card">
           <h3 className="sd-card-title">Nestgegevens</h3>
-          {EDITABLE_FIELDS.nest.map(f =>
-            renderField(f.key, f.label, { showEmpty: editMode, gender: f.gender })
-          )}
+          <div className="sd-fields-grid">
+            {EDITABLE_FIELDS.nest.map(f =>
+              renderField(f.key, f.label, { showEmpty: editMode, gender: f.gender })
+            )}
+          </div>
         </div>
       )}
 
@@ -700,9 +702,11 @@ export default function SoortDetail({ records, speciesOverrides }) {
       {(editMode || (soort.boeken && Object.keys(soort.boeken).length > 0)) && (
         <div className="sd-card">
           <h3 className="sd-card-title">Determinatieboeken</h3>
-          {EDITABLE_FIELDS.boeken.map(f =>
-            renderField(f.key, f.label, { showEmpty: editMode })
-          )}
+          <div className="sd-fields-grid">
+            {EDITABLE_FIELDS.boeken.map(f =>
+              renderField(f.key, f.label, { showEmpty: editMode })
+            )}
+          </div>
         </div>
       )}
 

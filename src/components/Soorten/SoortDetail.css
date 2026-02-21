@@ -571,6 +571,13 @@
 .sd-bio-legend-dot--lit  { background: var(--text-primary); }
 .sd-bio-legend-dot--user { background: var(--accent); }
 
+/* Twee-koloms grid voor velden (nest, boeken) */
+.sd-fields-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 12px;
+}
+
 /* Recente vangsten */
 .sd-recent-section {
   margin-top: 8px;
