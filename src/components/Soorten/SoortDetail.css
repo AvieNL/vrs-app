@@ -204,19 +204,18 @@
   white-space: nowrap;
 }
 
-/* Vaste onderbalk met Opslaan / Annuleren */
+/* Vaste onderbalk met Opslaan / Annuleren — boven de navigatiebalk */
 .sd-edit-bottombar {
   position: fixed;
-  bottom: 0;
+  bottom: 56px;
   left: 0;
   right: 0;
-  z-index: 50;
+  z-index: 110;
   display: flex;
   gap: 10px;
   background: var(--bg-secondary);
   border-top: 2px solid var(--accent);
   padding: 10px 16px;
-  padding-bottom: max(10px, env(safe-area-inset-bottom));
 }
 
 .sd-save-btn {
@@ -231,7 +230,7 @@
 
 /* Extra ruimte onderaan in edit mode zodat de fixed balk geen content afdekt */
 .sd-edit-mode {
-  padding-bottom: 80px;
+  padding-bottom: 140px;
 }
 
 /* Cards */
