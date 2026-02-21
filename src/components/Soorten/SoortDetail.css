@@ -41,6 +41,68 @@
   border-color: var(--accent-hover);
 }
 
+/* Foto bijsnijden / verschuiven in edit mode */
+.sd-foto-edit-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.sd-foto-crop {
+  width: 140px;
+  height: 140px;
+  cursor: grab;
+  border: 2px dashed var(--accent);
+  touch-action: none;
+}
+
+.sd-foto-dragging {
+  cursor: grabbing;
+}
+
+.sd-foto-crop-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sd-foto-zoom-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.sd-foto-zoom-slider {
+  flex: 1;
+  accent-color: var(--accent);
+}
+
+.sd-foto-crop-btns {
+  display: flex;
+  gap: 6px;
+}
+
+.sd-foto-btn {
+  padding: 5px 10px;
+  font-size: 0.78rem;
+  min-height: 32px;
+  flex: 1;
+}
+
+.sd-foto-btn--del {
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.sd-foto-crop-hint {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
 .sd-foto-placeholder {
   display: flex;
   flex-direction: column;

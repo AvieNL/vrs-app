@@ -93,6 +93,9 @@ export default function SoortDetail({ records, speciesOverrides }) {
   const navigate = useNavigate();
   const decodedNaam = decodeURIComponent(naam);
   const fileInputRef = useRef(null);
+  const cropRef = useRef(null);
+  const dragStartRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
   const { isAdmin } = useRole();
   const speciesRef = useSpeciesRef();
   const soorten = useMemo(
@@ -149,6 +152,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
     data.leeftijds_notities_vj = soort.leeftijds_notities_vj ?? soort.leeftijds_notities ?? '';
     data.leeftijds_notities_nj = soort.leeftijds_notities_nj ?? '';
     data.foto = soort.foto ?? '';
+    data.foto_crop = soort.foto_crop ?? { x: 50, y: 50, zoom: 1 };
     setEditData(data);
     setEditMode(true);
   };
@@ -196,6 +200,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
       adminData.leeftijds_notities_vj = editData.leeftijds_notities_vj ?? '';
       adminData.leeftijds_notities_nj = editData.leeftijds_notities_nj ?? '';
       if (editData.foto !== undefined) adminData.foto = editData.foto;
+      adminData.foto_crop = editData.foto_crop ?? null;
 
       const { error } = await supabase
         .from('species')
@@ -263,6 +268,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
       if (editData.foto && editData.foto !== (defaultSoort?.foto ?? '')) {
         changes.foto = editData.foto;
       }
+      if (editData.foto_crop) changes.foto_crop = editData.foto_crop;
 
       speciesOverrides.saveOverride(decodedNaam, changes);
     }
@@ -353,6 +359,52 @@ export default function SoortDetail({ records, speciesOverrides }) {
     return keys.some(k => bioUserOverride[k] !== undefined && bioUserOverride[k] !== '');
   });
 
+  const fotoCrop = editMode
+    ? (editData.foto_crop ?? { x: 50, y: 50, zoom: 1 })
+    : (soort.foto_crop ?? { x: 50, y: 50, zoom: 1 });
+
+  const handleClearFoto = () => {
+    handleField('foto', '');
+    handleField('foto_crop', { x: 50, y: 50, zoom: 1 });
+  };
+
+  const handlePointerDown = (e) => {
+    if (!cropRef.current) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    const crop = editData.foto_crop ?? { x: 50, y: 50, zoom: 1 };
+    dragStartRef.current = {
+      clientX: e.clientX,
+      clientY: e.clientY,
+      cropX: crop.x,
+      cropY: crop.y,
+    };
+    setIsDragging(true);
+  };
+
+  const handlePointerMove = (e) => {
+    if (!dragStartRef.current || !cropRef.current) return;
+    const { clientX, clientY, cropX, cropY } = dragStartRef.current;
+    const rect = cropRef.current.getBoundingClientRect();
+    const zoom = editData.foto_crop?.zoom ?? 1;
+    const dx = e.clientX - clientX;
+    const dy = e.clientY - clientY;
+    const newX = Math.max(0, Math.min(100, cropX - (dx / rect.width) * 100 * zoom));
+    const newY = Math.max(0, Math.min(100, cropY - (dy / rect.height) * 100 * zoom));
+    handleField('foto_crop', { zoom, x: newX, y: newY });
+  };
+
+  const handlePointerUp = () => {
+    setIsDragging(false);
+    dragStartRef.current = null;
+  };
+
+  const handleWheel = (e) => {
+    e.preventDefault();
+    const crop = editData.foto_crop ?? { x: 50, y: 50, zoom: 1 };
+    const newZoom = Math.max(1, Math.min(3, crop.zoom - e.deltaY * 0.001));
+    handleField('foto_crop', { ...crop, zoom: newZoom });
+  };
+
   const renderGenderIcons = (val) => {
     if (!val) return <span>—</span>;
     const v = val.toUpperCase();
@@ -412,26 +464,84 @@ export default function SoortDetail({ records, speciesOverrides }) {
 
       {/* Hero */}
       <div className="sd-hero">
-        <div
-          className={`sd-foto ${editMode ? 'sd-foto-edit' : ''}`}
-          onClick={editMode ? () => fileInputRef.current?.click() : undefined}
-        >
-          {foto ? (
-            <img src={foto} alt={soort.naam_nl} />
-          ) : (
-            <div className="sd-foto-placeholder">
-              <span>🐦</span>
-              {editMode && <span className="sd-foto-hint">Foto toevoegen</span>}
+        {editMode && foto ? (
+          <div className="sd-foto-edit-wrapper">
+            <div
+              ref={cropRef}
+              className={`sd-foto sd-foto-crop${isDragging ? ' sd-foto-dragging' : ''}`}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerUp}
+              onWheel={handleWheel}
+            >
+              <img
+                src={foto}
+                alt={soort.naam_nl}
+                style={{
+                  width: '100%', height: '100%',
+                  objectFit: 'cover',
+                  objectPosition: `${fotoCrop.x}% ${fotoCrop.y}%`,
+                  transform: fotoCrop.zoom !== 1 ? `scale(${fotoCrop.zoom})` : undefined,
+                  transformOrigin: `${fotoCrop.x}% ${fotoCrop.y}%`,
+                  pointerEvents: 'none', userSelect: 'none', display: 'block',
+                }}
+              />
             </div>
-          )}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handlePhoto}
-            style={{ display: 'none' }}
-          />
-        </div>
+            <div className="sd-foto-crop-controls">
+              <div className="sd-foto-zoom-row">
+                <span>🔍</span>
+                <input
+                  type="range"
+                  min="1"
+                  max="3"
+                  step="0.05"
+                  value={fotoCrop.zoom}
+                  onChange={e => handleField('foto_crop', { ...fotoCrop, zoom: parseFloat(e.target.value) })}
+                  className="sd-foto-zoom-slider"
+                />
+                <span>{fotoCrop.zoom.toFixed(1)}×</span>
+              </div>
+              <div className="sd-foto-crop-btns">
+                <button className="btn-secondary sd-foto-btn" onClick={() => fileInputRef.current?.click()}>Vervangen</button>
+                <button className="btn-secondary sd-foto-btn sd-foto-btn--del" onClick={handleClearFoto}>Wissen</button>
+              </div>
+              <span className="sd-foto-crop-hint">Sleep om te verschuiven</span>
+            </div>
+          </div>
+        ) : (
+          <div
+            className={`sd-foto ${editMode ? 'sd-foto-edit' : ''}`}
+            onClick={editMode ? () => fileInputRef.current?.click() : undefined}
+          >
+            {foto ? (
+              <img
+                src={foto}
+                alt={soort.naam_nl}
+                style={{
+                  width: '100%', height: '100%',
+                  objectFit: 'cover',
+                  objectPosition: `${fotoCrop.x}% ${fotoCrop.y}%`,
+                  transform: fotoCrop.zoom !== 1 ? `scale(${fotoCrop.zoom})` : undefined,
+                  transformOrigin: `${fotoCrop.x}% ${fotoCrop.y}%`,
+                  pointerEvents: 'none', userSelect: 'none', display: 'block',
+                }}
+              />
+            ) : (
+              <div className="sd-foto-placeholder">
+                <span>🐦</span>
+                {editMode && <span className="sd-foto-hint">Foto toevoegen</span>}
+              </div>
+            )}
+          </div>
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handlePhoto}
+          style={{ display: 'none' }}
+        />
         <div className="sd-hero-info">
           <h2 className="sd-title">{soort.naam_nl}</h2>
           {soort.naam_lat && <p className="sd-subtitle">{soort.naam_lat}</p>}
