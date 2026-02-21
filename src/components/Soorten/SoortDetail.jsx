@@ -45,16 +45,16 @@ const BIO_FIELDS = [
 ];
 
 const ALL_BOEKEN = [
-  { key: 'svensson_2023', label: 'Svensson 2023' },
-  { key: 'svensson_2016', label: 'Svensson 2016' },
-  { key: 'demongin_2020', label: 'Demongin 2020' },
-  { key: 'blasco_zumeta_2023', label: 'Blasco-Zumeta 2023' },
-  { key: 'jenni_winkler_2020', label: 'Jenni & Winkler 2020' },
-  { key: 'baker_2016', label: 'Baker 2016' },
-  { key: 'klaassen_voorjaar', label: 'Klaassen voorjaar' },
-  { key: 'klaassen_najaar', label: 'Klaassen najaar' },
-  { key: 'conings_1999', label: 'Conings 1999' },
-  { key: 'speek_1994', label: 'Speek 1994' },
+  { key: 'svensson_2023', label: 'Svensson (2023)' },
+  { key: 'svensson_2016', label: 'Svensson (2016)' },
+  { key: 'demongin_2020', label: 'Demongin (2020)' },
+  { key: 'blasco_zumeta_2023', label: 'Blasco-Zumeta (2023)' },
+  { key: 'jenni_winkler_2020', label: 'Jenni & Winkler (2020)' },
+  { key: 'baker_2016', label: 'Baker (2016)' },
+  { key: 'klaassen_voorjaar', label: 'Klaassen voorjaar (2023)' },
+  { key: 'klaassen_najaar', label: 'Klaassen najaar (2023)' },
+  { key: 'conings_1999', label: 'Conings (1999)' },
+  { key: 'speek_1994', label: 'Speek (1994)' },
 ];
 
 const EDITABLE_FIELDS = {
