@@ -875,8 +875,8 @@ export default function SoortDetail({ records, speciesOverrides }) {
         </div>
       )}
 
-      {/* Mijn vangsten */}
-      <div className="sd-card">
+      {/* Mijn vangsten — verborgen in edit mode */}
+      {!editMode && <div className="sd-card">
         <div className="sd-vangsten-header" onClick={() => setVangstenOpen(o => !o)}>
           <h3 className="sd-card-title sd-card-title--toggle">
             Mijn vangsten
@@ -990,7 +990,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
             </div>
           </div>
         ))}
-      </div>
+      </div>}
     </div>
   );
 }
