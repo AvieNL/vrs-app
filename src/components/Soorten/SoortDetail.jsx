@@ -724,19 +724,6 @@ export default function SoortDetail({ records, speciesOverrides }) {
         </div>
       )}
 
-      {/* Namen */}
-      <div className="sd-card">
-        <h3 className="sd-card-title">Namen</h3>
-        {EDITABLE_FIELDS.namen.map(f =>
-          renderField(f.key, f.label, { italic: f.key === 'naam_lat', showEmpty: editMode })
-        )}
-        <div className="sd-section-divider" />
-        <span className="sd-section-label">Taxonomie</span>
-        {EDITABLE_FIELDS.taxonomie.map(f =>
-          renderField(f.key, f.label, { showEmpty: editMode, muted: true })
-        )}
-      </div>
-
       {/* Ring & Rui */}
       <div className="sd-card">
         <h3 className="sd-card-title">Ring & Rui</h3>
@@ -745,6 +732,127 @@ export default function SoortDetail({ records, speciesOverrides }) {
         )}
         {!editMode && soort.ruitype && (
           <RuitypeInfo ruitype={soort.ruitype} />
+        )}
+      </div>
+
+      {/* Namen + Biometrie naast elkaar */}
+      <div className="sd-two-cards">
+        <div className="sd-card">
+          <h3 className="sd-card-title">Namen</h3>
+          {EDITABLE_FIELDS.namen.map(f =>
+            renderField(f.key, f.label, { italic: f.key === 'naam_lat', showEmpty: editMode })
+          )}
+          <div className="sd-section-divider" />
+          <span className="sd-section-label">Taxonomie</span>
+          {EDITABLE_FIELDS.taxonomie.map(f =>
+            renderField(f.key, f.label, { showEmpty: editMode, muted: true })
+          )}
+        </div>
+        {(editMode || hasBioData) && (
+          <div className="sd-card">
+            {editMode ? (
+              <>
+                <h3 className="sd-card-title">Biometrie</h3>
+                {BIO_FIELDS.map(f => (
+                  <div key={f.key} className="sd-bio-edit-group">
+                    <div className="sd-bio-edit-field-label">{f.label} ({f.unit})</div>
+                    {[
+                      { prefix: null, label: 'Alg.', cls: '' },
+                      { prefix: 'M',  label: '♂',    cls: ' sd-bio-edit-subrow--m' },
+                      { prefix: 'F',  label: '♀',    cls: ' sd-bio-edit-subrow--f' },
+                    ].map(({ prefix, label, cls }) => (
+                      <div key={prefix ?? 'alg'} className={`sd-bio-edit-subrow${cls}`}>
+                        <span className="sd-bio-gender-lbl">{label}</span>
+                        <div className="sd-bio-edit-inputs">
+                          {['min', 'max'].map(stat => {
+                            const key = prefix
+                              ? `bio_${f.key}_${prefix}_${stat}`
+                              : `bio_${f.key}_${stat}`;
+                            return (
+                              <input
+                                key={stat}
+                                type="text"
+                                inputMode="decimal"
+                                value={editData[key] ?? ''}
+                                onChange={e => handleField(key, e.target.value.replace(',', '.'))}
+                                className="sd-edit-input"
+                                placeholder={{ min: 'Min', max: 'Max' }[stat]}
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </>
+            ) : (
+              <>
+                <h3 className="sd-card-title">Biometrie</h3>
+                <table className="sd-bio-table">
+                  <thead>
+                    <tr>
+                      <th>Meting</th>
+                      <th>Min</th>
+                      <th>Max</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {BIO_FIELDS.flatMap(b => {
+                      const minKey = `bio_${b.key}_min`;
+                      const maxKey = `bio_${b.key}_max`;
+                      const minVal = getBioValue(b.key, 'min');
+                      const maxVal = getBioValue(b.key, 'max');
+                      const rows = [];
+                      if (minVal || maxVal) {
+                        rows.push(
+                          <tr key={b.key}>
+                            <td className="sd-bio-field">{b.label} <span className="sd-bio-unit">({b.unit})</span></td>
+                            <td className={bioCellCls(minKey)}>{minVal || '—'}</td>
+                            <td className={bioCellCls(maxKey)}>{maxVal || '—'}</td>
+                          </tr>
+                        );
+                      }
+                      [['M', '♂', 'sd-bio-row-m'], ['F', '♀', 'sd-bio-row-f']].forEach(([g, sym, cls]) => {
+                        const gMinKey = `bio_${b.key}_${g}_min`;
+                        const gMaxKey = `bio_${b.key}_${g}_max`;
+                        const gMin = soort[gMinKey];
+                        const gMax = soort[gMaxKey];
+                        if (gMin || gMax) {
+                          rows.push(
+                            <tr key={`${b.key}-${g}`} className={cls}>
+                              <td className="sd-bio-field sd-bio-field--gender">
+                                <span className="sd-bio-gender-tag">{sym}</span> {b.label}
+                              </td>
+                              <td className={bioCellCls(gMinKey)}>{gMin || '—'}</td>
+                              <td className={bioCellCls(gMaxKey)}>{gMax || '—'}</td>
+                            </tr>
+                          );
+                        }
+                      });
+                      return rows;
+                    })}
+                  </tbody>
+                </table>
+                {(hasAdminBio || hasUserBio) && (
+                  <div className="sd-bio-legend">
+                    {hasAdminBio && (
+                      <span className="sd-bio-legend-item">
+                        <span className="sd-bio-legend-dot sd-bio-legend-dot--lit" />
+                        Literatuurdata
+                      </span>
+                    )}
+                    {hasUserBio && (
+                      <span className="sd-bio-legend-item">
+                        <span className="sd-bio-legend-dot sd-bio-legend-dot--user" />
+                        Door jou ingevoerd
+                      </span>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         )}
       </div>
 
@@ -767,113 +875,6 @@ export default function SoortDetail({ records, speciesOverrides }) {
           </div>
         )}
       </div>
-
-      {/* Biometrie (bewerkbaar) */}
-      {editMode && (
-        <div className="sd-card">
-          <h3 className="sd-card-title">Biometrie (min / gem / max)</h3>
-          {BIO_FIELDS.map(f => (
-            <div key={f.key} className="sd-bio-edit-group">
-              <div className="sd-bio-edit-field-label">{f.label} ({f.unit})</div>
-              {[
-                { prefix: null, label: 'Alg.', cls: '' },
-                { prefix: 'M',  label: '♂',    cls: ' sd-bio-edit-subrow--m' },
-                { prefix: 'F',  label: '♀',    cls: ' sd-bio-edit-subrow--f' },
-              ].map(({ prefix, label, cls }) => (
-                <div key={prefix ?? 'alg'} className={`sd-bio-edit-subrow${cls}`}>
-                  <span className="sd-bio-gender-lbl">{label}</span>
-                  <div className="sd-bio-edit-inputs">
-                    {['min', 'max'].map(stat => {
-                      const key = prefix
-                        ? `bio_${f.key}_${prefix}_${stat}`
-                        : `bio_${f.key}_${stat}`;
-                      return (
-                        <input
-                          key={stat}
-                          type="text"
-                          inputMode="decimal"
-                          value={editData[key] ?? ''}
-                          onChange={e => handleField(key, e.target.value.replace(',', '.'))}
-                          className="sd-edit-input"
-                          placeholder={{ min: 'Min', max: 'Max' }[stat]}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Biometrie */}
-      {!editMode && hasBioData && (
-        <div className="sd-card">
-          <h3 className="sd-card-title">Biometrie</h3>
-          <table className="sd-bio-table">
-            <thead>
-              <tr>
-                <th>Meting</th>
-                <th>Min</th>
-                <th>Max</th>
-              </tr>
-            </thead>
-            <tbody>
-              {BIO_FIELDS.flatMap(b => {
-                const minKey = `bio_${b.key}_min`;
-                const maxKey = `bio_${b.key}_max`;
-                const minVal = getBioValue(b.key, 'min');
-                const maxVal = getBioValue(b.key, 'max');
-                const rows = [];
-                if (minVal || maxVal) {
-                  rows.push(
-                    <tr key={b.key}>
-                      <td className="sd-bio-field">{b.label} <span className="sd-bio-unit">({b.unit})</span></td>
-                      <td className={bioCellCls(minKey)}>{minVal || '—'}</td>
-                      <td className={bioCellCls(maxKey)}>{maxVal || '—'}</td>
-                    </tr>
-                  );
-                }
-                [['M', '♂', 'sd-bio-row-m'], ['F', '♀', 'sd-bio-row-f']].forEach(([g, sym, cls]) => {
-                  const gMinKey = `bio_${b.key}_${g}_min`;
-                  const gMaxKey = `bio_${b.key}_${g}_max`;
-                  const gMin = soort[gMinKey];
-                  const gMax = soort[gMaxKey];
-                  if (gMin || gMax) {
-                    rows.push(
-                      <tr key={`${b.key}-${g}`} className={cls}>
-                        <td className="sd-bio-field sd-bio-field--gender">
-                          <span className="sd-bio-gender-tag">{sym}</span> {b.label}
-                        </td>
-                        <td className={bioCellCls(gMinKey)}>{gMin || '—'}</td>
-                        <td className={bioCellCls(gMaxKey)}>{gMax || '—'}</td>
-                      </tr>
-                    );
-                  }
-                });
-                return rows;
-              })}
-            </tbody>
-          </table>
-          {(hasAdminBio || hasUserBio) && (
-            <div className="sd-bio-legend">
-              {hasAdminBio && (
-                <span className="sd-bio-legend-item">
-                  <span className="sd-bio-legend-dot sd-bio-legend-dot--lit" />
-                  Literatuurdata
-                </span>
-              )}
-              {hasUserBio && (
-                <span className="sd-bio-legend-item">
-                  <span className="sd-bio-legend-dot sd-bio-legend-dot--user" />
-                  Door jou ingevoerd
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Mijn vangsten — verborgen in edit mode */}
       {!editMode && <div className="sd-card">
