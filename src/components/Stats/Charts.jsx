@@ -301,7 +301,6 @@ export function VangstKaart({ targetRecords, allRecords }) {
       <div className="chart-legend">
         <span className="chart-legend-item"><span className="chart-dot" style={{ background: '#38bdf8' }} /> Nieuw</span>
         <span className="chart-legend-item"><span className="chart-dot" style={{ background: '#22c55e' }} /> Terugvangst</span>
-        <span className="chart-legend-item"><span className="chart-dot" style={{ background: '#f97316' }} /> Lijn</span>
       </div>
     </div>
   );

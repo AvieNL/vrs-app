@@ -652,7 +652,7 @@
 }
 
 .sd-bio-table {
-  width: 100%;
+  width: auto;
   border-collapse: collapse;
   font-size: 0.82rem;
   margin-top: 4px;
@@ -662,23 +662,28 @@
   text-align: left;
   font-weight: 600;
   color: var(--text-muted);
-  padding: 4px 4px;
+  padding: 3px 6px 3px 0;
   border-bottom: 1px solid var(--border);
   font-size: 0.75rem;
+  white-space: nowrap;
 }
 
 .sd-bio-table th:not(:first-child) {
   text-align: right;
-  width: 48px;
+  padding-left: 16px;
+  padding-right: 0;
 }
 
 .sd-bio-table td {
-  padding: 4px 4px;
+  padding: 3px 6px 3px 0;
   border-bottom: 1px solid rgba(71, 85, 105, 0.2);
+  white-space: nowrap;
 }
 
 .sd-bio-table td:not(:first-child) {
-  width: 48px;
+  padding-left: 16px;
+  padding-right: 0;
+  text-align: right;
 }
 
 .sd-bio-field {
