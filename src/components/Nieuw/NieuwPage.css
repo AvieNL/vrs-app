@@ -55,32 +55,17 @@
   color: var(--text-secondary);
 }
 
-/* Geslachtshint op basis van biometrie */
+/* Geslachtshint op basis van biometrie — zelfde stijl als field-hint */
 .gender-bio-hint {
-  font-size: 0.78rem;
-  border-radius: var(--radius-sm);
-  padding: 6px 10px;
-  margin-top: 6px;
-  line-height: 1.4;
+  display: block;
+  font-size: 0.72rem;
+  margin-top: 3px;
+  line-height: 1.3;
 }
 
-.gender-bio-hint--suggest {
-  background: rgba(56, 189, 248, 0.1);
-  border: 1px solid rgba(56, 189, 248, 0.25);
-  color: var(--accent);
-}
-
-.gender-bio-hint--match {
-  background: var(--success-bg);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  color: var(--success);
-}
-
-.gender-bio-hint--mismatch {
-  background: var(--warning-bg);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  color: var(--warning);
-}
+.gender-bio-hint--suggest { color: var(--accent); opacity: 0.75; }
+.gender-bio-hint--match   { color: var(--success); opacity: 0.75; }
+.gender-bio-hint--mismatch { color: var(--warning); opacity: 1; }
 
 .field-hint--warn {
   color: var(--warning);
@@ -661,12 +646,15 @@
 }
 
 .ruitype-kal-tekst {
-  background: var(--warning-bg);
-  border-left: 3px solid var(--warning);
-  border-radius: var(--radius-sm);
-  padding: 6px 8px;
-  margin-top: 7px;
+  background: transparent;
+  border-left: 2px solid var(--bg-tertiary);
+  border-radius: 0;
+  padding: 4px 8px;
+  margin-top: 6px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
+  color: var(--warning);
+  opacity: 0.75;
+  font-size: 0.8rem;
 }
