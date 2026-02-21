@@ -109,6 +109,7 @@ const ALL_BOEKEN = [
 const EDITABLE_FIELDS = {
   namen: [
     { key: 'naam_lat', label: '🌐 Latijn' },
+    { key: 'naam_nl', label: '🇳🇱 Nederlands' },
     { key: 'naam_en', label: '🇬🇧 Engels' },
     { key: 'naam_de', label: '🇩🇪 Duits' },
     { key: 'naam_fr', label: '🇫🇷 Frans' },
