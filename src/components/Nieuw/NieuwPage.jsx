@@ -88,8 +88,8 @@ const BROEDGROOTTE_OPTIONS = [
 
 const GESLACHT_OPTIONS = [
   { value: '', label: '-- Kies --' },
-  { value: 'M', label: 'M - Man' },
-  { value: 'F', label: 'F - Vrouw' },
+  { value: 'M', label: '♂ Man' },
+  { value: 'F', label: '♀ Vrouw' },
   { value: 'U', label: 'U - Onbekend' },
 ];
 
@@ -466,6 +466,10 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
       const primSum = next.slice(9, 19).reduce((sum, v) => sum + (parseInt(v) || 0), 0);
       update('handpen_score', String(primSum));
     }
+    // Auto-advance naar volgend veld bij geldig karakter
+    if (value !== '' && index < 19) {
+      document.querySelector(`[data-rui="${index + 1}"]`)?.focus();
+    }
   }
 
   function resetRuikaart() {
@@ -520,32 +524,41 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
     for (const f of BIO_KEYS) {
       const ovMin = parseVal(soortOverride[`bio_${f.key}_min`]);
       const ovMax = parseVal(soortOverride[`bio_${f.key}_max`]);
+      const baseMin = parseVal(speciesInfo?.[`bio_${f.key}_min`]);
+      const baseMax = parseVal(speciesInfo?.[`bio_${f.key}_max`]);
       const fromRec = bioRangesFromRecords[f.key];
 
-      const hasAnyOverride = !isNaN(ovMin) || !isNaN(ovMax);
-      const hasRecords = !!fromRec;
+      // Soortkaart: override > admin-basis (exact, geen marge)
+      const cardMin = !isNaN(ovMin) ? ovMin : (!isNaN(baseMin) ? baseMin : NaN);
+      const cardMax = !isNaN(ovMax) ? ovMax : (!isNaN(baseMax) ? baseMax : NaN);
+      const hasCard = !isNaN(cardMin) && !isNaN(cardMax);
 
-      if (!hasAnyOverride && !hasRecords) continue;
+      if (!hasCard && !fromRec) continue;
 
-      // Pick best available min/max: override > records
-      const min = !isNaN(ovMin) ? ovMin : (hasRecords ? fromRec.min : NaN);
-      const max = !isNaN(ovMax) ? ovMax : (hasRecords ? fromRec.max : NaN);
-
-      if (isNaN(min) || isNaN(max)) continue;
-
-      const margin = (max - min) * 0.1 || min * 0.1;
-      merged[f.key] = {
-        label: f.label,
-        min,
-        max,
-        rangeMin: +(min - margin).toFixed(1),
-        rangeMax: +(max + margin).toFixed(1),
-        n: hasRecords ? fromRec.n : 0,
-        isOverride: hasAnyOverride,
-      };
+      if (hasCard) {
+        merged[f.key] = {
+          label: f.label,
+          min: cardMin,
+          max: cardMax,
+          rangeMin: cardMin,
+          rangeMax: cardMax,
+          isOverride: !isNaN(ovMin) || !isNaN(ovMax),
+        };
+      } else {
+        // Alleen records beschikbaar: 10% marge als vangs
+        const margin = (fromRec.max - fromRec.min) * 0.1 || fromRec.min * 0.1;
+        merged[f.key] = {
+          label: f.label,
+          min: fromRec.min,
+          max: fromRec.max,
+          rangeMin: +(fromRec.min - margin).toFixed(1),
+          rangeMax: +(fromRec.max + margin).toFixed(1),
+          isOverride: false,
+        };
+      }
     }
     return merged;
-  }, [bioRangesFromRecords, soortOverride]);
+  }, [bioRangesFromRecords, soortOverride, speciesInfo]);
 
   // Geslachtsspecifieke bereiken vanuit soortdata + overrides
   const bioGenderRanges = useMemo(() => {
@@ -762,6 +775,18 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
   function renderBioField(key, label) {
     const range = bioRanges[key];
     const warning = warnings.find(w => w.key === key);
+    // Geslachtsimplicatie per veld
+    const val = parseVal(form[key]);
+    const mR = bioGenderRanges.M[key];
+    const fR = bioGenderRanges.F[key];
+    let fieldGenderHint = null;
+    if (!isNaN(val) && val > 0 && mR && fR) {
+      const inM = val >= mR.rangeMin && val <= mR.rangeMax;
+      const inF = val >= fR.rangeMin && val <= fR.rangeMax;
+      if (inM && !inF) fieldGenderHint = 'M';
+      else if (inF && !inM) fieldGenderHint = 'F';
+    }
+    const genderMismatch = fieldGenderHint && form.geslacht && form.geslacht !== fieldGenderHint && form.geslacht !== 'U';
     return (
       <div className="form-group">
         <label>{label}</label>
@@ -770,12 +795,20 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
           onChange={e => update(key, e.target.value)} />
         {range && !warning && (
           <span className={`field-hint${range.isOverride ? ' field-hint--warn' : ''}`}>
-            Bereik: {range.min.toFixed(1)}–{range.max.toFixed(1)}
+            Bereik: {range.min}–{range.max}
           </span>
         )}
         {warning && (
           <span className="field-warning">
             {warning.value} buiten bereik ({warning.min}–{warning.max})
+          </span>
+        )}
+        {fieldGenderHint && (
+          <span className={`field-hint field-gender-hint${genderMismatch ? ' field-hint--warn' : ''}`}>
+            {fieldGenderHint === 'M'
+              ? <><span className="gender-m">♂</span> wijst op man</>
+              : <><span className="gender-f">♀</span> wijst op vrouw</>}
+            {genderMismatch && ' — controleer geslacht'}
           </span>
         )}
       </div>
@@ -866,7 +899,7 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
     if (isTerugvangst) {
       setForm(prev => ({ ...prev, metalenringinfo: 2, centrale: 'NLA', omstandigheden: '' }));
     } else {
-      setForm(prev => ({ ...prev, metalenringinfo: 4, omstandigheden: '28' }));
+      setForm(prev => ({ ...prev, metalenringinfo: 4, omstandigheden: '28', ringnummer: '' }));
     }
   }
 
@@ -917,11 +950,6 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
               {/* Soort-info paneel */}
               {speciesInfo && settings?.hulpModus !== 'basis' && (
                 <div className="soort-info-panel">
-                  <div className="soort-info-header">
-                    <strong>{speciesInfo.naam_nl}</strong>
-                    {speciesInfo.naam_lat && <em className="soort-lat">{speciesInfo.naam_lat}</em>}
-                  </div>
-
                   <div className="soort-info-grid">
                     <div className="soort-info-item highlight">
                       <span className="sii-label">Ringmaat</span>
@@ -1021,16 +1049,18 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
                 </div>
               </div>
               {genderHint && (() => {
-                const hintLabel = genderHint === 'M' ? '♂ man' : '♀ vrouw';
+                const sym = genderHint === 'M'
+                  ? <span className="gender-m">♂</span>
+                  : <span className="gender-f">♀</span>;
                 const ingevuld = form.geslacht === 'M' || form.geslacht === 'F';
                 const klopt = form.geslacht === genderHint;
                 return (
                   <div className={`gender-bio-hint ${klopt ? 'gender-bio-hint--match' : ingevuld ? 'gender-bio-hint--mismatch' : 'gender-bio-hint--suggest'}`}>
                     {klopt
-                      ? `Biometrie bevestigt ${hintLabel}`
+                      ? <>Biometrie bevestigt {sym} man</>
                       : ingevuld
-                        ? `Biometrie wijst op ${hintLabel} — controleer het ingevoerde geslacht`
-                        : `Op basis van biometrie: waarschijnlijk ${hintLabel}`
+                        ? <>Biometrie wijst op {sym} {genderHint === 'M' ? 'man' : 'vrouw'} — controleer het ingevoerde geslacht</>
+                        : <>Op basis van biometrie: waarschijnlijk {sym} {genderHint === 'M' ? 'man' : 'vrouw'}</>
                     }
                   </div>
                 );
@@ -1528,6 +1558,7 @@ export default function NieuwPage({ onSave, projects, records, speciesOverrides,
                   {ruikaart.map((val, i) => (
                     <input
                       key={i}
+                      data-rui={i}
                       type="text"
                       inputMode="numeric"
                       maxLength={1}

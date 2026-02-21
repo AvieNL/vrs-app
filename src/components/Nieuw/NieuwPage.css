@@ -45,6 +45,16 @@
   line-height: 1.3;
 }
 
+/* Gekleurde geslachtssymbolen */
+.gender-m { color: var(--accent, #38bdf8); font-weight: 700; }
+.gender-f { color: #f472b6; font-weight: 700; }
+
+/* Geslachtsimplicatie per biometrieveld */
+.field-gender-hint {
+  opacity: 1;
+  color: var(--text-secondary);
+}
+
 /* Geslachtshint op basis van biometrie */
 .gender-bio-hint {
   font-size: 0.78rem;
@@ -134,11 +144,12 @@
 
 /* Soort-info paneel */
 .soort-info-panel {
-  background: var(--bg-tertiary);
-  border-left: 3px solid var(--accent);
-  border-radius: var(--radius-sm);
-  padding: 12px;
-  margin-bottom: 12px;
+  background: transparent;
+  border-left: 2px solid var(--bg-tertiary);
+  border-radius: 0;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+  opacity: 0.8;
 }
 
 .soort-info-header {
@@ -161,30 +172,30 @@
 .soort-info-grid {
   display: flex;
   gap: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 4px;
 }
 
 .soort-info-item {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .soort-info-item.highlight .sii-value {
-  font-size: 1.3rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--success);
 }
 
 .sii-label {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .sii-value {
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 600;
 }
 
@@ -403,13 +414,13 @@
 .broed-info-hint {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 14px;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  background: var(--bg-tertiary);
-  border-radius: var(--radius-sm);
-  padding: 6px 10px;
-  margin-bottom: 8px;
+  gap: 4px 12px;
+  font-size: 0.72rem;
+  color: var(--accent);
+  opacity: 0.75;
+  padding: 2px 0;
+  margin-top: 3px;
+  margin-bottom: 4px;
 }
 
 .broed-info-hint strong {
@@ -514,9 +525,10 @@
 /* Ruitype — noot bij leeftijdsveld */
 .ruitype-note {
   margin-top: 7px;
-  background: var(--warning-bg);
-  border-left: 3px solid var(--warning);
+  background: transparent;
+  border-left: 2px solid var(--bg-tertiary);
   border-radius: var(--radius-sm);
+  opacity: 0.75;
   padding: 8px 10px;
   display: flex;
   flex-direction: column;
@@ -566,9 +578,9 @@
 
 /* Ruitype A kalender */
 .ruitype-note--kalender {
-  padding: 8px 10px;
-  background: var(--accent-bg);
-  border-left-color: var(--accent);
+  padding: 6px 8px;
+  background: transparent;
+  border-left-color: var(--bg-tertiary);
 }
 
 .ruitype-kalender {
