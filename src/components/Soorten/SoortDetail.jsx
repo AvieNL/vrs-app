@@ -561,7 +561,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
       {editMode && (
         <div className="sd-edit-topbar">
           <span className="sd-edit-topbar-indicator">✏️</span>
-          <span className="sd-edit-topbar-name">{soort.naam_nl}</span>
+          <span className="sd-edit-topbar-name">{isNieuweSoort ? (editData.naam_nl || 'Nieuwe soort') : soort.naam_nl}</span>
           <button className="btn-secondary sd-topbar-btn" onClick={cancelEdit}>Annuleren</button>
           <button className="btn-primary sd-topbar-btn" onClick={saveEdit}>Opslaan</button>
         </div>
@@ -648,7 +648,18 @@ export default function SoortDetail({ records, speciesOverrides }) {
           style={{ display: 'none' }}
         />
         <div className="sd-hero-info">
-          <h2 className="sd-title">{soort.naam_nl}</h2>
+          {isNieuweSoort && editMode ? (
+            <input
+              type="text"
+              className="sd-title-input"
+              value={editData.naam_nl ?? ''}
+              onChange={e => handleField('naam_nl', e.target.value)}
+              placeholder="Nederlandse naam"
+              autoFocus
+            />
+          ) : (
+            <h2 className="sd-title">{soort.naam_nl}</h2>
+          )}
           {soort.naam_lat && <p className="sd-subtitle">{soort.naam_lat}</p>}
           <div className="sd-badges">
             {soort.ringmaat && (
@@ -781,7 +792,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
       <div className="sd-two-cards">
         <div className="sd-card">
           <h3 className="sd-card-title">Namen</h3>
-          {EDITABLE_FIELDS.namen.map(f =>
+          {EDITABLE_FIELDS.namen.filter(f => !(isNieuweSoort && f.key === 'naam_nl')).map(f =>
             renderField(f.key, f.label, { italic: f.key === 'naam_lat', showEmpty: editMode })
           )}
           <div className="sd-section-divider" />

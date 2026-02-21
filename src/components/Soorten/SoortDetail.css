@@ -129,6 +129,20 @@
   margin-bottom: 2px;
 }
 
+.sd-title-input {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--accent);
+  border-radius: 0;
+  padding: 2px 0;
+  width: 100%;
+  margin-bottom: 2px;
+  outline: none;
+}
+
 .sd-subtitle {
   font-size: 0.85rem;
   color: var(--text-secondary);
