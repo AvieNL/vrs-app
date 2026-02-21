@@ -64,6 +64,7 @@ const EDITABLE_FIELDS = {
     { key: 'naam_en', label: 'Engels' },
     { key: 'naam_de', label: 'Duits' },
     { key: 'naam_fr', label: 'Frans' },
+    { key: 'naam_es', label: 'Spaans' },
   ],
   taxonomie: [
     { key: 'familie', label: 'Familie' },
@@ -460,10 +461,17 @@ export default function SoortDetail({ records, speciesOverrides }) {
   };
 
   return (
-    <div className="page soort-detail">
+    <div className={`page soort-detail${editMode ? ' sd-edit-mode' : ''}`}>
       <button className="btn-secondary sd-back" onClick={() => navigate('/soorten')}>
         ← Terug
       </button>
+
+      {editMode && (
+        <div className="sd-edit-topbar">
+          <span className="sd-edit-topbar-indicator">✏️ Bewerken</span>
+          <span className="sd-edit-topbar-name">{soort.naam_nl}</span>
+        </div>
+      )}
 
       {/* Hero */}
       <div className="sd-hero">
@@ -557,7 +565,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
             )}
           </div>
         </div>
-        {!editMode ? (
+        {!editMode && (
           <div className="sd-hero-actions">
             <button className="sd-edit-btn" onClick={startEdit} title="Bewerken">✏️</button>
             {!isAdmin && speciesOverrides && Object.keys(speciesOverrides.getOverride(decodedNaam)).length > 0 && (
@@ -569,11 +577,6 @@ export default function SoortDetail({ records, speciesOverrides }) {
                 ↩ Reset
               </button>
             )}
-          </div>
-        ) : (
-          <div className="sd-edit-actions">
-            <button className="btn-primary sd-save-btn" onClick={saveEdit}>Opslaan</button>
-            <button className="btn-secondary sd-cancel-btn" onClick={cancelEdit}>Annuleren</button>
           </div>
         )}
       </div>
@@ -915,6 +918,12 @@ export default function SoortDetail({ records, speciesOverrides }) {
           </>
         )}
       </div>
+      {editMode && (
+        <div className="sd-edit-bottombar">
+          <button className="btn-secondary sd-cancel-btn" onClick={cancelEdit}>Annuleren</button>
+          <button className="btn-primary sd-save-btn" onClick={saveEdit}>Opslaan</button>
+        </div>
+      )}
     </div>
   );
 }
