@@ -149,7 +149,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
   const cropRef = useRef(null);
   const dragStartRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
-  const { isAdmin } = useRole();
+  const { isAdmin, isViewer } = useRole();
   const speciesRef = useSpeciesRef();
   const soorten = useMemo(
     () => speciesRef.filter(s => s.naam_nl && !s.naam_nl.includes('groene tekst')),
@@ -161,9 +161,15 @@ export default function SoortDetail({ records, speciesOverrides }) {
     ? speciesOverrides.getMerged(decodedNaam, defaultSoort || {})
     : defaultSoort;
 
+  const isNieuweSoort = decodedNaam === '__nieuw__';
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState({});
   const [vangstenOpen, setVangstenOpen] = useState(false);
+
+  // Auto-start edit voor een nieuwe soort
+  useEffect(() => {
+    if (isNieuweSoort && isAdmin) setEditMode(true);
+  }, [isNieuweSoort, isAdmin]);
 
   const soortRecords = useMemo(() => {
     if (!decodedNaam) return [];
@@ -219,6 +225,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
   const cancelEdit = () => {
     setEditMode(false);
     setEditData({});
+    if (isNieuweSoort) navigate('/soorten');
   };
 
   const deleteSoort = async () => {
@@ -229,6 +236,10 @@ export default function SoortDetail({ records, speciesOverrides }) {
   };
 
   const saveEdit = async () => {
+    if (isNieuweSoort && !editData.naam_nl?.trim()) {
+      alert('Vul een Nederlandse naam in voor de nieuwe soort.');
+      return;
+    }
     if (isAdmin) {
       // Admin: sla volledige soortdata op in Supabase species tabel + Dexie
       const adminData = {
@@ -648,7 +659,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
             )}
           </div>
         </div>
-        {!editMode && (
+        {!editMode && !isViewer && (
           <div className="sd-hero-actions">
             <button className="sd-edit-btn" onClick={startEdit} title="Bewerken">✏️</button>
             {isAdmin && (

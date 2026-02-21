@@ -1,11 +1,13 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSpeciesRef } from '../../hooks/useSpeciesRef';
+import { useRole } from '../../hooks/useRole';
 import './SoortenPage.css';
 
 export default function SoortenPage({ records }) {
   const [zoek, setZoek] = useState('');
   const navigate = useNavigate();
+  const { isAdmin } = useRole();
   const speciesRef = useSpeciesRef();
   const soorten = useMemo(
     () => speciesRef.filter(s => s.naam_nl && !s.naam_nl.includes('groene tekst')),
@@ -36,13 +38,23 @@ export default function SoortenPage({ records }) {
 
   return (
     <div className="page soorten-page">
-      <input
-        type="search"
-        value={zoek}
-        onChange={e => setZoek(e.target.value)}
-        placeholder="Zoek soort..."
-        className="soorten-search"
-      />
+      <div className="soorten-topbar">
+        <input
+          type="search"
+          value={zoek}
+          onChange={e => setZoek(e.target.value)}
+          placeholder="Zoek soort..."
+          className="soorten-search"
+        />
+        {isAdmin && (
+          <button
+            className="btn-primary soorten-nieuw-btn"
+            onClick={() => navigate('/soorten/__nieuw__')}
+          >
+            + Nieuw
+          </button>
+        )}
+      </div>
 
       <div className="soorten-list">
         {filtered.map(s => {

@@ -5,14 +5,26 @@
   overflow: hidden;
 }
 
-.soorten-search {
+.soorten-topbar {
   position: sticky;
   top: 0;
   z-index: 10;
   flex-shrink: 0;
-  margin-bottom: 0;
+  display: flex;
+  gap: 8px;
+  align-items: center;
   padding-bottom: 12px;
   background: var(--bg-primary, #0f172a);
+}
+
+.soorten-search {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.soorten-nieuw-btn {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .soorten-list {
