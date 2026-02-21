@@ -409,7 +409,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
     );
   }
 
-  if (!defaultSoort) {
+  if (!defaultSoort && !isNieuweSoort) {
     return (
       <div className="page">
         <button className="btn-secondary" onClick={() => navigate('/soorten')}>← Terug</button>
