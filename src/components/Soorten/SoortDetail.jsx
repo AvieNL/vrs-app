@@ -1,10 +1,11 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSpeciesRef } from '../../hooks/useSpeciesRef';
 import { useRole } from '../../hooks/useRole';
 import { db } from '../../lib/db';
 import { supabase } from '../../lib/supabase';
 import RuitypeInfo from './RuitypeInfo';
+import { VangstKaart } from '../Stats/Charts';
 import './SoortDetail.css';
 
 // Eenvoudige markdown-renderer: **bold**, *italic*, _underline_
@@ -792,7 +793,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
                           type="text"
                           inputMode="decimal"
                           value={editData[key] ?? ''}
-                          onChange={e => handleField(key, e.target.value)}
+                          onChange={e => handleField(key, e.target.value.replace(',', '.'))}
                           className="sd-edit-input"
                           placeholder={{ min: 'Min', max: 'Max' }[stat]}
                         />
@@ -886,9 +887,9 @@ export default function SoortDetail({ records, speciesOverrides }) {
           <span className={`sd-vangsten-toggle${vangstenOpen ? ' sd-vangsten-toggle--open' : ''}`}>▼</span>
         </div>
         {vangstenOpen && (soortRecords.length === 0 ? (
-          <p className="sd-empty">Nog geen vangsten van deze soort</p>
+          <p className="sd-empty" style={{ marginTop: 10 }}>Nog geen vangsten van deze soort</p>
         ) : (
-          <>
+          <div className="sd-vangsten-content">
             <div className="sd-stats-row">
               <div className="sd-stat">
                 <div className="sd-stat-value">{soortRecords.length}</div>
@@ -903,7 +904,11 @@ export default function SoortDetail({ records, speciesOverrides }) {
               {Object.entries(genderStats).map(([g, count]) => (
                 <div key={g} className="sd-stat">
                   <div className="sd-stat-value">{count}</div>
-                  <div className="sd-stat-label">{g === 'M' ? 'Man' : g === 'F' ? 'Vrouw' : 'Onbekend'}</div>
+                  <div className="sd-stat-label">
+                    {g === 'M' ? <><span className="sd-gender-icon--m">♂</span> Man</> :
+                     g === 'F' ? <><span className="sd-gender-icon--f">♀</span> Vrouw</> :
+                     'Onbekend'}
+                  </div>
                 </div>
               ))}
             </div>
@@ -931,6 +936,8 @@ export default function SoortDetail({ records, speciesOverrides }) {
                 })()}
               </div>
             )}
+
+            <VangstKaart targetRecords={soortRecords} allRecords={records} />
 
             <div className="sd-recent-section">
               <span className="sd-sub-title">Recente vangsten</span>
@@ -981,7 +988,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
                 Alle {soortRecords.length} vangsten van {soort.naam_nl} →
               </button>
             </div>
-          </>
+          </div>
         ))}
       </div>
     </div>

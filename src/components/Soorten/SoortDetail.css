@@ -559,6 +559,11 @@
   transform: rotate(180deg);
 }
 
+/* Ruimte tussen toggle-header en inhoud */
+.sd-vangsten-content {
+  margin-top: 12px;
+}
+
 /* Terugvangsten teller */
 .sd-stat-value--tv {
   color: var(--warning);
@@ -657,18 +662,23 @@
   text-align: left;
   font-weight: 600;
   color: var(--text-muted);
-  padding: 4px 6px;
+  padding: 4px 4px;
   border-bottom: 1px solid var(--border);
   font-size: 0.75rem;
 }
 
 .sd-bio-table th:not(:first-child) {
   text-align: right;
+  width: 48px;
 }
 
 .sd-bio-table td {
-  padding: 5px 6px;
+  padding: 4px 4px;
   border-bottom: 1px solid rgba(71, 85, 105, 0.2);
+}
+
+.sd-bio-table td:not(:first-child) {
+  width: 48px;
 }
 
 .sd-bio-field {
