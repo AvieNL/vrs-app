@@ -117,7 +117,7 @@ export default function LocatiePicker({ lat, lon, onChange }) {
       <div ref={mapRef} className="locatie-map" />
       <div className="locatie-coords">
         <div className="form-group">
-          <label>Breedtegraad (lat)</label>
+          <label>Breedtegraad (lat) *</label>
           <input
             type="text"
             inputMode="decimal"
@@ -127,7 +127,7 @@ export default function LocatiePicker({ lat, lon, onChange }) {
           />
         </div>
         <div className="form-group">
-          <label>Lengtegraad (lon)</label>
+          <label>Lengtegraad (lon) *</label>
           <input
             type="text"
             inputMode="decimal"

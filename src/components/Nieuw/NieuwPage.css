@@ -2,6 +2,28 @@
   padding-bottom: 20px;
 }
 
+/* Validatie foutmeldingen */
+.form-error-bar {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+  color: var(--danger);
+}
+
+.form-error-list {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 16px;
+}
+
+.form-error-item::before {
+  content: '• ';
+}
+
 /* Terugvangst info */
 .terugvangst-info {
   margin-top: 6px;

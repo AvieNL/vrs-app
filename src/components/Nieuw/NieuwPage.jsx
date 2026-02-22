@@ -434,6 +434,35 @@ function computeRanges(soortRecords) {
   return ranges;
 }
 
+// Verplichte velden voor validatie bij opslaan
+const REQUIRED_FIELDS = [
+  { key: 'vogelnaam',             label: 'Vogelnaam',                    section: 'essentieel' },
+  { key: 'centrale',              label: 'Ringcentrale',                 section: 'essentieel' },
+  { key: 'ringnummer',            label: 'Ringnummer',                   section: 'essentieel' },
+  { key: 'geslacht',              label: 'Geslacht',                     section: 'essentieel' },
+  { key: 'leeftijd',              label: 'Leeftijd',                     section: 'essentieel' },
+  { key: 'vangstmethode',         label: 'Vangstmethode',                section: 'essentieel' },
+  { key: 'project',               label: 'Project',                      section: 'essentieel' },
+  { key: 'pul_leeftijd',          label: 'Pullus leeftijd',              section: 'essentieel', conditie: f => f.leeftijd === '1' },
+  { key: 'nauwk_pul_leeftijd',    label: 'Nauwk. pulleeftijd',           section: 'essentieel', conditie: f => f.leeftijd === '1' },
+  { key: 'broedselgrootte',       label: 'Broedselgrootte',              section: 'essentieel', conditie: f => f.leeftijd === '1' },
+  { key: 'ringer_nummer',         label: 'Ringernr.',                    section: 'vangstdetails' },
+  { key: 'metalenringinfo',       label: 'Metalen ring info',            section: 'euring' },
+  { key: 'status',                label: 'Status',                       section: 'euring' },
+  { key: 'conditie',              label: 'Conditie',                     section: 'euring' },
+  { key: 'omstandigheden',        label: 'Omstandigheden',               section: 'euring' },
+  { key: 'gemanipuleerd',         label: 'Beïnvloeding meldkans',        section: 'euring' },
+  { key: 'lokmiddelen',           label: 'Lokmiddelen',                  section: 'euring' },
+  { key: 'identificatie_methode', label: 'Identificatiemethode',         section: 'euring' },
+  { key: 'nauwk_vangstdatum',     label: 'Nauwkeurigheid datum',         section: 'euring' },
+  { key: 'plaatscode',            label: 'Plaatscode',                   section: 'locatie' },
+  { key: 'google_plaats',         label: 'Plaatsnaam',                   section: 'locatie' },
+  { key: 'lat',                   label: 'Breedtegraad',                 section: 'locatie' },
+  { key: 'lon',                   label: 'Lengtegraad',                  section: 'locatie' },
+  { key: 'nauwk_coord',           label: 'Nauwkeurigheid coördinaten',   section: 'locatie' },
+  { key: 'andere_merktekens',     label: 'Andere merktekens',            section: 'opmerkingen' },
+];
+
 export default function NieuwPage({ onSave, onUpdate, projects, records, speciesOverrides, settings, ringStrengen = [], onAdvanceRing }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -448,6 +477,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
     ? { ...EMPTY_FORM, ...editRecord }
     : { ...EMPTY_FORM, ringer_initiaal: settings?.ringerInitiaal || '', ringer_nummer: settings?.ringerNummer || '' }
   );
+  const [formErrors, setFormErrors] = useState([]);
   const [sections, setSections] = useState({
     essentieel: true,
     vangstdetails: true,
@@ -761,7 +791,27 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
 
   function handleSubmit(e) {
     e.preventDefault();
-    if (!form.vogelnaam || !form.ringnummer) return;
+
+    // Valideer verplichte velden
+    const errors = [];
+    for (const f of REQUIRED_FIELDS) {
+      if (f.conditie && !f.conditie(form)) continue;
+      const val = form[f.key];
+      if (val === '' || val === null || val === undefined) errors.push(f);
+    }
+    if (!euringCode) errors.push({ key: 'euring_code', label: 'EURING code (onbekende soort)', section: 'essentieel' });
+
+    if (errors.length > 0) {
+      setFormErrors(errors);
+      // Open secties met fouten zodat de velden zichtbaar zijn
+      const toOpen = {};
+      errors.forEach(f => { toOpen[f.section] = true; });
+      setSections(prev => ({ ...prev, ...toOpen }));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    setFormErrors([]);
+
     if (editRecord) {
       onUpdate(editRecord.id, { ...form, euring_code: euringCode });
       navigate('/records');
@@ -938,6 +988,15 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
           <div className="save-toast">Vangst opgeslagen!</div>
         )}
 
+        {formErrors.length > 0 && (
+          <div className="form-error-bar">
+            <strong>Vul eerst alle verplichte velden in:</strong>
+            <div className="form-error-list">
+              {formErrors.map(f => <span key={f.key} className="form-error-item">{f.label}</span>)}
+            </div>
+          </div>
+        )}
+
         {/* Sectie 1: Essentieel */}
         <div className="section">
           <div className="section-header" onClick={() => toggleSection('essentieel')}>
@@ -1026,7 +1085,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Ringcentrale</label>
+                  <label>Ringcentrale *</label>
                   <select value={form.centrale} onChange={e => update('centrale', e.target.value)}>
                     {ringcentraleOptions.map(o => (
                       <option key={o.value} value={o.value}>{o.label}</option>
@@ -1060,7 +1119,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Geslacht</label>
+                  <label>Geslacht *</label>
                   <select value={form.geslacht} onChange={e => update('geslacht', e.target.value)}>
                     {GESLACHT_OPTIONS.map(o => (
                       <option key={o.value} value={o.value}>{o.label}</option>
@@ -1095,7 +1154,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
               })()}
 
               <div className="form-group">
-                <label>Leeftijd</label>
+                <label>Leeftijd *</label>
                 <select value={form.leeftijd} onChange={e => update('leeftijd', e.target.value)}>
                   {LEEFTIJD_OPTIONS.map(o => (
                     <option key={o.value} value={o.value}>{o.label}</option>
@@ -1105,7 +1164,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                   <div className="pullus-velden">
                     <div className="form-row">
                       <div className="form-group">
-                        <label>Pullus leeftijd</label>
+                        <label>Pullus leeftijd *</label>
                         <select value={form.pul_leeftijd} onChange={e => update('pul_leeftijd', e.target.value)}>
                           {PULLUS_LEEFTIJD_OPTIONS.map(o => (
                             <option key={o.value} value={o.value}>{o.label}</option>
@@ -1113,7 +1172,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                         </select>
                       </div>
                       <div className="form-group">
-                        <label>Nauwkeurigheid</label>
+                        <label>Nauwkeurigheid *</label>
                         <select value={form.nauwk_pul_leeftijd} onChange={e => update('nauwk_pul_leeftijd', e.target.value)}>
                           {NAUWK_LEEFTIJD_OPTIONS.map(o => (
                             <option key={o.value} value={o.value}>{o.label}</option>
@@ -1122,7 +1181,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                       </div>
                     </div>
                     <div className="form-group">
-                      <label>Broedgrootte</label>
+                      <label>Broedgrootte *</label>
                       <select value={form.broedselgrootte} onChange={e => update('broedselgrootte', e.target.value)}>
                         {BROEDGROOTTE_OPTIONS.map(o => (
                           <option key={o.value} value={o.value}>{o.label}</option>
@@ -1428,7 +1487,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Project</label>
+                  <label>Project *</label>
                   <select value={form.project} onChange={e => update('project', e.target.value)}>
                     <option value="">-- Kies --</option>
                     {projects.map(p => (
@@ -1439,7 +1498,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Vangstmethode</label>
+                  <label>Vangstmethode *</label>
                   <select value={form.vangstmethode} onChange={e => update('vangstmethode', e.target.value)}>
                     {euringReference.vangstmethode.codes.map(o => (
                       <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
@@ -1473,7 +1532,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                     placeholder="bijv. TtA" />
                 </div>
                 <div className="form-group">
-                  <label>Ringernr</label>
+                  <label>Ringernr *</label>
                   <input type="text" value={form.ringer_nummer}
                     onChange={e => update('ringer_nummer', e.target.value)}
                     placeholder="bijv. 3254" />
@@ -1678,7 +1737,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
             <div className="section-content">
               <div className="form-row">
                 <div className="form-group">
-                  <label>Plaatscode</label>
+                  <label>Plaatscode *</label>
                   <select value={form.plaatscode} onChange={e => update('plaatscode', e.target.value)}>
                     {PLAATSCODE_OPTIONS.map(o => (
                       <option key={o.value} value={o.value}>{o.label}</option>
@@ -1686,7 +1745,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Plaatsnaam</label>
+                  <label>Plaatsnaam *</label>
                   <input type="text" value={form.google_plaats}
                     onChange={e => update('google_plaats', e.target.value)}
                     placeholder="bijv. Breedenbroek" />
@@ -1698,7 +1757,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                 onChange={(lat, lon) => setForm(prev => ({ ...prev, lat, lon }))}
               />
               <div className="form-group">
-                <label>Nauwkeurigheid coördinaten</label>
+                <label>Nauwkeurigheid coördinaten *</label>
                 <select value={form.nauwk_coord} onChange={e => update('nauwk_coord', Number(e.target.value))}>
                   {NAUWK_COORD_OPTIONS.map(o => (
                     <option key={o.value} value={o.value}>{o.label}</option>
@@ -1719,7 +1778,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
             <div className="section-content">
               <div className="form-row">
                 <div className="form-group">
-                  <label>Metalen ring informatie</label>
+                  <label>Metalen ring informatie *</label>
                   <select value={form.metalenringinfo} onChange={e => update('metalenringinfo', Number(e.target.value))}>
                     {euringReference.metalenringinfo.codes.map(o => (
                       <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
@@ -1727,7 +1786,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Gemanipuleerd</label>
+                  <label>Gemanipuleerd *</label>
                   <select value={form.gemanipuleerd} onChange={e => update('gemanipuleerd', e.target.value)}>
                     {euringReference.gemanipuleerd.codes.map(o => (
                       <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
@@ -1737,7 +1796,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
               </div>
               <div className="form-row">
                 <div className="form-group">
-                  <label>Status</label>
+                  <label>Status *</label>
                   <select value={form.status} onChange={e => update('status', e.target.value)}>
                     {euringReference.status.codes.map(o => (
                       <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
@@ -1745,7 +1804,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Conditie</label>
+                  <label>Conditie *</label>
                   <select value={form.conditie} onChange={e => update('conditie', e.target.value)}>
                     {CONDITIE_OPTIONS.map(o => (
                       <option key={o.value} value={o.value}>{o.label}</option>
@@ -1754,7 +1813,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                 </div>
               </div>
               <div className="form-group">
-                <label>Omstandigheden</label>
+                <label>Omstandigheden *</label>
                 <select value={form.omstandigheden} onChange={e => update('omstandigheden', e.target.value)}>
                   <option value="">-- Kies --</option>
                   {euringReference.omstandigheden.codes.map(o => (
@@ -1764,7 +1823,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
               </div>
               <div className="form-row">
                 <div className="form-group">
-                  <label>Lokmiddelen</label>
+                  <label>Lokmiddelen *</label>
                   <select value={form.lokmiddelen} onChange={e => update('lokmiddelen', e.target.value)}>
                     {euringReference.lokmiddelen.codes.map(o => (
                       <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
@@ -1772,7 +1831,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Identificatiemethode</label>
+                  <label>Identificatiemethode *</label>
                   <select value={form.identificatie_methode} onChange={e => update('identificatie_methode', e.target.value)}>
                     {euringReference.identificatie_methode.codes.map(o => (
                       <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
@@ -1781,7 +1840,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                 </div>
               </div>
               <div className="form-group">
-                <label>Nauwkeurigheid ringdatum</label>
+                <label>Nauwkeurigheid ringdatum *</label>
                 <select value={form.nauwk_vangstdatum} onChange={e => update('nauwk_vangstdatum', Number(e.target.value))}>
                   {NAUWK_DATUM_OPTIONS.map(o => (
                     <option key={o.value} value={o.value}>{o.label}</option>
@@ -1806,7 +1865,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                   onChange={e => update('barcode', e.target.value)} />
               </div>
               <div className="form-group">
-                <label>Andere merktekens</label>
+                <label>Andere merktekens *</label>
                 <input type="text" value={form.andere_merktekens}
                   onChange={e => update('andere_merktekens', e.target.value)} />
               </div>
