@@ -338,6 +338,15 @@ textarea {
   transition: border-color 0.2s;
 }
 
+/* iOS Safari: date/time inputs hebben native chrome die width: 100% negeert.
+   -webkit-appearance: none verwijdert die chrome; de native datepicker popup
+   blijft gewoon werken bij tap. */
+input[type="date"],
+input[type="time"] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 input:focus, select:focus, textarea:focus {
   border-color: var(--border-focus);
 }
