@@ -1,10 +1,14 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { euringReference } from '../../data/euring-reference';
+import { useVeldConfig } from '../../hooks/useVeldConfig';
+import { useRole } from '../../hooks/useRole';
+import { supabase } from '../../lib/supabase';
+import { db } from '../../lib/db';
 import './VeldenPage.css';
 
-// Sectienamen komen overeen met de secties in het Nieuwe Vangst formulier.
+// Statische SECTIES als fallback wanneer Supabase nog niet is geseed
 // verplicht: true = altijd verplicht, 'pullus' = alleen verplicht bij leeftijd=1
-const SECTIES = [
+const SECTIES_FALLBACK = [
   {
     naam: 'Nieuwe vangst',
     beschrijving: 'Sectie "Nieuwe vangst" / "Vangst wijzigen" in het formulier',
@@ -132,24 +136,91 @@ const SECTIES = [
   },
 ];
 
-let volgnr = 0;
-
 export default function VeldenPage() {
+  const veldConfig = useVeldConfig();
+  const { isAdmin } = useRole();
   const [openVeld, setOpenVeld] = useState(null);
-  volgnr = 0;
+  const [editVeld, setEditVeld] = useState(null);  // veld_key being edited
+  const [editState, setEditState] = useState({});
+  const [saving, setSaving] = useState(null);
+  const [saveError, setSaveError] = useState('');
+
+  // Bepaal of we dynamische of statische data gebruiken
+  const useDynamic = veldConfig.length > 0;
+
+  // Bouw secties op vanuit dynamische config (gegroepeerd op sectie-veld)
+  const secties = useMemo(() => {
+    if (!useDynamic) return SECTIES_FALLBACK;
+
+    const map = new Map();
+    for (const v of veldConfig) {
+      if (!map.has(v.sectie)) map.set(v.sectie, []);
+      map.get(v.sectie).push(v);
+    }
+    return Array.from(map.entries()).map(([naam, velden]) => ({ naam, velden }));
+  }, [useDynamic, veldConfig]);
+
+  const totaalVelden = useDynamic
+    ? veldConfig.length
+    : SECTIES_FALLBACK.reduce((sum, s) => sum + s.velden.length, 0);
+
+  const totaalVerplicht = useDynamic
+    ? veldConfig.filter(v => v.verplicht === 'ja').length
+    : SECTIES_FALLBACK.reduce((sum, s) => sum + s.velden.filter(v => v.verplicht === true).length, 0);
 
   function toggleVeld(xml) {
     setOpenVeld(prev => (prev === xml ? null : xml));
   }
 
-  const totaalVelden = SECTIES.reduce((sum, s) => sum + s.velden.length, 0);
-  const totaalVerplicht = SECTIES.reduce(
-    (sum, s) => sum + s.velden.filter(v => v.verplicht === true).length, 0
-  );
+  function startEdit(veld) {
+    if (!isAdmin) return;
+    setEditVeld(veld.veld_key ?? veld.xml);
+    setEditState({
+      verplicht: veld.verplicht ?? 'nee',
+      standaard: veld.standaard ?? '',
+      zichtbaar: veld.zichtbaar !== false,
+      codes: veld.codes ? veld.codes.map(c => ({ ...c })) : null,
+    });
+    setSaveError('');
+  }
+
+  function cancelEdit() {
+    setEditVeld(null);
+    setEditState({});
+  }
+
+  async function saveVeld(veldKey) {
+    setSaving(veldKey);
+    setSaveError('');
+    const changes = {
+      verplicht:  editState.verplicht,
+      standaard:  editState.standaard,
+      zichtbaar:  editState.zichtbaar,
+      codes:      editState.codes,
+    };
+    const { error } = await supabase
+      .from('veld_config')
+      .update(changes)
+      .eq('veld_key', veldKey);
+    if (error) {
+      setSaveError(error.message);
+    } else {
+      await db.veld_config.update(veldKey, changes);
+      setEditVeld(null);
+    }
+    setSaving(null);
+  }
+
+  let volgnr = 0;
 
   return (
     <div className="velden-page">
       <h1>Veldenoverzicht</h1>
+      {!useDynamic && (
+        <p className="velden-seed-hint">
+          Statische data — seed de veldconfiguratie via het Admin-panel voor bewerkbare velden.
+        </p>
+      )}
       <p className="intro">
         {totaalVelden} velden in totaal, waarvan <strong>{totaalVerplicht} altijd verplicht</strong> en
         3 voorwaardelijk verplicht (alleen bij pullus/nestjong). Klik op een <span className="code-badge-inline">code</span>-veld
@@ -158,64 +229,120 @@ export default function VeldenPage() {
       <div className="velden-legenda">
         <span className="verplicht-badge verplicht-ja">✓</span> Altijd verplicht
         <span className="verplicht-badge verplicht-cond">P</span> Verplicht bij pullus (leeftijd=1)
+        {isAdmin && useDynamic && (
+          <span className="velden-admin-hint">— klik op ✎ om een veld te bewerken</span>
+        )}
       </div>
 
-      {SECTIES.map(sectie => (
-        <div key={sectie.naam} className="velden-sectie">
-          <h2>{sectie.naam}</h2>
-          {sectie.beschrijving && (
-            <p className="sectie-beschrijving">{sectie.beschrijving}</p>
-          )}
-          <table className="velden-tabel">
-            <thead>
-              <tr>
-                <th className="col-nr">#</th>
-                <th className="col-xml">XML-sleutel</th>
-                <th>Formulier-label</th>
-                <th className="col-type">Type</th>
-                <th className="col-default">Standaard</th>
-                <th className="col-verplicht">Verplicht</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sectie.velden.map(veld => {
-                volgnr++;
-                const hasRef = veld.type === 'code' && euringReference[veld.xml];
-                const isOpen = openVeld === veld.xml;
-                return (
-                  <VeldRow
-                    key={veld.xml}
-                    veld={veld}
-                    nr={volgnr}
-                    hasRef={hasRef}
-                    isOpen={isOpen}
-                    onToggle={() => hasRef && toggleVeld(veld.xml)}
-                  />
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      ))}
+      {saveError && (
+        <div className="velden-error">{saveError}</div>
+      )}
+
+      {secties.map(sectie => {
+        const sVelden = useDynamic ? sectie.velden : sectie.velden;
+        return (
+          <div key={sectie.naam} className="velden-sectie">
+            <h2>{sectie.naam}</h2>
+            {sectie.beschrijving && (
+              <p className="sectie-beschrijving">{sectie.beschrijving}</p>
+            )}
+            <table className="velden-tabel">
+              <thead>
+                <tr>
+                  <th className="col-nr">#</th>
+                  <th className="col-xml">XML-sleutel</th>
+                  <th>Formulier-label</th>
+                  <th className="col-type">Type</th>
+                  <th className="col-default">Standaard</th>
+                  <th className="col-verplicht">Verplicht</th>
+                  {isAdmin && useDynamic && <th className="col-edit"></th>}
+                </tr>
+              </thead>
+              <tbody>
+                {sVelden.map(veld => {
+                  volgnr++;
+                  const veldKey = veld.veld_key ?? veld.xml;
+                  const veldXml = veld.xml ?? veld.veld_key;
+                  const isHidden = useDynamic && veld.zichtbaar === false;
+                  const hasRef = veld.type === 'code' && euringReference[veldXml];
+                  // Use codes from dynamic config if available, fallback to euringReference
+                  const dynCodes = useDynamic && veld.codes ? veld.codes : null;
+                  const isOpen = openVeld === veldKey;
+                  const isEditing = editVeld === veldKey;
+
+                  return (
+                    <VeldRow
+                      key={veldKey}
+                      veld={veld}
+                      veldKey={veldKey}
+                      veldXml={veldXml}
+                      nr={volgnr}
+                      hasRef={!!(hasRef || dynCodes)}
+                      isOpen={isOpen}
+                      isHidden={isHidden}
+                      isEditing={isEditing}
+                      isAdmin={isAdmin && useDynamic}
+                      editState={editState}
+                      saving={saving === veldKey}
+                      onToggle={() => (hasRef || dynCodes) && toggleVeld(veldKey)}
+                      onEdit={() => startEdit(veld)}
+                      onCancelEdit={cancelEdit}
+                      onSaveEdit={() => saveVeld(veldKey)}
+                      onEditChange={(key, val) => setEditState(prev => ({ ...prev, [key]: val }))}
+                      onCodeChange={(idx, key, val) => setEditState(prev => {
+                        const codes = prev.codes.map((c, i) => i === idx ? { ...c, [key]: val } : c);
+                        return { ...prev, codes };
+                      })}
+                      showEditCol={isAdmin && useDynamic}
+                      dynCodes={dynCodes}
+                    />
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        );
+      })}
     </div>
   );
 }
 
-function VeldRow({ veld, nr, hasRef, isOpen, onToggle }) {
-  const ref = hasRef ? euringReference[veld.xml] : null;
+function VeldRow({
+  veld, veldKey, veldXml, nr, hasRef, isOpen, isHidden,
+  isEditing, isAdmin, editState, saving,
+  onToggle, onEdit, onCancelEdit, onSaveEdit, onEditChange, onCodeChange,
+  showEditCol, dynCodes,
+}) {
+  const staticRef = euringReference[veldXml] ?? null;
+  const displayCodes = dynCodes ?? (staticRef ? staticRef.codes.map(c => ({ ...c, zichtbaar: true })) : null);
+
+  // For dynamic rows, read verplicht from veld.verplicht (string 'ja'/'nee'/'pullus')
+  // For static rows, read from veld.verplicht (boolean/string)
+  const verplichtVal = veld.veld_key
+    ? veld.verplicht  // dynamic: 'ja' | 'nee' | 'pullus'
+    : (veld.verplicht === true ? 'ja' : (veld.verplicht === 'pullus' ? 'pullus' : 'nee'));
+
+  const standaard = veld.standaard ?? '';
+  const appLabel = veld.app ?? veld.veld_key ?? veldXml;
 
   return (
     <>
       <tr
-        className={hasRef ? 'veld-clickable' : ''}
-        onClick={onToggle}
+        className={[
+          hasRef ? 'veld-clickable' : '',
+          isHidden ? 'veld-hidden-row' : '',
+        ].filter(Boolean).join(' ')}
+        onClick={!isEditing ? onToggle : undefined}
       >
         <td className="col-nr">{nr}</td>
         <td className="col-xml">
-          {veld.xml}
+          {veldXml}
           {veld.xmlnoot && <span className="xml-noot">{veld.xmlnoot}</span>}
         </td>
-        <td>{veld.app}</td>
+        <td>
+          {appLabel}
+          {isHidden && <span className="veld-hidden-badge">verborgen</span>}
+        </td>
         <td className="col-type">
           {hasRef ? (
             <span className="code-badge">
@@ -226,31 +353,122 @@ function VeldRow({ veld, nr, hasRef, isOpen, onToggle }) {
           )}
         </td>
         <td className="col-default">
-          {veld.standaard !== '' && veld.standaard !== undefined ? (
-            <code className="standaard-waarde">{veld.standaard}</code>
+          {standaard !== '' && standaard !== undefined ? (
+            <code className="standaard-waarde">{standaard}</code>
           ) : '—'}
         </td>
         <td className="col-verplicht">
-          {veld.verplicht === true && (
+          {verplichtVal === 'ja' && (
             <span className="verplicht-badge verplicht-ja">✓</span>
           )}
-          {veld.verplicht === 'pullus' && (
+          {verplichtVal === 'pullus' && (
             <span className="verplicht-badge verplicht-cond" title="Verplicht wanneer leeftijd = 1 (pullus)">P</span>
           )}
         </td>
+        {showEditCol && (
+          <td className="col-edit" onClick={e => { e.stopPropagation(); onEdit(); }}>
+            <button className="veld-edit-btn" title="Bewerk veld">✎</button>
+          </td>
+        )}
       </tr>
-      {isOpen && ref && (
+
+      {/* Code-detail rij */}
+      {isOpen && !isEditing && displayCodes && (
         <tr className="code-detail-row">
-          <td colSpan="6">
+          <td colSpan={showEditCol ? 7 : 6}>
             <div className="code-detail">
-              <div className="code-detail-title">{ref.label}</div>
+              <div className="code-detail-title">
+                {staticRef?.label ?? veldXml}
+              </div>
               <div className="code-detail-list">
-                {ref.codes.map(c => (
-                  <div key={c.code} className="code-detail-item">
-                    <span className="code-value">{c.code}</span>
-                    <span className="code-desc">{c.beschrijving}</span>
-                  </div>
-                ))}
+                {displayCodes
+                  .filter(c => c.zichtbaar !== false)
+                  .map(c => (
+                    <div key={c.code} className="code-detail-item">
+                      <span className="code-value">{c.code}</span>
+                      <span className="code-desc">{c.beschrijving}</span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </td>
+        </tr>
+      )}
+
+      {/* Admin edit panel */}
+      {isEditing && (
+        <tr className="veld-edit-row">
+          <td colSpan={showEditCol ? 7 : 6}>
+            <div className="veld-edit-panel">
+              <div className="veld-edit-fields">
+                <label className="veld-edit-label">
+                  Verplicht
+                  <select
+                    value={editState.verplicht}
+                    onChange={e => onEditChange('verplicht', e.target.value)}
+                    className="veld-edit-select"
+                  >
+                    <option value="ja">Ja (altijd)</option>
+                    <option value="pullus">Pullus (leeftijd=1)</option>
+                    <option value="nee">Nee</option>
+                  </select>
+                </label>
+                <label className="veld-edit-label">
+                  Standaard
+                  <input
+                    type="text"
+                    value={editState.standaard}
+                    onChange={e => onEditChange('standaard', e.target.value)}
+                    className="veld-edit-input"
+                    placeholder="(leeg)"
+                  />
+                </label>
+                <label className="veld-edit-label veld-edit-label--check">
+                  <input
+                    type="checkbox"
+                    checked={editState.zichtbaar}
+                    onChange={e => onEditChange('zichtbaar', e.target.checked)}
+                  />
+                  Zichtbaar in formulier
+                </label>
+              </div>
+
+              {editState.codes && (
+                <div className="veld-edit-codes">
+                  <div className="veld-edit-codes-title">Codes</div>
+                  {editState.codes.map((c, idx) => (
+                    <div key={c.code} className="veld-edit-code-row">
+                      <span className="code-value">{c.code}</span>
+                      <input
+                        type="text"
+                        value={c.beschrijving}
+                        onChange={e => onCodeChange(idx, 'beschrijving', e.target.value)}
+                        className="veld-edit-input veld-edit-input--desc"
+                      />
+                      <label className="veld-edit-zichtbaar">
+                        <input
+                          type="checkbox"
+                          checked={c.zichtbaar !== false}
+                          onChange={e => onCodeChange(idx, 'zichtbaar', e.target.checked)}
+                        />
+                        Toon
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="veld-edit-actions">
+                <button
+                  className="veld-save-btn"
+                  onClick={onSaveEdit}
+                  disabled={saving || !navigator.onLine}
+                >
+                  {saving ? 'Opslaan...' : 'Opslaan'}
+                </button>
+                <button className="veld-cancel-btn" onClick={onCancelEdit}>
+                  Annuleren
+                </button>
               </div>
             </div>
           </td>

@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSpeciesRef } from '../../hooks/useSpeciesRef';
+import { useVeldConfig } from '../../hooks/useVeldConfig';
 import euringCodes from '../../data/euring-codes.json';
 import { euringReference } from '../../data/euring-reference.js';
 import RuiscoreDiagram from './RuiscoreDiagram';
@@ -549,6 +550,70 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
     [speciesRefData]
   );
 
+  const veldConfig = useVeldConfig();
+  const configMap = useMemo(
+    () => Object.fromEntries(veldConfig.map(v => [v.veld_key, v])),
+    [veldConfig]
+  );
+
+  // Codes voor een select: gebruik configMap als beschikbaar (met zichtbaar-filter), anders euringReference
+  function getCodesForSelect(veldKey) {
+    const cfg = configMap[veldKey];
+    if (cfg?.codes && cfg.codes.length > 0) {
+      return cfg.codes.filter(c => c.zichtbaar !== false);
+    }
+    return euringReference[veldKey]?.codes ?? [];
+  }
+
+  // Is een veld zichtbaar (niet verborgen door admin)?
+  function isVeldZichtbaar(veldKey) {
+    if (veldConfig.length === 0) return true;
+    const cfg = configMap[veldKey];
+    return !cfg || cfg.zichtbaar !== false;
+  }
+
+  // Dynamische verplichtenlijst: gebruik configMap als beschikbaar, anders hard-coded
+  const SECTION_MAP_DYNREQ = {
+    'Nieuwe vangst': 'nieuweVangst',
+    'Project': 'project',
+    'Ringgegevens': 'ringgegevens',
+    'Vogel': 'vogel',
+    'Vangst': 'vangst',
+    'Locatie': 'locatie',
+    'Biometrie': 'biometrieBasis',
+    'Biometrie vervolg': 'biometrieVervolg',
+    'Rui': 'rui',
+    'Overige EURING data': 'euringOverig',
+  };
+  const REQUIRED_LABEL_MAP = Object.fromEntries(REQUIRED_FIELDS.map(f => [f.key, f.label]));
+  const REQUIRED_SECTION_MAP = Object.fromEntries(REQUIRED_FIELDS.map(f => [f.key, f.section]));
+  const PULLUS_KEYS = new Set(['pul_leeftijd', 'nauwk_pul_leeftijd', 'broedselgrootte']);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const requiredFields = useMemo(() => {
+    if (veldConfig.length === 0) return REQUIRED_FIELDS;
+    const result = [];
+    for (const v of veldConfig) {
+      const key = v.veld_key;
+      if (v.verplicht === 'ja') {
+        result.push({
+          key,
+          label: REQUIRED_LABEL_MAP[key] ?? key,
+          section: REQUIRED_SECTION_MAP[key] ?? SECTION_MAP_DYNREQ[v.sectie] ?? 'nieuweVangst',
+        });
+      } else if (v.verplicht === 'pullus' || PULLUS_KEYS.has(key)) {
+        result.push({
+          key,
+          label: REQUIRED_LABEL_MAP[key] ?? key,
+          section: REQUIRED_SECTION_MAP[key] ?? SECTION_MAP_DYNREQ[v.sectie] ?? 'vogel',
+          conditie: f => f.leeftijd === '1',
+          isPullusField: true,
+        });
+      }
+    }
+    return result;
+  }, [veldConfig]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const [form, setForm] = useState(() => editRecord
     ? { ...EMPTY_FORM, ...editRecord }
     : { ...EMPTY_FORM, ringer_initiaal: settings?.ringerInitiaal || '', ringer_nummer: settings?.ringerNummer || '' }
@@ -891,7 +956,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
 
     // Valideer verplichte velden
     const errors = [];
-    for (const f of REQUIRED_FIELDS) {
+    for (const f of requiredFields) {
       if (f.conditie && !f.conditie(form)) continue;
       const val = form[f.key];
       const isEmpty = f.isPullusField
@@ -1286,7 +1351,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                 <div className={`form-group${errCls('identificatie_methode')}`}>
                   <label>Identificatiemethode *</label>
                   <select value={form.identificatie_methode} onChange={e => update('identificatie_methode', e.target.value)}>
-                    {euringReference.identificatie_methode.codes.map(o => (
+                    {getCodesForSelect('identificatie_methode').map(o => (
                       <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
                     ))}
                   </select>
@@ -1305,7 +1370,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                 <div className={`form-group${errCls('metalenringinfo')}`}>
                   <label>Metalen ring informatie *</label>
                   <select value={form.metalenringinfo} onChange={e => update('metalenringinfo', Number(e.target.value))}>
-                    {euringReference.metalenringinfo.codes.map(o => (
+                    {getCodesForSelect('metalenringinfo').map(o => (
                       <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
                     ))}
                   </select>
@@ -1683,7 +1748,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                 <div className={`form-group${errCls('status')}`}>
                   <label>Status *</label>
                   <select value={form.status} onChange={e => update('status', e.target.value)}>
-                    {euringReference.status.codes.map(o => (
+                    {getCodesForSelect('status').map(o => (
                       <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
                     ))}
                   </select>
@@ -1701,7 +1766,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                 <div className={`form-group${errCls('omstandigheden')}`}>
                   <label>Omstandigheden *</label>
                   <select value={form.omstandigheden} onChange={e => update('omstandigheden', e.target.value)}>
-                    {euringReference.omstandigheden.codes.map(o => (
+                    {getCodesForSelect('omstandigheden').map(o => (
                       <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
                     ))}
                   </select>
@@ -1719,7 +1784,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                 <div className={`form-group${errCls('gemanipuleerd')}`}>
                   <label>Gemanipuleerd *</label>
                   <select value={form.gemanipuleerd} onChange={e => update('gemanipuleerd', e.target.value)}>
-                    {euringReference.gemanipuleerd.codes.map(o => (
+                    {getCodesForSelect('gemanipuleerd').map(o => (
                       <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
                     ))}
                   </select>
@@ -1777,7 +1842,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                   <label>Vangstmethode *</label>
                   <select value={form.vangstmethode} onChange={e => update('vangstmethode', e.target.value)}>
                     <option value="">-- Kies --</option>
-                    {euringReference.vangstmethode.codes.map(o => (
+                    {getCodesForSelect('vangstmethode').map(o => (
                       <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
                     ))}
                   </select>
@@ -1795,7 +1860,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                 <div className={`form-group${errCls('lokmiddelen')}`}>
                   <label>Lokmiddelen *</label>
                   <select value={form.lokmiddelen} onChange={e => update('lokmiddelen', e.target.value)}>
-                    {euringReference.lokmiddelen.codes.map(o => (
+                    {getCodesForSelect('lokmiddelen').map(o => (
                       <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
                     ))}
                   </select>

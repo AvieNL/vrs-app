@@ -208,3 +208,189 @@
 .code-desc {
   color: var(--text-secondary, #94a3b8);
 }
+
+/* Admin: bewerk-kolom */
+.col-edit {
+  width: 2rem;
+  text-align: center;
+}
+
+.veld-edit-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted, #64748b);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+.veld-edit-btn:hover {
+  color: var(--accent, #38bdf8);
+  background: rgba(56, 189, 248, 0.1);
+}
+
+/* Verborgen veld: dimmen */
+.veld-hidden-row td {
+  opacity: 0.45;
+}
+
+.veld-hidden-badge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 0.68rem;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(251, 191, 36, 0.12);
+  color: #fbbf24;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+/* Seed-hint boven intro tekst */
+.velden-seed-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted, #64748b);
+  font-style: italic;
+  margin-bottom: 0.5rem;
+}
+
+.velden-admin-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted, #64748b);
+  font-style: italic;
+}
+
+.velden-error {
+  background: var(--danger-bg, rgba(239,68,68,0.1));
+  border: 1px solid var(--danger, #ef4444);
+  color: var(--danger, #ef4444);
+  border-radius: var(--radius-sm, 4px);
+  font-size: 0.82rem;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/* Admin edit panel (inline onder een rij) */
+.veld-edit-row td {
+  padding: 0 !important;
+  border-bottom: 1px solid var(--border, #1e293b);
+}
+
+.veld-edit-panel {
+  background: rgba(15, 23, 42, 0.7);
+  border-left: 3px solid var(--accent, #38bdf8);
+  padding: 0.75rem 1rem;
+}
+
+.veld-edit-fields {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.veld-edit-label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.veld-edit-label--check {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  align-self: flex-end;
+  padding-bottom: 2px;
+}
+
+.veld-edit-select,
+.veld-edit-input {
+  background: var(--bg-input, #1e293b);
+  border: 1px solid var(--border, #334155);
+  border-radius: var(--radius-sm, 4px);
+  color: var(--text-primary, #f1f5f9);
+  font-size: 0.8rem;
+  padding: 4px 8px;
+}
+
+.veld-edit-select:focus,
+.veld-edit-input:focus {
+  outline: none;
+  border-color: var(--accent, #38bdf8);
+}
+
+/* Codes-sectie */
+.veld-edit-codes {
+  margin-bottom: 0.75rem;
+}
+
+.veld-edit-codes-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary, #94a3b8);
+  margin-bottom: 0.4rem;
+}
+
+.veld-edit-code-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 2px 0;
+}
+
+.veld-edit-input--desc {
+  flex: 1;
+}
+
+.veld-edit-zichtbaar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #94a3b8);
+  white-space: nowrap;
+}
+
+/* Save/cancel knoppen */
+.veld-edit-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.veld-save-btn {
+  background: var(--accent, #38bdf8);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm, 4px);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 5px 14px;
+  cursor: pointer;
+}
+
+.veld-save-btn:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.veld-save-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.veld-cancel-btn {
+  background: var(--bg-tertiary, #1e293b);
+  border: 1px solid var(--border, #334155);
+  border-radius: var(--radius-sm, 4px);
+  color: var(--text-secondary, #94a3b8);
+  font-size: 0.8rem;
+  padding: 5px 14px;
+  cursor: pointer;
+}
+
+.veld-cancel-btn:hover {
+  border-color: var(--accent, #38bdf8);
+  color: var(--text-primary, #f1f5f9);
+}

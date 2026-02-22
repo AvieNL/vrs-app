@@ -27,3 +27,8 @@ db.version(2).stores({
 db.version(3).stores({
   species: 'naam_nl',
 });
+
+// Versie 4: offline-cache voor veldconfiguratie (admin-beheerd via Supabase)
+db.version(4).stores({
+  veld_config: 'veld_key',
+});

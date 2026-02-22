@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { db } from '../lib/db';
 import { pullSpeciesIfNeeded } from '../hooks/useSpeciesRef';
 import { pullSpeciesOverrides } from '../hooks/useSpeciesOverrides';
+import { pullVeldConfigIfNeeded } from '../hooks/useVeldConfig';
 
 const SyncContext = createContext(null);
 
@@ -51,6 +52,7 @@ export function SyncProvider({ children }) {
         processQueue();
         pullSpeciesOverrides(user.id).catch(e => console.warn('Override pull mislukt:', e.message));
         pullSpeciesIfNeeded(false).catch(e => console.warn('Species pull mislukt:', e.message));
+        pullVeldConfigIfNeeded(false).catch(e => console.warn('VeldConfig pull mislukt:', e.message));
       }
     }
     document.addEventListener('visibilitychange', handleVisibility);
