@@ -22,8 +22,11 @@
   content: '• ';
 }
 
-/* Rood omlijnd veld bij validatiefout */
-.form-group--error input,
+/* Rood omlijnd veld bij validatiefout.
+   input[type] heeft hogere specificiteit (0,2,1) dan theme.css's input[type="text"] (0,1,1),
+   zodat de rode rand altijd wint ongeacht CSS-volgorde. */
+.form-group--error input[type],
+.form-group--error input:not([type]),
 .form-group--error select,
 .form-group--error textarea {
   border-color: var(--danger);

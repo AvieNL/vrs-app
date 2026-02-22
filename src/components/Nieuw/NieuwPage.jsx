@@ -913,7 +913,6 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
         : (val === '' || val === null || val === undefined);
       if (isEmpty) errors.push(f);
     }
-    if (!euringCode) errors.push({ key: 'euring_code', label: 'EURING code (onbekende soort)', section: 'nieuweVangst' });
 
     if (errors.length > 0) {
       setFormErrors(errors);
@@ -1052,6 +1051,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
     }
     setForm(prev => ({ ...prev, ringnummer: match.huidige }));
     autoFilledRingId.current = match.id;
+    setFormErrors(prev => prev.filter(f => f.key !== 'ringnummer'));
   }, [speciesInfo?.ringmaat, isTerugvangst]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Terugvangst: zoek eigen vogel op basis van ringnummer
