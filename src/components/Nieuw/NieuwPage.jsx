@@ -619,14 +619,6 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
     );
   }, [form.vogelnaam, speciesRefData]);
 
-  // Get EURING code (soortOverride.euring_code has priority over the JSON lookup)
-  const euringCode = useMemo(() => {
-    if (!form.vogelnaam) return '';
-    if (soortOverride?.euring_code) return soortOverride.euring_code;
-    const key = form.vogelnaam.toLowerCase();
-    return euringCodes[key] || '';
-  }, [form.vogelnaam, soortOverride]);
-
   // Set van fout-keys voor rode omlijning; helper om class toe te voegen
   const errorKeys = useMemo(() => new Set(formErrors.map(f => f.key)), [formErrors]);
   const errCls = (...keys) => keys.some(k => errorKeys.has(k)) ? ' form-group--error' : '';
@@ -637,6 +629,14 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
     if (!form.vogelnaam || !getOverride) return {};
     return getOverride(form.vogelnaam);
   }, [form.vogelnaam, getOverride]);
+
+  // Get EURING code (soortOverride.euring_code has priority over the JSON lookup)
+  const euringCode = useMemo(() => {
+    if (!form.vogelnaam) return '';
+    if (soortOverride?.euring_code) return soortOverride.euring_code;
+    const key = form.vogelnaam.toLowerCase();
+    return euringCodes[key] || '';
+  }, [form.vogelnaam, soortOverride]);
 
   // Compute biometry ranges from existing records for selected species
   const bioRangesFromRecords = useMemo(() => {
