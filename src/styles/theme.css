@@ -432,9 +432,11 @@ label {
   gap: 12px;
 }
 
-/* Datum (breed) + Tijd (smal): 3:2 verhouding zodat de datumpicker niet overlapt */
-.form-row--datum-tijd {
-  grid-template-columns: 3fr 2fr;
+/* Datum + Tijd: op smal scherm stapelen zodat iOS date picker niet overlapt */
+@media (max-width: 540px) {
+  .form-row--datum-tijd {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Voorkom dat grid-items hun cel overschrijden (iOS date input heeft min-width: auto) */

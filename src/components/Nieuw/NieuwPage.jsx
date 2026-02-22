@@ -450,7 +450,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
   );
   const [sections, setSections] = useState({
     essentieel: true,
-    vangstdetails: false,
+    vangstdetails: true,
     rui: false,
     overigeMaten: false,
     locatie: false,
