@@ -824,11 +824,23 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
         }
       }
 
+      // Also match on EURING code
+      if (bestScore !== 0) {
+        const spCode = euringCodes[sp.naam_nl?.toLowerCase()];
+        if (spCode) {
+          const codeScore = fuzzyMatch(query, spCode);
+          if (codeScore >= 0 && (bestScore < 0 || codeScore < bestScore)) {
+            bestScore = codeScore;
+            bestField = 'euring_code';
+          }
+        }
+      }
+
       if (bestScore >= 0) {
         results.push({
           naam_nl: sp.naam_nl,
           matchedField: bestField,
-          matchedName: bestField !== 'naam_nl' ? sp[bestField] : null,
+          matchedName: bestField !== 'naam_nl' && bestField !== 'euring_code' ? sp[bestField] : null,
           score: bestScore,
           isRecent: recentSet.has(sp.naam_nl),
         });
