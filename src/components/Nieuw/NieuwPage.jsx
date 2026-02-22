@@ -34,44 +34,30 @@ function fuzzyMatch(query, target) {
   return -1; // no match
 }
 
+// EURING leeftijdcodes 0–9 en A–L (code I bestaat niet in EURING; stopt bij L)
 const LEEFTIJD_OPTIONS = [
   { value: '', label: '-- Kies --' },
   { value: '0', label: '0 – Onbekend' },
   { value: '1', label: '1 – Nestjong/pullus' },
   { value: '2', label: '2 – Volgroeid, leeftijd onbekend' },
   { value: '3', label: '3 – 1e kalenderjaar (1 kj)' },
-  { value: '4', label: '4 – Na 1e kalenderjaar (> 1 kj)' },
-  { value: '5', label: '5 – 2 kj' },
-  { value: '6', label: '6 – > 2 kj' },
-  { value: '7', label: '7 – 3 kj' },
-  { value: '8', label: '8 – > 3 kj' },
-  { value: '9', label: '9 – 4 kj' },
-  { value: 'A', label: 'A – > 4 kj' },
-  { value: 'B', label: 'B – 5 kj' },
-  { value: 'C', label: 'C – > 5 kj' },
-  { value: 'D', label: 'D – 6 kj' },
-  { value: 'E', label: 'E – > 6 kj' },
-  { value: 'F', label: 'F – 7 kj' },
-  { value: 'G', label: 'G – > 7 kj' },
-  { value: 'H', label: 'H – 8 kj' },
-  { value: 'I', label: 'I – > 8 kj' },
-  { value: 'J', label: 'J – 9 kj' },
-  { value: 'K', label: 'K – > 9 kj' },
-  { value: 'L', label: 'L – 10 kj' },
-  { value: 'M', label: 'M – > 10 kj' },
-  { value: 'N', label: 'N – 11 kj' },
-  { value: 'O', label: 'O – > 11 kj' },
-  { value: 'P', label: 'P – 12 kj' },
-  { value: 'Q', label: 'Q – > 12 kj' },
-  { value: 'R', label: 'R – 13 kj' },
-  { value: 'S', label: 'S – > 13 kj' },
-  { value: 'T', label: 'T – 14 kj' },
-  { value: 'U', label: 'U – > 14 kj' },
-  { value: 'V', label: 'V – 15 kj' },
-  { value: 'W', label: 'W – > 15 kj' },
-  { value: 'X', label: 'X – 16 kj' },
-  { value: 'Y', label: 'Y – > 16 kj' },
-  { value: 'Z', label: 'Z – 17 kj of ouder' },
+  { value: '4', label: '4 – Na 1e kj' },
+  { value: '5', label: '5 – 2e kj' },
+  { value: '6', label: '6 – Na 2e kj' },
+  { value: '7', label: '7 – 3e kj' },
+  { value: '8', label: '8 – Na 3e kj' },
+  { value: '9', label: '9 – 4e kj' },
+  { value: 'A', label: 'A – Na 4e kj' },
+  { value: 'B', label: 'B – 5e kj' },
+  { value: 'C', label: 'C – Na 5e kj' },
+  { value: 'D', label: 'D – 6e kj' },
+  { value: 'E', label: 'E – Na 6e kj' },
+  { value: 'F', label: 'F – 7e kj' },
+  { value: 'G', label: 'G – Na 7e kj' },
+  { value: 'H', label: 'H – 8e kj' },
+  { value: 'J', label: 'J – Na 8e kj' },
+  { value: 'K', label: 'K – 9e kj' },
+  { value: 'L', label: 'L – Na 9e kj en verder' },
 ];
 
 const LEEFTIJD_LABELS = {
@@ -79,11 +65,8 @@ const LEEFTIJD_LABELS = {
   '3': '1kj', '4': 'na 1kj', '5': '2kj', '6': 'na 2kj',
   '7': '3kj', '8': 'na 3kj', '9': '4kj', 'A': 'na 4kj',
   'B': '5kj', 'C': 'na 5kj', 'D': '6kj', 'E': 'na 6kj',
-  'F': '7kj', 'G': 'na 7kj', 'H': '8kj', 'I': 'na 8kj',
-  'J': '9kj', 'K': 'na 9kj', 'L': '10kj', 'M': 'na 10kj',
-  'N': '11kj', 'O': 'na 11kj', 'P': '12kj', 'Q': 'na 12kj',
-  'R': '13kj', 'S': 'na 13kj', 'T': '14kj', 'U': 'na 14kj',
-  'V': '15kj', 'W': 'na 15kj', 'X': '16kj', 'Y': 'na 16kj', 'Z': '17kj+',
+  'F': '7kj', 'G': 'na 7kj', 'H': '8kj',
+  'J': 'na 8kj', 'K': '9kj', 'L': 'na 9kj+',
 };
 
 const PULLUS_LEEFTIJD_OPTIONS = [
@@ -126,16 +109,15 @@ const GESLACHT_OPTIONS = [
 ];
 
 const GESLACHTSBEPALING_OPTIONS = [
-  { value: 'A', label: 'A – Gedrag' },
+  { value: 'A', label: 'A – Activiteit/gedrag' },
   { value: 'B', label: 'B – Broedvlek' },
-  { value: 'C', label: 'C – Cloaca' },
+  { value: 'C', label: 'C – Cloacale protuberans' },
   { value: 'D', label: 'D – DNA' },
-  { value: 'E', label: 'E – Intern onderzoek' },
+  { value: 'E', label: 'E – Intern cloacaonderzoek' },
   { value: 'L', label: 'L – Laparoscopie' },
-  { value: 'P', label: 'P – Kleed' },
-  { value: 'R', label: 'R – Helderheid' },
-  { value: 'S', label: 'S – Biometrie' },
-  { value: 'T', label: 'T – Pathologie' },
+  { value: 'P', label: 'P – Verenkleed (absoluut)' },
+  { value: 'S', label: 'S – Grootte / kleurintensiteit' },
+  { value: 'T', label: 'T – Post-mortem dissectie' },
   { value: 'U', label: 'U – Onbekend' },
 ];
 
@@ -194,12 +176,15 @@ const ALL_RINGCENTRALES = [
 
 const VET_OPTIONS = [
   { value: '', label: '-- Kies --' },
-  { value: '0', label: '0 - Geen vet' },
-  { value: '1', label: '1 - Keel vettig' },
-  { value: '2', label: '2 - Darm zichtbaar' },
-  { value: '3', label: '3 - Lever zichtbaar' },
-  { value: '4', label: '4 - Iets lever zichtbaar' },
-  { value: '5', label: '5 - Uitpuilen' },
+  { value: '0', label: '0 – Geen vet' },
+  { value: '1', label: '1 – Spoor van vet' },
+  { value: '2', label: '2 – Weinig vet (⅓ fossa)' },
+  { value: '3', label: '3 – Matig vet (⅔ fossa)' },
+  { value: '4', label: '4 – Fossa gevuld, nog hol' },
+  { value: '5', label: '5 – Fossa bol / uitpuilend' },
+  { value: '6', label: '6 – Vet over borstspieren zichtbaar' },
+  { value: '7', label: '7 – Vet over ¾ van borstspieren' },
+  { value: '8', label: '8 – Borstspieren niet meer zichtbaar' },
 ];
 
 const VLIEGSPIER_OPTIONS = [
@@ -211,14 +196,13 @@ const VLIEGSPIER_OPTIONS = [
 ];
 
 const BROEDVLEK_OPTIONS = [
-  { value: '0', label: '0 – Niet onderzocht' },
-  { value: '1', label: '1 – Afwezig' },
-  { value: '2', label: '2 – Aanwezig (geen details)' },
-  { value: '3', label: '3 – Startend: eileg (veren aanwezig)' },
-  { value: '4', label: '4 – Begrensd: begin broed (geen veren)' },
-  { value: '5', label: '5 – Geaderd en rood: op ei (geen veren)' },
-  { value: '6', label: '6 – Gerimpeld: jongen aanwezig (geen veren)' },
-  { value: '7', label: '7 – Groeit dicht: uitgevlogen (veren groeien)' },
+  { value: '0', label: '0 – Geen broedvlek waarneembaar' },
+  { value: '1', label: '1 – Beginnend' },
+  { value: '2', label: '2 – Goed begrensd' },
+  { value: '3', label: '3 – Geaderd en rood' },
+  { value: '4', label: '4 – Gerimpeld' },
+  { value: '5', label: '5 – Bevederd aan het worden' },
+  { value: 'P', label: 'P – Aanwezig, mate niet genoteerd' },
 ];
 
 const HANDICAP_OPTIONS = [
@@ -261,13 +245,12 @@ const HANDICAP_OPTIONS = [
 
 const CLOACA_OPTIONS = [
   { value: '0', label: '0 – Niet onderzocht' },
-  { value: '1', label: '1 – Niet ontwikkeld (geslacht?)' },
-  { value: '2', label: '2 – Uitstekend, bol, kegelvormig (man!)' },
-  { value: '3', label: '3 – Uitstekend, iets bol (man)' },
-  { value: '4', label: '4 – Enigszins uitstekend (man?)' },
-  { value: '5', label: '5 – Duidelijk verwijd, zacht gewelfd (vrouw!)' },
-  { value: '6', label: '6 – Zacht gewelfd (vrouw)' },
-  { value: '7', label: '7 – Niet verwijd, onopvallend (vrouw?)' },
+  { value: '1', label: '1 – Geen zwelling' },
+  { value: '2', label: '2 – Lichte zwelling' },
+  { value: '3', label: '3 – Matige zwelling' },
+  { value: '4', label: '4 – Sterke zwelling' },
+  { value: '5', label: '5 – Zeer sterke zwelling (cloacale protuberans)' },
+  { value: '6', label: '6 – Zwelling afnemend' },
 ];
 
 const PLAATSCODE_OPTIONS = [
@@ -411,9 +394,12 @@ const NAUWK_DATUM_OPTIONS = [
 
 const RUI_LICHAAM_OPTIONS = [
   { value: '', label: '-- Kies --' },
-  { value: '0', label: '0 – Geen rui' },
-  { value: '1', label: '1 – Tot ca. 20 veertjes' },
-  { value: '2', label: '2 – Meer dan 20 veertjes' },
+  { value: 'B', label: 'B – Actieve lichaam-/dekverenrui' },
+  { value: 'J', label: 'J – Volledig juveniel verenkleed' },
+  { value: 'M', label: 'M – Actieve rui incl. slagpennen' },
+  { value: 'P', label: 'P – Partiële postjuveniele rui' },
+  { value: 'X', label: 'X – Geen rui, niet juveniel' },
+  { value: 'U', label: 'U – Onbekend / niet onderzocht' },
 ];
 
 const EMPTY_FORM = {
@@ -1011,13 +997,13 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
     });
   }, [records]);
 
-  // Cloaca/geslacht mismatch waarschuwing
+  // Cloaca/geslacht mismatch waarschuwing (EURING-schaal: code 5 = cloacale protuberans = man)
   const cloacaWarning = useMemo(() => {
     const c = form.cloaca;
     const g = form.geslacht;
     if (!c || !g || c === '0' || c === '1') return null;
-    if (['2', '3'].includes(c) && g === 'F') return 'Cloaca wijst op man, maar het ingevoerde geslacht is vrouw';
-    if (c === '4' && g === 'F') return 'Cloaca wijst mogelijk op man, maar het ingevoerde geslacht is vrouw';
+    if (c === '5' && g === 'F') return 'Cloacale protuberans (code 5) wijst op een man, maar het ingevoerde geslacht is vrouw';
+    if (['3', '4'].includes(c) && g === 'F') return 'Sterke zwelling wijst mogelijk op een man, maar het ingevoerde geslacht is vrouw';
     if (['5', '6'].includes(c) && g === 'M') return 'Cloaca wijst op vrouw, maar het ingevoerde geslacht is man';
     if (c === '7' && g === 'M') return 'Cloaca wijst mogelijk op vrouw, maar het ingevoerde geslacht is man';
     return null;
