@@ -685,7 +685,7 @@
 }
 
 .sd-bio-table {
-  width: auto;
+  width: 100%;
   border-collapse: collapse;
   font-size: 0.82rem;
   margin-top: 4px;
