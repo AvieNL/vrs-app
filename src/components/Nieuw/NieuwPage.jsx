@@ -36,43 +36,68 @@ function fuzzyMatch(query, target) {
 
 const LEEFTIJD_OPTIONS = [
   { value: '', label: '-- Kies --' },
-  { value: '0', label: '0 - Onbekend' },
-  { value: '1', label: '1 - Pullus (0)' },
-  { value: '2', label: '2 - Volgroeid, leeftijd onbekend' },
-  { value: '3', label: '3 - Eerste jaar (1)' },
-  { value: '4', label: '4 - Na eerste jaar (+1)' },
-  { value: '5', label: '5 - Tweede jaar (2)' },
-  { value: '6', label: '6 - Na tweede jaar (+2)' },
-  { value: '7', label: '7 - Derde jaar (3)' },
-  { value: '8', label: '8 - Na derde jaar (+3)' },
-  { value: '9', label: '9 - Vierde jaar en ouder (4+)' },
-  { value: 'A', label: 'A - Na vierde jaar (+4)' },
+  { value: '0', label: '0 – Onbekend' },
+  { value: '1', label: '1 – Nestjong/pullus' },
+  { value: '2', label: '2 – Volgroeid, leeftijd onbekend' },
+  { value: '3', label: '3 – 1e kalenderjaar (1 kj)' },
+  { value: '4', label: '4 – Na 1e kalenderjaar (> 1 kj)' },
+  { value: '5', label: '5 – 2 kj' },
+  { value: '6', label: '6 – > 2 kj' },
+  { value: '7', label: '7 – 3 kj' },
+  { value: '8', label: '8 – > 3 kj' },
+  { value: '9', label: '9 – 4 kj' },
+  { value: 'A', label: 'A – > 4 kj' },
+  { value: 'B', label: 'B – 5 kj' },
+  { value: 'C', label: 'C – > 5 kj' },
+  { value: 'D', label: 'D – 6 kj' },
+  { value: 'E', label: 'E – > 6 kj' },
+  { value: 'F', label: 'F – 7 kj' },
+  { value: 'G', label: 'G – > 7 kj' },
+  { value: 'H', label: 'H – 8 kj' },
+  { value: 'I', label: 'I – > 8 kj' },
+  { value: 'J', label: 'J – 9 kj' },
+  { value: 'K', label: 'K – > 9 kj' },
+  { value: 'L', label: 'L – 10 kj' },
+  { value: 'M', label: 'M – > 10 kj' },
+  { value: 'N', label: 'N – 11 kj' },
+  { value: 'O', label: 'O – > 11 kj' },
+  { value: 'P', label: 'P – 12 kj' },
+  { value: 'Q', label: 'Q – > 12 kj' },
+  { value: 'R', label: 'R – 13 kj' },
+  { value: 'S', label: 'S – > 13 kj' },
+  { value: 'T', label: 'T – 14 kj' },
+  { value: 'U', label: 'U – > 14 kj' },
+  { value: 'V', label: 'V – 15 kj' },
+  { value: 'W', label: 'W – > 15 kj' },
+  { value: 'X', label: 'X – 16 kj' },
+  { value: 'Y', label: 'Y – > 16 kj' },
+  { value: 'Z', label: 'Z – 17 kj of ouder' },
 ];
 
 const LEEFTIJD_LABELS = {
-  '0': 'onbekend',
-  '1': 'pullus',
-  '2': 'volgroeid',
-  '3': '1kj',
-  '4': 'na 1kj',
-  '5': '2kj',
-  '6': 'na 2kj',
-  '7': '3kj',
-  '8': 'na 3kj',
-  '9': '4kj+',
-  'A': 'na 4kj+',
+  '0': 'onbekend', '1': 'pullus', '2': 'volgroeid',
+  '3': '1kj', '4': 'na 1kj', '5': '2kj', '6': 'na 2kj',
+  '7': '3kj', '8': 'na 3kj', '9': '4kj', 'A': 'na 4kj',
+  'B': '5kj', 'C': 'na 5kj', 'D': '6kj', 'E': 'na 6kj',
+  'F': '7kj', 'G': 'na 7kj', 'H': '8kj', 'I': 'na 8kj',
+  'J': '9kj', 'K': 'na 9kj', 'L': '10kj', 'M': 'na 10kj',
+  'N': '11kj', 'O': 'na 11kj', 'P': '12kj', 'Q': 'na 12kj',
+  'R': '13kj', 'S': 'na 13kj', 'T': '14kj', 'U': 'na 14kj',
+  'V': '15kj', 'W': 'na 15kj', 'X': '16kj', 'Y': 'na 16kj', 'Z': '17kj+',
 };
 
 const PULLUS_LEEFTIJD_OPTIONS = [
-  { value: '99', label: '99 – leeftijd niet genoteerd' },
-  ...Array.from({ length: 45 }, (_, i) => ({
+  { value: '--', label: '-- – Vogel is geen nestjong' },
+  { value: '99', label: '99 – Leeftijd nestjong niet vastgesteld' },
+  ...Array.from({ length: 99 }, (_, i) => ({
     value: String(i).padStart(2, '0'),
     label: `${String(i).padStart(2, '0')} – ${i} ${i === 1 ? 'dag' : 'dagen'}`,
   })),
 ];
 
 const NAUWK_LEEFTIJD_OPTIONS = [
-  { value: 'U', label: 'U – niet genoteerd / onbekend' },
+  { value: '--', label: '-- – Vogel is geen nestjong' },
+  { value: 'U', label: 'U – Niet genoteerd / onbekend' },
   ...Array.from({ length: 10 }, (_, i) => ({
     value: String(i),
     label: `${i} – nauwkeurig tot ${i === 0 ? 'op de dag' : `±${i} dag${i > 1 ? 'en' : ''}`}`,
@@ -80,10 +105,16 @@ const NAUWK_LEEFTIJD_OPTIONS = [
 ];
 
 const BROEDGROOTTE_OPTIONS = [
-  { value: '00', label: '00 – onbekend of niet genoteerd' },
-  ...Array.from({ length: 12 }, (_, i) => ({
+  { value: '--', label: '-- – Vogel is geen nestjong' },
+  { value: '00', label: '00 – Onbekend of niet genoteerd' },
+  { value: '99', label: '99 – Broedgrootte niet genoteerd' },
+  ...Array.from({ length: 49 }, (_, i) => ({
     value: String(i + 1).padStart(2, '0'),
-    label: `${String(i + 1).padStart(2, '0')} – ${i + 1} ${i === 0 ? 'kuiken' : 'kuikens'} in het nest`,
+    label: `${String(i + 1).padStart(2, '0')} – ${i + 1} ${i === 0 ? 'kuiken' : 'kuikens'}`,
+  })),
+  ...Array.from({ length: 29 }, (_, i) => ({
+    value: String(i + 52).padStart(2, '0'),
+    label: `${String(i + 52).padStart(2, '0')} – ${i + 52} kuikens`,
   })),
 ];
 
@@ -95,15 +126,17 @@ const GESLACHT_OPTIONS = [
 ];
 
 const GESLACHTSBEPALING_OPTIONS = [
-  { value: '', label: '-- Kies --' },
-  { value: '0', label: '0 - Onbekend' },
-  { value: '1', label: '1 - Kleed' },
-  { value: '2', label: '2 - Maten' },
-  { value: '3', label: '3 - Gedrag' },
-  { value: '4', label: '4 - Cloaca' },
-  { value: '5', label: '5 - Broedvlek' },
-  { value: '6', label: '6 - DNA' },
-  { value: '7', label: '7 - Combinatie' },
+  { value: 'A', label: 'A – Gedrag' },
+  { value: 'B', label: 'B – Broedvlek' },
+  { value: 'C', label: 'C – Cloaca' },
+  { value: 'D', label: 'D – DNA' },
+  { value: 'E', label: 'E – Intern onderzoek' },
+  { value: 'L', label: 'L – Laparoscopie' },
+  { value: 'P', label: 'P – Kleed' },
+  { value: 'R', label: 'R – Helderheid' },
+  { value: 'S', label: 'S – Biometrie' },
+  { value: 'T', label: 'T – Pathologie' },
+  { value: 'U', label: 'U – Onbekend' },
 ];
 
 const ALL_RINGCENTRALES = [
@@ -178,15 +211,14 @@ const VLIEGSPIER_OPTIONS = [
 ];
 
 const BROEDVLEK_OPTIONS = [
-  { value: '', label: '-- Kies --' },
-  { value: '0', label: '0 - Niet bepaald' },
-  { value: '1', label: '1 - Afwezig' },
-  { value: '2', label: '2 - Aanwezig (geen details)' },
-  { value: '3', label: '3 - Startend (eileg)' },
-  { value: '4', label: '4 - Begrensd (begin broed)' },
-  { value: '5', label: '5 - Geaderd en rood (op ei)' },
-  { value: '6', label: '6 - Gerimpeld (jongen)' },
-  { value: '7', label: '7 - Groeit dicht (uitgevlogen)' },
+  { value: '0', label: '0 – Niet onderzocht' },
+  { value: '1', label: '1 – Afwezig' },
+  { value: '2', label: '2 – Aanwezig (geen details)' },
+  { value: '3', label: '3 – Startend: eileg (veren aanwezig)' },
+  { value: '4', label: '4 – Begrensd: begin broed (geen veren)' },
+  { value: '5', label: '5 – Geaderd en rood: op ei (geen veren)' },
+  { value: '6', label: '6 – Gerimpeld: jongen aanwezig (geen veren)' },
+  { value: '7', label: '7 – Groeit dicht: uitgevlogen (veren groeien)' },
 ];
 
 const HANDICAP_OPTIONS = [
@@ -228,15 +260,14 @@ const HANDICAP_OPTIONS = [
 ];
 
 const CLOACA_OPTIONS = [
-  { value: '', label: '-- Kies --' },
-  { value: '0', label: '0 - Niet bepaald' },
-  { value: '1', label: '1 - Niet ontwikkeld (geslacht?)' },
-  { value: '2', label: '2 - Uitstekend, bol, kegelvormig (man!)' },
-  { value: '3', label: '3 - Uitstekend, iets bol (man)' },
-  { value: '4', label: '4 - Enigszins uitstekend (man?)' },
-  { value: '5', label: '5 - Duidelijk verwijd, zacht gewelfd (vrouw!)' },
-  { value: '6', label: '6 - Zacht gewelfd (vrouw)' },
-  { value: '7', label: '7 - Niet verwijd, onopvallend (vrouw?)' },
+  { value: '0', label: '0 – Niet onderzocht' },
+  { value: '1', label: '1 – Niet ontwikkeld (geslacht?)' },
+  { value: '2', label: '2 – Uitstekend, bol, kegelvormig (man!)' },
+  { value: '3', label: '3 – Uitstekend, iets bol (man)' },
+  { value: '4', label: '4 – Enigszins uitstekend (man?)' },
+  { value: '5', label: '5 – Duidelijk verwijd, zacht gewelfd (vrouw!)' },
+  { value: '6', label: '6 – Zacht gewelfd (vrouw)' },
+  { value: '7', label: '7 – Niet verwijd, onopvallend (vrouw?)' },
 ];
 
 const PLAATSCODE_OPTIONS = [
@@ -270,11 +301,47 @@ const SNAVEL_METHODE_OPTIONS = [
   { value: 'S', label: 'S – Punt tot schedel' },
 ];
 
-const TARSUS_METHODE_OPTIONS = [
-  { value: '', label: '-- Kies --' },
-  { value: 'M', label: 'M – Maximum tarsus (gevouwen voet)' },
-  { value: 'S', label: 'S – Minimum tarsus (Svensson 1992)' },
-  { value: 'T', label: 'T – Tarsus en teen (langste teen)' },
+const ANDERE_MERKTEKENS_OPTIONS = [
+  { value: 'ZZ', label: 'ZZ – Geen andere merktekens' },
+  { value: 'BB', label: 'BB – Kleurring (blauw)' },
+  { value: 'BC', label: 'BC – Kleurring (groen)' },
+  { value: 'BD', label: 'BD – Kleurring (rood)' },
+  { value: 'BE', label: 'BE – Kleurring (geel)' },
+  { value: 'LB', label: 'LB – Vlaggetje (blauw)' },
+  { value: 'LC', label: 'LC – Vlaggetje (groen)' },
+  { value: 'LD', label: 'LD – Vlaggetje (rood)' },
+  { value: 'LE', label: 'LE – Vlaggetje (geel)' },
+  { value: 'K', label: 'K – Kapsel / neckcollar' },
+  { value: 'T', label: 'T – Transmitter / zender' },
+  { value: 'S', label: 'S – Secundaire ring' },
+  { value: 'R', label: 'R – Ring op poot (extra)' },
+  { value: 'H', label: 'H – Halsband' },
+  { value: 'G', label: 'G – Gezenderd (telemetrie)' },
+  { value: 'F', label: 'F – Vlag (flag)' },
+  { value: 'E', label: 'E – Emitter' },
+  { value: 'D', label: 'D – Darvic ring' },
+  { value: 'C', label: 'C – Kleurring (overig)' },
+  { value: 'OT', label: 'OT – Ander type merkteken' },
+  { value: 'OP', label: 'OP – Ander pootmerkteken' },
+  { value: 'OM', label: 'OM – Ander merkteken (overig)' },
+  { value: 'MM', label: 'MM – Meerdere merktekens' },
+];
+
+const VERIFICATIE_OPTIONS = [
+  { value: 0, label: '0 – Ring NIET bevestigd' },
+  { value: 1, label: '1 – Ring bevestigd' },
+];
+
+const VERPLAATST_OPTIONS = [
+  { value: 0, label: '0 – Niet verplaatst' },
+  { value: 2, label: '2 – Onopzettelijk verplaatst' },
+  { value: 4, label: '4 – Opzettelijk verplaatst' },
+  { value: 6, label: '6 – Verplaatst door water' },
+];
+
+const ZEKER_OMSTANDIG_OPTIONS = [
+  { value: 0, label: '0 – Zeker' },
+  { value: 1, label: '1 – Aangenomen' },
 ];
 
 const CONDITIE_OPTIONS = [
@@ -291,16 +358,42 @@ const CONDITIE_OPTIONS = [
 ];
 
 const NAUWK_COORD_OPTIONS = [
-  { value: 0, label: '0 – Nauwkeurig tot de opgegeven coördinaten' },
-  { value: 1, label: '1 – Straal 5 km' },
-  { value: 2, label: '2 – Straal 10 km' },
-  { value: 3, label: '3 – Straal 20 km' },
-  { value: 4, label: '4 – Straal 50 km' },
-  { value: 5, label: '5 – Straal 100 km' },
-  { value: 6, label: '6 – Straal 500 km' },
-  { value: 7, label: '7 – Straal 1000 km' },
-  { value: 8, label: '8 – Gereserveerd' },
-  { value: 9, label: '9 – Ergens in het land/gebied uit de plaatscode' },
+  { value: '0', label: '0 – Nauwkeurig tot de opgegeven coördinaten' },
+  { value: '1', label: '1 – Straal 5 km' },
+  { value: '2', label: '2 – Straal 10 km' },
+  { value: '3', label: '3 – Straal 20 km' },
+  { value: '4', label: '4 – Straal 50 km' },
+  { value: '5', label: '5 – Straal 100 km' },
+  { value: '6', label: '6 – Straal 500 km' },
+  { value: '7', label: '7 – Straal 1000 km' },
+  { value: '8', label: '8 – Gereserveerd' },
+  { value: '9', label: '9 – Ergens in het land/gebied uit de plaatscode' },
+  { value: 'A', label: 'A – Administratief gebied 1' },
+  { value: 'B', label: 'B – Administratief gebied 2' },
+  { value: 'C', label: 'C – Administratief gebied 3' },
+  { value: 'D', label: 'D – Administratief gebied 4' },
+  { value: 'E', label: 'E – Administratief gebied 5' },
+  { value: 'F', label: 'F – Administratief gebied 6' },
+  { value: 'G', label: 'G – Administratief gebied 7' },
+  { value: 'H', label: 'H – Administratief gebied 8' },
+  { value: 'I', label: 'I – Administratief gebied 9' },
+  { value: 'J', label: 'J – Administratief gebied 10' },
+  { value: 'K', label: 'K – Administratief gebied 11' },
+  { value: 'L', label: 'L – Administratief gebied 12' },
+  { value: 'M', label: 'M – Administratief gebied 13' },
+  { value: 'N', label: 'N – Administratief gebied 14' },
+  { value: 'O', label: 'O – Administratief gebied 15' },
+  { value: 'P', label: 'P – Administratief gebied 16' },
+  { value: 'Q', label: 'Q – Administratief gebied 17' },
+  { value: 'R', label: 'R – Administratief gebied 18' },
+  { value: 'S', label: 'S – Administratief gebied 19' },
+  { value: 'T', label: 'T – Administratief gebied 20' },
+  { value: 'U', label: 'U – Administratief gebied 21' },
+  { value: 'V', label: 'V – Administratief gebied 22' },
+  { value: 'W', label: 'W – Administratief gebied 23' },
+  { value: 'X', label: 'X – Administratief gebied 24' },
+  { value: 'Y', label: 'Y – Administratief gebied 25' },
+  { value: 'Z', label: 'Z – Administratief gebied 26' },
 ];
 
 const NAUWK_DATUM_OPTIONS = [
@@ -318,9 +411,9 @@ const NAUWK_DATUM_OPTIONS = [
 
 const RUI_LICHAAM_OPTIONS = [
   { value: '', label: '-- Kies --' },
-  { value: '0', label: '0 - Geen' },
-  { value: '1', label: '1 - < 20 veren' },
-  { value: '2', label: '2 - > 20 veren' },
+  { value: '0', label: '0 – Geen rui' },
+  { value: '1', label: '1 – Tot ca. 20 veertjes' },
+  { value: '2', label: '2 – Meer dan 20 veertjes' },
 ];
 
 const EMPTY_FORM = {
@@ -330,7 +423,7 @@ const EMPTY_FORM = {
   identificatie_methode: 'A0',
   leeftijd: '',
   geslacht: '',
-  vangstmethode: 'M',
+  vangstmethode: '',
   lokmiddelen: 'N',
   vangstdatum: new Date().toISOString().split('T')[0],
   tijd: '',
@@ -338,7 +431,7 @@ const EMPTY_FORM = {
   centrale: 'NLA',
   status: 'U',
   conditie: '8',
-  omstandigheden: '',
+  omstandigheden: '99',
   plaatscode: 'NL--',
   google_plaats: '',
   lat: '',
@@ -352,32 +445,30 @@ const EMPTY_FORM = {
   snavel_schedel: '',
   snavel_methode: '',
   staart_verschil: '',
-  tarsus_methode: '',
   tarsus_teen: '',
   tarsus_dikte: '',
   vet: '',
   handpen_score: '',
-  cloaca: '',
-  broedvlek: '',
+  cloaca: '0',
+  broedvlek: '0',
   borstspier: '',
   rui_lichaam: '',
   netnummer: '',
   barcode: '',
   opmerkingen: '',
   opmerkingen1: '',
-  opmerkingen2: '',
-  andere_merktekens: '',
+  andere_merktekens: 'ZZ',
   gemanipuleerd: 'N',
   verplaatst: 0,
-  broedselgrootte: '00',
-  pul_leeftijd: '99',
-  nauwk_pul_leeftijd: 'U',
+  broedselgrootte: '--',
+  pul_leeftijd: '--',
+  nauwk_pul_leeftijd: '--',
   nauwk_vangstdatum: 0,
-  nauwk_coord: 0,
+  nauwk_coord: '0',
   zeker_omstandigheden: 0,
   verificatie: 0,
-  geslachtsbepaling: '',
-  handicap: '',
+  geslachtsbepaling: 'U',
+  handicap: '00',
   oude_dekveren: '',
   achternagel: '',
   weegtijd: '',
@@ -436,31 +527,30 @@ function computeRanges(soortRecords) {
 
 // Verplichte velden voor validatie bij opslaan
 const REQUIRED_FIELDS = [
-  { key: 'vogelnaam',             label: 'Vogelnaam',                    section: 'essentieel' },
-  { key: 'centrale',              label: 'Ringcentrale',                 section: 'essentieel' },
-  { key: 'ringnummer',            label: 'Ringnummer',                   section: 'essentieel' },
-  { key: 'geslacht',              label: 'Geslacht',                     section: 'essentieel' },
-  { key: 'leeftijd',              label: 'Leeftijd',                     section: 'essentieel' },
-  { key: 'vangstmethode',         label: 'Vangstmethode',                section: 'essentieel' },
-  { key: 'project',               label: 'Project',                      section: 'essentieel' },
-  { key: 'pul_leeftijd',          label: 'Pullus leeftijd',              section: 'essentieel', conditie: f => f.leeftijd === '1' },
-  { key: 'nauwk_pul_leeftijd',    label: 'Nauwk. pulleeftijd',           section: 'essentieel', conditie: f => f.leeftijd === '1' },
-  { key: 'broedselgrootte',       label: 'Broedselgrootte',              section: 'essentieel', conditie: f => f.leeftijd === '1' },
-  { key: 'ringer_nummer',         label: 'Ringernr.',                    section: 'vangstdetails' },
-  { key: 'metalenringinfo',       label: 'Metalen ring info',            section: 'euring' },
-  { key: 'status',                label: 'Status',                       section: 'euring' },
-  { key: 'conditie',              label: 'Conditie',                     section: 'euring' },
-  { key: 'omstandigheden',        label: 'Omstandigheden',               section: 'euring' },
-  { key: 'gemanipuleerd',         label: 'Beïnvloeding meldkans',        section: 'euring' },
-  { key: 'lokmiddelen',           label: 'Lokmiddelen',                  section: 'euring' },
-  { key: 'identificatie_methode', label: 'Identificatiemethode',         section: 'euring' },
-  { key: 'nauwk_vangstdatum',     label: 'Nauwkeurigheid datum',         section: 'euring' },
+  { key: 'vogelnaam',             label: 'Vogelnaam',                    section: 'nieuweVangst' },
+  { key: 'project',               label: 'Project',                      section: 'project' },
+  { key: 'ringer_nummer',         label: 'Ringernr.',                    section: 'project' },
+  { key: 'centrale',              label: 'Ringcentrale',                 section: 'ringgegevens' },
+  { key: 'ringnummer',            label: 'Ringnummer',                   section: 'ringgegevens' },
+  { key: 'metalenringinfo',       label: 'Metalen ring info',            section: 'ringgegevens' },
+  { key: 'identificatie_methode', label: 'Identificatiemethode',         section: 'ringgegevens' },
+  { key: 'geslacht',              label: 'Geslacht',                     section: 'vogel' },
+  { key: 'leeftijd',              label: 'Leeftijd',                     section: 'vogel' },
+  { key: 'pul_leeftijd',          label: 'Pullus leeftijd',              section: 'vogel', conditie: f => f.leeftijd === '1', isPullusField: true },
+  { key: 'nauwk_pul_leeftijd',    label: 'Nauwk. pulleeftijd',           section: 'vogel', conditie: f => f.leeftijd === '1', isPullusField: true },
+  { key: 'broedselgrootte',       label: 'Broedselgrootte',              section: 'vogel', conditie: f => f.leeftijd === '1', isPullusField: true },
+  { key: 'status',                label: 'Status',                       section: 'vogel' },
+  { key: 'conditie',              label: 'Conditie',                     section: 'vogel' },
+  { key: 'omstandigheden',        label: 'Omstandigheden',               section: 'vogel' },
+  { key: 'gemanipuleerd',         label: 'Gemanipuleerd',                section: 'vogel' },
+  { key: 'vangstmethode',         label: 'Vangstmethode',                section: 'vangst' },
+  { key: 'lokmiddelen',           label: 'Lokmiddelen',                  section: 'vangst' },
+  { key: 'nauwk_vangstdatum',     label: 'Nauwkeurigheid datum',         section: 'vangst' },
   { key: 'plaatscode',            label: 'Plaatscode',                   section: 'locatie' },
   { key: 'google_plaats',         label: 'Plaatsnaam',                   section: 'locatie' },
   { key: 'lat',                   label: 'Breedtegraad',                 section: 'locatie' },
   { key: 'lon',                   label: 'Lengtegraad',                  section: 'locatie' },
   { key: 'nauwk_coord',           label: 'Nauwkeurigheid coördinaten',   section: 'locatie' },
-  { key: 'andere_merktekens',     label: 'Andere merktekens',            section: 'opmerkingen' },
 ];
 
 export default function NieuwPage({ onSave, onUpdate, projects, records, speciesOverrides, settings, ringStrengen = [], onAdvanceRing }) {
@@ -479,13 +569,16 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
   );
   const [formErrors, setFormErrors] = useState([]);
   const [sections, setSections] = useState({
-    essentieel: true,
-    vangstdetails: true,
-    rui: false,
-    overigeMaten: false,
+    nieuweVangst: true,
+    project: true,
+    ringgegevens: true,
+    vogel: true,
+    vangst: true,
     locatie: false,
-    euring: false,
-    opmerkingen: false,
+    biometrieBasis: true,
+    biometrieVervolg: false,
+    rui: false,
+    euringOverig: false,
   });
   const [suggestions, setSuggestions] = useState([]);
   const [saved, setSaved] = useState(false);
@@ -526,12 +619,13 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
     );
   }, [form.vogelnaam, speciesRefData]);
 
-  // Get EURING code
+  // Get EURING code (soortOverride.euring_code has priority over the JSON lookup)
   const euringCode = useMemo(() => {
     if (!form.vogelnaam) return '';
+    if (soortOverride?.euring_code) return soortOverride.euring_code;
     const key = form.vogelnaam.toLowerCase();
     return euringCodes[key] || '';
-  }, [form.vogelnaam]);
+  }, [form.vogelnaam, soortOverride]);
 
   // Set van fout-keys voor rode omlijning; helper om class toe te voegen
   const errorKeys = useMemo(() => new Set(formErrors.map(f => f.key)), [formErrors]);
@@ -802,9 +896,12 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
     for (const f of REQUIRED_FIELDS) {
       if (f.conditie && !f.conditie(form)) continue;
       const val = form[f.key];
-      if (val === '' || val === null || val === undefined) errors.push(f);
+      const isEmpty = f.isPullusField
+        ? (val === '' || val === null || val === undefined || val === '--')
+        : (val === '' || val === null || val === undefined);
+      if (isEmpty) errors.push(f);
     }
-    if (!euringCode) errors.push({ key: 'euring_code', label: 'EURING code (onbekende soort)', section: 'essentieel' });
+    if (!euringCode) errors.push({ key: 'euring_code', label: 'EURING code (onbekende soort)', section: 'nieuweVangst' });
 
     if (errors.length > 0) {
       setFormErrors(errors);
@@ -831,7 +928,11 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
       ...EMPTY_FORM,
       vangstdatum: form.vangstdatum,
       project: form.project,
-      vangstmethode: form.vangstmethode,
+      plaatscode: form.plaatscode,
+      google_plaats: form.google_plaats,
+      lat: form.lat,
+      lon: form.lon,
+      nauwk_coord: form.nauwk_coord,
       ringer_initiaal: settings?.ringerInitiaal || '',
       ringer_nummer: settings?.ringerNummer || '',
     });
@@ -965,7 +1066,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
 
   function toggleTerugvangst() {
     if (isTerugvangst) {
-      setForm(prev => ({ ...prev, metalenringinfo: 2, centrale: 'NLA', omstandigheden: '' }));
+      setForm(prev => ({ ...prev, metalenringinfo: 2, centrale: 'NLA', omstandigheden: '99' }));
     } else {
       setForm(prev => ({ ...prev, metalenringinfo: 4, omstandigheden: '28', ringnummer: '' }));
     }
@@ -1004,13 +1105,13 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
           <div className="save-toast">Vangst opgeslagen!</div>
         )}
 
-        {/* Sectie 1: Essentieel */}
+        {/* Sectie: Nieuwe vangst */}
         <div className="section">
-          <div className="section-header" onClick={() => toggleSection('essentieel')}>
+          <div className="section-header" onClick={() => toggleSection('nieuweVangst')}>
             <h3>{editRecord ? 'Vangst wijzigen' : 'Nieuwe vangst'}</h3>
-            <span className={`toggle ${sections.essentieel ? 'open' : ''}`}>▾</span>
+            <span className={`toggle ${sections.nieuweVangst ? 'open' : ''}`}>▾</span>
           </div>
-          {sections.essentieel && (
+          {sections.nieuweVangst && (
             <div className="section-content">
               <div className={`form-group species-input${errCls('vogelnaam')}`}>
                 <label>Vogelnaam *</label>
@@ -1024,19 +1125,23 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                 />
                 {suggestions.length > 0 && (
                   <ul className="suggestions">
-                    {suggestions.map(s => (
-                      <li key={s.naam_nl + (s.matchedField || '')} onClick={() => selectSpecies(s.naam_nl)}>
-                        <div className="suggestion-content">
-                          <span className="suggestion-name">{s.naam_nl}</span>
-                          {s.matchedName && (
-                            <span className="suggestion-sub">{s.matchedName} ({TAAL_LABELS[s.matchedField]})</span>
-                          )}
-                          {s.isRecent && !s.matchedName && form.vogelnaam.length < 2 && (
-                            <span className="suggestion-sub">Recent gebruikt</span>
-                          )}
-                        </div>
-                      </li>
-                    ))}
+                    {suggestions.map(s => {
+                      const code = s.euringCode || (euringCodes[s.naam_nl?.toLowerCase()] || '');
+                      return (
+                        <li key={s.naam_nl + (s.matchedField || '')} onClick={() => selectSpecies(s.naam_nl)}>
+                          <div className="suggestion-content">
+                            <span className="suggestion-name">{s.naam_nl}</span>
+                            {code && <span className="suggestion-code">{code}</span>}
+                            {s.matchedName && (
+                              <span className="suggestion-sub">{s.matchedName} ({TAAL_LABELS[s.matchedField]})</span>
+                            )}
+                            {s.isRecent && !s.matchedName && form.vogelnaam.length < 2 && (
+                              <span className="suggestion-sub">Recent gebruikt</span>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </div>
@@ -1061,6 +1166,12 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                         </span>
                       </div>
                     )}
+                    {euringCode && (
+                      <div className="soort-info-item">
+                        <span className="sii-label">EURING</span>
+                        <span className="sii-value">{euringCode}</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Boeken */}
@@ -1079,7 +1190,55 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                   )}
                 </div>
               )}
+            </div>
+          )}
+        </div>
 
+        {/* Sectie: Project */}
+        <div className="section">
+          <div className="section-header" onClick={() => toggleSection('project')}>
+            <h3>Project</h3>
+            <span className={`toggle ${sections.project ? 'open' : ''}`}>▾</span>
+          </div>
+          {sections.project && (
+            <div className="section-content">
+              <div className={`form-group${errCls('project')}`}>
+                <label>Project *</label>
+                <select value={form.project} onChange={e => update('project', e.target.value)}>
+                  <option value="">-- Kies --</option>
+                  {projects.map(p => (
+                    <option key={p.id} value={p.naam}>
+                      {p.nummer ? `${p.nummer} - ${p.naam}` : p.naam}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-row-3">
+                <div className={`form-group${errCls('ringer_nummer')}`}>
+                  <label>Ringernr *</label>
+                  <input type="text" value={form.ringer_nummer}
+                    onChange={e => update('ringer_nummer', e.target.value)}
+                    placeholder="bijv. 3254" />
+                </div>
+                <div className="form-group">
+                  <label>Initiaal</label>
+                  <input type="text" value={form.ringer_initiaal}
+                    onChange={e => update('ringer_initiaal', e.target.value)}
+                    placeholder="bijv. TtA" />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Sectie: Ringgegevens */}
+        <div className="section">
+          <div className="section-header" onClick={() => toggleSection('ringgegevens')}>
+            <h3>Ringgegevens</h3>
+            <span className={`toggle ${sections.ringgegevens ? 'open' : ''}`}>▾</span>
+          </div>
+          {sections.ringgegevens && (
+            <div className="section-content">
               {/* Terugvangst toggle */}
               <div className="form-group">
                 <label className="toggle-label" onClick={toggleTerugvangst}>
@@ -1124,6 +1283,55 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                 </div>
               </div>
 
+              <div className="form-row">
+                <div className={`form-group${errCls('identificatie_methode')}`}>
+                  <label>Identificatiemethode *</label>
+                  <select value={form.identificatie_methode} onChange={e => update('identificatie_methode', e.target.value)}>
+                    {euringReference.identificatie_methode.codes.map(o => (
+                      <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Verificatie</label>
+                  <select value={form.verificatie} onChange={e => update('verificatie', Number(e.target.value))}>
+                    {VERIFICATIE_OPTIONS.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className={`form-group${errCls('metalenringinfo')}`}>
+                  <label>Metalen ring informatie *</label>
+                  <select value={form.metalenringinfo} onChange={e => update('metalenringinfo', Number(e.target.value))}>
+                    {euringReference.metalenringinfo.codes.map(o => (
+                      <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Andere merktekens</label>
+                  <select value={form.andere_merktekens} onChange={e => update('andere_merktekens', e.target.value)}>
+                    {ANDERE_MERKTEKENS_OPTIONS.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Sectie: Vogel */}
+        <div className="section">
+          <div className="section-header" onClick={() => toggleSection('vogel')}>
+            <h3>Vogel</h3>
+            <span className={`toggle ${sections.vogel ? 'open' : ''}`}>▾</span>
+          </div>
+          {sections.vogel && (
+            <div className="section-content">
               <div className="form-row">
                 <div className={`form-group${errCls('geslacht')}`}>
                   <label>Geslacht *</label>
@@ -1471,6 +1679,80 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                 </>}
               </div>
 
+              {/* Status, Conditie, Omstandigheden, Gemanipuleerd, Verplaatst */}
+              <div className="form-row">
+                <div className={`form-group${errCls('status')}`}>
+                  <label>Status *</label>
+                  <select value={form.status} onChange={e => update('status', e.target.value)}>
+                    {euringReference.status.codes.map(o => (
+                      <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className={`form-group${errCls('conditie')}`}>
+                  <label>Conditie *</label>
+                  <select value={form.conditie} onChange={e => update('conditie', e.target.value)}>
+                    {CONDITIE_OPTIONS.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="form-row">
+                <div className={`form-group${errCls('omstandigheden')}`}>
+                  <label>Omstandigheden *</label>
+                  <select value={form.omstandigheden} onChange={e => update('omstandigheden', e.target.value)}>
+                    {euringReference.omstandigheden.codes.map(o => (
+                      <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Zekerheid omstandigheden</label>
+                  <select value={form.zeker_omstandigheden} onChange={e => update('zeker_omstandigheden', Number(e.target.value))}>
+                    {ZEKER_OMSTANDIG_OPTIONS.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="form-row">
+                <div className={`form-group${errCls('gemanipuleerd')}`}>
+                  <label>Gemanipuleerd *</label>
+                  <select value={form.gemanipuleerd} onChange={e => update('gemanipuleerd', e.target.value)}>
+                    {euringReference.gemanipuleerd.codes.map(o => (
+                      <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Verplaatst</label>
+                  <select value={form.verplaatst} onChange={e => update('verplaatst', Number(e.target.value))}>
+                    {VERPLAATST_OPTIONS.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              {form.gemanipuleerd === 'M' && (
+                <div className="form-group">
+                  <label>Barcode</label>
+                  <input type="text" value={form.barcode}
+                    onChange={e => update('barcode', e.target.value)} />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Sectie: Vangst */}
+        <div className="section">
+          <div className="section-header" onClick={() => toggleSection('vangst')}>
+            <h3>Vangst</h3>
+            <span className={`toggle ${sections.vangst ? 'open' : ''}`}>▾</span>
+          </div>
+          {sections.vangst && (
+            <div className="section-content">
               <div className="form-row form-row--datum-tijd">
                 <div className="form-group">
                   <label>Vangstdatum</label>
@@ -1481,7 +1763,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                   />
                 </div>
                 <div className="form-group">
-                  <label>Tijd</label>
+                  <label>Tijd (HHMM)</label>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -1491,60 +1773,64 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                   />
                 </div>
               </div>
-
               <div className="form-row">
-                <div className={`form-group${errCls('project')}`}>
-                  <label>Project *</label>
-                  <select value={form.project} onChange={e => update('project', e.target.value)}>
-                    <option value="">-- Kies --</option>
-                    {projects.map(p => (
-                      <option key={p.id} value={p.naam}>
-                        {p.nummer ? `${p.nummer} - ${p.naam}` : p.naam}
-                      </option>
-                    ))}
-                  </select>
-                </div>
                 <div className={`form-group${errCls('vangstmethode')}`}>
                   <label>Vangstmethode *</label>
                   <select value={form.vangstmethode} onChange={e => update('vangstmethode', e.target.value)}>
+                    <option value="">-- Kies --</option>
                     {euringReference.vangstmethode.codes.map(o => (
                       <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
                     ))}
                   </select>
                 </div>
+                <div className={`form-group${errCls('nauwk_vangstdatum')}`}>
+                  <label>Nauwkeurigheid datum *</label>
+                  <select value={form.nauwk_vangstdatum} onChange={e => update('nauwk_vangstdatum', Number(e.target.value))}>
+                    {NAUWK_DATUM_OPTIONS.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-
-        {/* Sectie 2: Vangstdetails */}
-        <div className="section">
-          <div className="section-header" onClick={() => toggleSection('vangstdetails')}>
-            <h3>Basisgegevens</h3>
-            {warnings.some(w => ['vleugel', 'gewicht', 'handpenlengte'].includes(w.key)) && <span className="section-badge-warn">!</span>}
-            <span className={`toggle ${sections.vangstdetails ? 'open' : ''}`}>▾</span>
-          </div>
-          {sections.vangstdetails && (
-            <div className="section-content">
-              <div className="form-row-3">
+              <div className="form-row">
+                <div className={`form-group${errCls('lokmiddelen')}`}>
+                  <label>Lokmiddelen *</label>
+                  <select value={form.lokmiddelen} onChange={e => update('lokmiddelen', e.target.value)}>
+                    {euringReference.lokmiddelen.codes.map(o => (
+                      <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
+                    ))}
+                  </select>
+                </div>
                 <div className="form-group">
                   <label>Netnummer</label>
                   <input type="text" value={form.netnummer}
                     onChange={e => update('netnummer', e.target.value)} />
                 </div>
-                <div className="form-group">
-                  <label>Initiaal</label>
-                  <input type="text" value={form.ringer_initiaal}
-                    onChange={e => update('ringer_initiaal', e.target.value)}
-                    placeholder="bijv. TtA" />
-                </div>
-                <div className={`form-group${errCls('ringer_nummer')}`}>
-                  <label>Ringernr *</label>
-                  <input type="text" value={form.ringer_nummer}
-                    onChange={e => update('ringer_nummer', e.target.value)}
-                    placeholder="bijv. 3254" />
-                </div>
               </div>
+              {euringCode && (
+                <div className="form-group">
+                  <label>EURING soortcode</label>
+                  <div className="euring-code-display">{euringCode}</div>
+                </div>
+              )}
+              <div className="form-group">
+                <label>Opmerkingen</label>
+                <textarea rows="2" value={form.opmerkingen}
+                  onChange={e => update('opmerkingen', e.target.value)} />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Sectie: Biometrie basis */}
+        <div className="section">
+          <div className="section-header" onClick={() => toggleSection('biometrieBasis')}>
+            <h3>Biometrie</h3>
+            {warnings.some(w => ['vleugel', 'gewicht', 'handpenlengte'].includes(w.key)) && <span className="section-badge-warn">!</span>}
+            <span className={`toggle ${sections.biometrieBasis ? 'open' : ''}`}>▾</span>
+          </div>
+          {sections.biometrieBasis && (
+            <div className="section-content">
               <div className="form-row">
                 {renderBioField('vleugel', 'Vleugel (0,5 mm)')}
                 {renderBioField('handpenlengte', 'P8 (0,5 mm)')}
@@ -1680,24 +1966,21 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
           )}
         </div>
 
-        {/* Sectie 5: Overige maten */}
+        {/* Sectie: Biometrie vervolg */}
         <div className="section">
-          <div className="section-header" onClick={() => toggleSection('overigeMaten')}>
-            <h3>Overige maten</h3>
+          <div className="section-header" onClick={() => toggleSection('biometrieVervolg')}>
+            <h3>Biometrie vervolg</h3>
             {warnings.some(w => !['vleugel', 'gewicht', 'handpenlengte'].includes(w.key)) && <span className="section-badge-warn">!</span>}
-            <span className={`toggle ${sections.overigeMaten ? 'open' : ''}`}>▾</span>
+            <span className={`toggle ${sections.biometrieVervolg ? 'open' : ''}`}>▾</span>
           </div>
-          {sections.overigeMaten && (
+          {sections.biometrieVervolg && (
             <div className="section-content">
               <div className="form-row">
                 {renderBioField('tarsus_lengte', 'Tarsus (0,1 mm)')}
                 <div className="form-group">
-                  <label>Tarsus methode</label>
-                  <select value={form.tarsus_methode} onChange={e => update('tarsus_methode', e.target.value)}>
-                    {TARSUS_METHODE_OPTIONS.map(o => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
+                  <label>Tarsus-teen (0,1 mm)</label>
+                  <input type="text" inputMode="decimal" value={form.tarsus_teen}
+                    onChange={e => update('tarsus_teen', e.target.value)} />
                 </div>
               </div>
               <div className="form-row">
@@ -1767,7 +2050,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
               />
               <div className={`form-group${errCls('nauwk_coord')}`}>
                 <label>Nauwkeurigheid coördinaten *</label>
-                <select value={form.nauwk_coord} onChange={e => update('nauwk_coord', Number(e.target.value))}>
+                <select value={form.nauwk_coord} onChange={e => update('nauwk_coord', e.target.value)}>
                   {NAUWK_COORD_OPTIONS.map(o => (
                     <option key={o.value} value={o.value}>{o.label}</option>
                   ))}
@@ -1777,121 +2060,18 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
           )}
         </div>
 
-        {/* EURING Codes */}
+        {/* Sectie: Overige EURING data */}
         <div className="section">
-          <div className="section-header" onClick={() => toggleSection('euring')}>
+          <div className="section-header" onClick={() => toggleSection('euringOverig')}>
             <h3>Overige EURING data</h3>
-            <span className={`toggle ${sections.euring ? 'open' : ''}`}>▾</span>
+            <span className={`toggle ${sections.euringOverig ? 'open' : ''}`}>▾</span>
           </div>
-          {sections.euring && (
+          {sections.euringOverig && (
             <div className="section-content">
-              <div className="form-row">
-                <div className={`form-group${errCls('metalenringinfo')}`}>
-                  <label>Metalen ring informatie *</label>
-                  <select value={form.metalenringinfo} onChange={e => update('metalenringinfo', Number(e.target.value))}>
-                    {euringReference.metalenringinfo.codes.map(o => (
-                      <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className={`form-group${errCls('gemanipuleerd')}`}>
-                  <label>Gemanipuleerd *</label>
-                  <select value={form.gemanipuleerd} onChange={e => update('gemanipuleerd', e.target.value)}>
-                    {euringReference.gemanipuleerd.codes.map(o => (
-                      <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div className="form-row">
-                <div className={`form-group${errCls('status')}`}>
-                  <label>Status *</label>
-                  <select value={form.status} onChange={e => update('status', e.target.value)}>
-                    {euringReference.status.codes.map(o => (
-                      <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className={`form-group${errCls('conditie')}`}>
-                  <label>Conditie *</label>
-                  <select value={form.conditie} onChange={e => update('conditie', e.target.value)}>
-                    {CONDITIE_OPTIONS.map(o => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div className={`form-group${errCls('omstandigheden')}`}>
-                <label>Omstandigheden *</label>
-                <select value={form.omstandigheden} onChange={e => update('omstandigheden', e.target.value)}>
-                  <option value="">-- Kies --</option>
-                  {euringReference.omstandigheden.codes.map(o => (
-                    <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-row">
-                <div className={`form-group${errCls('lokmiddelen')}`}>
-                  <label>Lokmiddelen *</label>
-                  <select value={form.lokmiddelen} onChange={e => update('lokmiddelen', e.target.value)}>
-                    {euringReference.lokmiddelen.codes.map(o => (
-                      <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className={`form-group${errCls('identificatie_methode')}`}>
-                  <label>Identificatiemethode *</label>
-                  <select value={form.identificatie_methode} onChange={e => update('identificatie_methode', e.target.value)}>
-                    {euringReference.identificatie_methode.codes.map(o => (
-                      <option key={o.code} value={o.code}>{o.code} – {o.beschrijving}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div className={`form-group${errCls('nauwk_vangstdatum')}`}>
-                <label>Nauwkeurigheid ringdatum *</label>
-                <select value={form.nauwk_vangstdatum} onChange={e => update('nauwk_vangstdatum', Number(e.target.value))}>
-                  {NAUWK_DATUM_OPTIONS.map(o => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Opmerkingen */}
-        <div className="section">
-          <div className="section-header" onClick={() => toggleSection('opmerkingen')}>
-            <h3>Opmerkingen</h3>
-            <span className={`toggle ${sections.opmerkingen ? 'open' : ''}`}>▾</span>
-          </div>
-          {sections.opmerkingen && (
-            <div className="section-content">
-              <div className="form-group">
-                <label>Barcode</label>
-                <input type="text" value={form.barcode}
-                  onChange={e => update('barcode', e.target.value)} />
-              </div>
-              <div className={`form-group${errCls('andere_merktekens')}`}>
-                <label>Andere merktekens *</label>
-                <input type="text" value={form.andere_merktekens}
-                  onChange={e => update('andere_merktekens', e.target.value)} />
-              </div>
-              <div className="form-group">
-                <label>Opmerkingen</label>
-                <textarea rows="2" value={form.opmerkingen}
-                  onChange={e => update('opmerkingen', e.target.value)} />
-              </div>
               <div className="form-group">
                 <label>Opmerkingen 1</label>
                 <input type="text" value={form.opmerkingen1}
                   onChange={e => update('opmerkingen1', e.target.value)} />
-              </div>
-              <div className="form-group">
-                <label>Opmerkingen 2</label>
-                <input type="text" value={form.opmerkingen2}
-                  onChange={e => update('opmerkingen2', e.target.value)} />
               </div>
             </div>
           )}
