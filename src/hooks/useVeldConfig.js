@@ -16,7 +16,9 @@ export function useVeldConfig() {
   const pulledRef = useRef(false);
 
   const config = useLiveQuery(
-    () => db.veld_config.orderBy('volgorde').toArray(),
+    () => db.veld_config.toArray().then(rows =>
+      rows.sort((a, b) => (a.volgorde ?? 0) - (b.volgorde ?? 0))
+    ),
     [],
     []
   ) ?? [];
