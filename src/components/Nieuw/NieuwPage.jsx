@@ -533,6 +533,10 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
     return euringCodes[key] || '';
   }, [form.vogelnaam]);
 
+  // Set van fout-keys voor rode omlijning; helper om class toe te voegen
+  const errorKeys = useMemo(() => new Set(formErrors.map(f => f.key)), [formErrors]);
+  const errCls = (...keys) => keys.some(k => errorKeys.has(k)) ? ' form-group--error' : '';
+
   // Get species overrides for selected species
   const getOverride = speciesOverrides?.getOverride;
   const soortOverride = useMemo(() => {
@@ -683,6 +687,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
 
   function update(field, value) {
     setForm(prev => ({ ...prev, [field]: value }));
+    setFormErrors(prev => prev.filter(f => f.key !== field));
   }
 
   // Recent species from records (unique, most recent first)
@@ -969,32 +974,34 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
   return (
     <div className="page nieuw-page">
       <form onSubmit={handleSubmit}>
-        {/* Sticky topbar */}
-        <div className="nieuw-topbar">
-          <span className="nieuw-topbar-titel">
-            {editRecord ? `✏️ ${editRecord.vogelnaam || 'Vangst'}` : 'Nieuwe vangst'}
-          </span>
-          {editRecord && (
-            <button type="button" className="btn-secondary nieuw-topbar-btn" onClick={() => navigate('/records')}>
-              Annuleren
+        {/* Sticky header: topbar + foutmeldingen */}
+        <div className="nieuw-sticky-header">
+          <div className="nieuw-topbar">
+            <span className="nieuw-topbar-titel">
+              {editRecord ? `✏️ ${editRecord.vogelnaam || 'Vangst'}` : 'Nieuwe vangst'}
+            </span>
+            {editRecord && (
+              <button type="button" className="btn-secondary nieuw-topbar-btn" onClick={() => navigate('/records')}>
+                Annuleren
+              </button>
+            )}
+            <button type="submit" className="btn-primary nieuw-topbar-btn">
+              {editRecord ? 'Opslaan' : 'Opslaan'}
             </button>
+          </div>
+
+          {formErrors.length > 0 && (
+            <div className="form-error-bar">
+              <strong>Vul eerst alle verplichte velden in:</strong>
+              <div className="form-error-list">
+                {formErrors.map(f => <span key={f.key} className="form-error-item">{f.label}</span>)}
+              </div>
+            </div>
           )}
-          <button type="submit" className="btn-primary nieuw-topbar-btn">
-            {editRecord ? 'Opslaan' : 'Opslaan'}
-          </button>
         </div>
 
         {saved && (
           <div className="save-toast">Vangst opgeslagen!</div>
-        )}
-
-        {formErrors.length > 0 && (
-          <div className="form-error-bar">
-            <strong>Vul eerst alle verplichte velden in:</strong>
-            <div className="form-error-list">
-              {formErrors.map(f => <span key={f.key} className="form-error-item">{f.label}</span>)}
-            </div>
-          </div>
         )}
 
         {/* Sectie 1: Essentieel */}
@@ -1005,7 +1012,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
           </div>
           {sections.essentieel && (
             <div className="section-content">
-              <div className="form-group species-input">
+              <div className={`form-group species-input${errCls('vogelnaam')}`}>
                 <label>Vogelnaam *</label>
                 <input
                   type="text"
@@ -1084,7 +1091,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
               </div>
 
               <div className="form-row">
-                <div className="form-group">
+                <div className={`form-group${errCls('centrale')}`}>
                   <label>Ringcentrale *</label>
                   <select value={form.centrale} onChange={e => update('centrale', e.target.value)}>
                     {ringcentraleOptions.map(o => (
@@ -1092,7 +1099,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                     ))}
                   </select>
                 </div>
-                <div className="form-group">
+                <div className={`form-group${errCls('ringnummer')}`}>
                   <label>Ringnummer *</label>
                   <input
                     type="text"
@@ -1118,7 +1125,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
               </div>
 
               <div className="form-row">
-                <div className="form-group">
+                <div className={`form-group${errCls('geslacht')}`}>
                   <label>Geslacht *</label>
                   <select value={form.geslacht} onChange={e => update('geslacht', e.target.value)}>
                     {GESLACHT_OPTIONS.map(o => (
@@ -1153,7 +1160,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                 );
               })()}
 
-              <div className="form-group">
+              <div className={`form-group${errCls('leeftijd')}`}>
                 <label>Leeftijd *</label>
                 <select value={form.leeftijd} onChange={e => update('leeftijd', e.target.value)}>
                   {LEEFTIJD_OPTIONS.map(o => (
@@ -1163,7 +1170,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                 {form.leeftijd === '1' && (
                   <div className="pullus-velden">
                     <div className="form-row">
-                      <div className="form-group">
+                      <div className={`form-group${errCls('pul_leeftijd')}`}>
                         <label>Pullus leeftijd *</label>
                         <select value={form.pul_leeftijd} onChange={e => update('pul_leeftijd', e.target.value)}>
                           {PULLUS_LEEFTIJD_OPTIONS.map(o => (
@@ -1171,7 +1178,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                           ))}
                         </select>
                       </div>
-                      <div className="form-group">
+                      <div className={`form-group${errCls('nauwk_pul_leeftijd')}`}>
                         <label>Nauwkeurigheid *</label>
                         <select value={form.nauwk_pul_leeftijd} onChange={e => update('nauwk_pul_leeftijd', e.target.value)}>
                           {NAUWK_LEEFTIJD_OPTIONS.map(o => (
@@ -1180,7 +1187,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                         </select>
                       </div>
                     </div>
-                    <div className="form-group">
+                    <div className={`form-group${errCls('broedselgrootte')}`}>
                       <label>Broedgrootte *</label>
                       <select value={form.broedselgrootte} onChange={e => update('broedselgrootte', e.target.value)}>
                         {BROEDGROOTTE_OPTIONS.map(o => (
@@ -1486,7 +1493,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
               </div>
 
               <div className="form-row">
-                <div className="form-group">
+                <div className={`form-group${errCls('project')}`}>
                   <label>Project *</label>
                   <select value={form.project} onChange={e => update('project', e.target.value)}>
                     <option value="">-- Kies --</option>
@@ -1497,7 +1504,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                     ))}
                   </select>
                 </div>
-                <div className="form-group">
+                <div className={`form-group${errCls('vangstmethode')}`}>
                   <label>Vangstmethode *</label>
                   <select value={form.vangstmethode} onChange={e => update('vangstmethode', e.target.value)}>
                     {euringReference.vangstmethode.codes.map(o => (
@@ -1531,7 +1538,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                     onChange={e => update('ringer_initiaal', e.target.value)}
                     placeholder="bijv. TtA" />
                 </div>
-                <div className="form-group">
+                <div className={`form-group${errCls('ringer_nummer')}`}>
                   <label>Ringernr *</label>
                   <input type="text" value={form.ringer_nummer}
                     onChange={e => update('ringer_nummer', e.target.value)}
@@ -1736,7 +1743,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
           {sections.locatie && (
             <div className="section-content">
               <div className="form-row">
-                <div className="form-group">
+                <div className={`form-group${errCls('plaatscode')}`}>
                   <label>Plaatscode *</label>
                   <select value={form.plaatscode} onChange={e => update('plaatscode', e.target.value)}>
                     {PLAATSCODE_OPTIONS.map(o => (
@@ -1744,7 +1751,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                     ))}
                   </select>
                 </div>
-                <div className="form-group">
+                <div className={`form-group${errCls('google_plaats')}`}>
                   <label>Plaatsnaam *</label>
                   <input type="text" value={form.google_plaats}
                     onChange={e => update('google_plaats', e.target.value)}
@@ -1754,9 +1761,11 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
               <LocatiePicker
                 lat={form.lat}
                 lon={form.lon}
-                onChange={(lat, lon) => setForm(prev => ({ ...prev, lat, lon }))}
+                onChange={(lat, lon) => { setForm(prev => ({ ...prev, lat, lon })); setFormErrors(prev => prev.filter(f => f.key !== 'lat' && f.key !== 'lon')); }}
+                latError={errorKeys.has('lat')}
+                lonError={errorKeys.has('lon')}
               />
-              <div className="form-group">
+              <div className={`form-group${errCls('nauwk_coord')}`}>
                 <label>Nauwkeurigheid coördinaten *</label>
                 <select value={form.nauwk_coord} onChange={e => update('nauwk_coord', Number(e.target.value))}>
                   {NAUWK_COORD_OPTIONS.map(o => (
@@ -1777,7 +1786,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
           {sections.euring && (
             <div className="section-content">
               <div className="form-row">
-                <div className="form-group">
+                <div className={`form-group${errCls('metalenringinfo')}`}>
                   <label>Metalen ring informatie *</label>
                   <select value={form.metalenringinfo} onChange={e => update('metalenringinfo', Number(e.target.value))}>
                     {euringReference.metalenringinfo.codes.map(o => (
@@ -1785,7 +1794,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                     ))}
                   </select>
                 </div>
-                <div className="form-group">
+                <div className={`form-group${errCls('gemanipuleerd')}`}>
                   <label>Gemanipuleerd *</label>
                   <select value={form.gemanipuleerd} onChange={e => update('gemanipuleerd', e.target.value)}>
                     {euringReference.gemanipuleerd.codes.map(o => (
@@ -1795,7 +1804,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                 </div>
               </div>
               <div className="form-row">
-                <div className="form-group">
+                <div className={`form-group${errCls('status')}`}>
                   <label>Status *</label>
                   <select value={form.status} onChange={e => update('status', e.target.value)}>
                     {euringReference.status.codes.map(o => (
@@ -1803,7 +1812,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                     ))}
                   </select>
                 </div>
-                <div className="form-group">
+                <div className={`form-group${errCls('conditie')}`}>
                   <label>Conditie *</label>
                   <select value={form.conditie} onChange={e => update('conditie', e.target.value)}>
                     {CONDITIE_OPTIONS.map(o => (
@@ -1812,7 +1821,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                   </select>
                 </div>
               </div>
-              <div className="form-group">
+              <div className={`form-group${errCls('omstandigheden')}`}>
                 <label>Omstandigheden *</label>
                 <select value={form.omstandigheden} onChange={e => update('omstandigheden', e.target.value)}>
                   <option value="">-- Kies --</option>
@@ -1822,7 +1831,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                 </select>
               </div>
               <div className="form-row">
-                <div className="form-group">
+                <div className={`form-group${errCls('lokmiddelen')}`}>
                   <label>Lokmiddelen *</label>
                   <select value={form.lokmiddelen} onChange={e => update('lokmiddelen', e.target.value)}>
                     {euringReference.lokmiddelen.codes.map(o => (
@@ -1830,7 +1839,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                     ))}
                   </select>
                 </div>
-                <div className="form-group">
+                <div className={`form-group${errCls('identificatie_methode')}`}>
                   <label>Identificatiemethode *</label>
                   <select value={form.identificatie_methode} onChange={e => update('identificatie_methode', e.target.value)}>
                     {euringReference.identificatie_methode.codes.map(o => (
@@ -1839,7 +1848,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                   </select>
                 </div>
               </div>
-              <div className="form-group">
+              <div className={`form-group${errCls('nauwk_vangstdatum')}`}>
                 <label>Nauwkeurigheid ringdatum *</label>
                 <select value={form.nauwk_vangstdatum} onChange={e => update('nauwk_vangstdatum', Number(e.target.value))}>
                   {NAUWK_DATUM_OPTIONS.map(o => (
@@ -1864,7 +1873,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                 <input type="text" value={form.barcode}
                   onChange={e => update('barcode', e.target.value)} />
               </div>
-              <div className="form-group">
+              <div className={`form-group${errCls('andere_merktekens')}`}>
                 <label>Andere merktekens *</label>
                 <input type="text" value={form.andere_merktekens}
                   onChange={e => update('andere_merktekens', e.target.value)} />

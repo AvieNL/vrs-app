@@ -14,7 +14,7 @@ async function getLeaflet() {
   return L.default;
 }
 
-export default function LocatiePicker({ lat, lon, onChange }) {
+export default function LocatiePicker({ lat, lon, onChange, latError, lonError }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
@@ -116,7 +116,7 @@ export default function LocatiePicker({ lat, lon, onChange }) {
     <div className="locatie-picker">
       <div ref={mapRef} className="locatie-map" />
       <div className="locatie-coords">
-        <div className="form-group">
+        <div className={`form-group${latError ? ' form-group--error' : ''}`}>
           <label>Breedtegraad (lat) *</label>
           <input
             type="text"
@@ -126,7 +126,7 @@ export default function LocatiePicker({ lat, lon, onChange }) {
             placeholder="bijv. 51.9273"
           />
         </div>
-        <div className="form-group">
+        <div className={`form-group${lonError ? ' form-group--error' : ''}`}>
           <label>Lengtegraad (lon) *</label>
           <input
             type="text"
