@@ -685,9 +685,10 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
   const euringCode = useMemo(() => {
     if (!form.vogelnaam) return '';
     if (soortOverride?.euring_code) return soortOverride.euring_code;
+    if (speciesInfo?.euring_code) return speciesInfo.euring_code;
     const key = form.vogelnaam.toLowerCase();
     return euringCodes[key] || '';
-  }, [form.vogelnaam, soortOverride]);
+  }, [form.vogelnaam, soortOverride, speciesInfo]);
 
   // Compute biometry ranges from existing records for selected species
   const bioRangesFromRecords = useMemo(() => {

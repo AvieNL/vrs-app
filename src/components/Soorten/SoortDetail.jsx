@@ -4,6 +4,7 @@ import { useSpeciesRef, pullSpeciesIfNeeded } from '../../hooks/useSpeciesRef';
 import { useRole } from '../../hooks/useRole';
 import { db } from '../../lib/db';
 import { supabase } from '../../lib/supabase';
+import euringCodes from '../../data/euring-codes.json';
 import RuitypeInfo from './RuitypeInfo';
 import { VangstKaart } from '../Stats/Charts';
 import './SoortDetail.css';
@@ -122,6 +123,7 @@ const EDITABLE_FIELDS = {
   ring: [
     { key: 'ringmaat', label: 'Ringmaat' },
     { key: 'ruitype', label: 'Ruitype' },
+    { key: 'euring_code', label: 'EURING-code' },
   ],
   nest: [
     { key: 'nest_eileg', label: 'Eileg' },
@@ -211,6 +213,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
     });
     // Geslachtsbepaling: apart voor man en vrouw
     // Migratie: oude geslachts_notities / ruitype_notities valt terug op ♂-veld
+    data.euring_code = soort.euring_code || euringCodes[decodedNaam.toLowerCase()] || '';
     data.geslachts_notities_m = soort.geslachts_notities_m ?? soort.geslachts_notities ?? soort.ruitype_notities ?? '';
     data.geslachts_notities_f = soort.geslachts_notities_f ?? '';
     // Leeftijdsbepaling: apart voor voorjaar en najaar
@@ -474,7 +477,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
         </div>
       );
     }
-    const val = isBoekKey(key) ? soort.boeken?.[key] : soort[key];
+    const val = isBoekKey(key) ? soort.boeken?.[key] : (soort[key] || opts.fallback || '');
     if (!val && !opts.showEmpty) return null;
     let display;
     if (opts.gender) {
@@ -725,7 +728,10 @@ export default function SoortDetail({ records, speciesOverrides }) {
       <div className="sd-card">
         <h3 className="sd-card-title">Ring & Rui</h3>
         {EDITABLE_FIELDS.ring.map(f =>
-          renderField(f.key, f.label, { showEmpty: editMode })
+          renderField(f.key, f.label, {
+            showEmpty: editMode,
+            fallback: f.key === 'euring_code' ? (euringCodes[decodedNaam.toLowerCase()] || '') : undefined,
+          })
         )}
         {!editMode && soort.ruitype && (
           <RuitypeInfo ruitype={soort.ruitype} />
