@@ -22,7 +22,7 @@ const SECTIES = [
   {
     naam: 'Ringgegevens',
     velden: [
-      { xml: 'centrale',              type: 'tekst',    standaard: 'NLA',      verplicht: true },
+      { xml: 'centrale',              type: 'code',     standaard: 'NLA',      verplicht: true },
       { xml: 'ringnummer',            type: 'tekst',    standaard: '',         verplicht: true },
       { xml: 'identificatie_methode', type: 'code',     standaard: 'A0',       verplicht: true },
       { xml: 'verificatie',           type: 'nummer',   standaard: '0' },

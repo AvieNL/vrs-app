@@ -30,7 +30,7 @@ const SECTIES_FALLBACK = [
     naam: 'Ringgegevens',
     beschrijving: 'Sectie "Ringgegevens" in het formulier',
     velden: [
-      { xml: 'centrale',              app: 'Ringcentrale',                   type: 'tekst',    standaard: 'NLA',      verplicht: true },
+      { xml: 'centrale',              app: 'Ringcentrale',                   type: 'code',     standaard: 'NLA',      verplicht: true },
       { xml: 'ringnummer',            app: 'Ringnummer',                     type: 'tekst',    standaard: '',         verplicht: true },
       { xml: 'identificatie_methode', app: 'Identificatiemethode',           type: 'code',     standaard: 'A0',       verplicht: true },
       { xml: 'verificatie',           app: 'Verificatie',                    type: 'nummer',   standaard: '0' },
