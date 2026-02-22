@@ -50,6 +50,7 @@ export function SyncProvider({ children }) {
       if (!document.hidden && navigator.onLine && user) {
         processQueue();
         pullSpeciesOverrides(user.id).catch(e => console.warn('Override pull mislukt:', e.message));
+        pullSpeciesIfNeeded(false).catch(e => console.warn('Species pull mislukt:', e.message));
       }
     }
     document.addEventListener('visibilitychange', handleVisibility);

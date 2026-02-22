@@ -240,133 +240,74 @@ export default function SoortDetail({ records, speciesOverrides }) {
       alert('Vul een Nederlandse naam in voor de nieuwe soort.');
       return;
     }
-    if (isAdmin) {
-      // Admin: sla volledige soortdata op in Supabase species tabel + Dexie
-      const adminData = {
-        ...defaultSoort,
-        boeken: { ...(defaultSoort?.boeken || {}) },
-      };
 
-      Object.values(EDITABLE_FIELDS).flat().forEach(f => {
-        if (isBoekKey(f.key)) {
-          if (editData[f.key]) {
-            adminData.boeken[f.key] = editData[f.key];
-          } else {
-            delete adminData.boeken[f.key];
-          }
+    // Alle data gaat altijd naar de centrale species-tabel in Supabase,
+    // zodat alle apparaten exact dezelfde data zien.
+    // Start vanuit de huidige samengevoegde soortdata (basisdata + eventuele override).
+    const newData = {
+      ...(soort || {}),
+      boeken: { ...((soort?.boeken) || {}) },
+    };
+
+    Object.values(EDITABLE_FIELDS).flat().forEach(f => {
+      if (isBoekKey(f.key)) {
+        if (editData[f.key]) {
+          newData.boeken[f.key] = editData[f.key];
         } else {
-          adminData[f.key] = editData[f.key] ?? '';
+          delete newData.boeken[f.key];
         }
+      } else {
+        newData[f.key] = editData[f.key] ?? '';
+      }
+    });
+
+    BIO_FIELDS.forEach(f => {
+      ['min', 'max'].forEach(stat => {
+        newData[`bio_${f.key}_${stat}`] = editData[`bio_${f.key}_${stat}`] ?? '';
       });
-
-      BIO_FIELDS.forEach(f => {
-        ['min', 'max'].forEach(stat => {
-          const key = `bio_${f.key}_${stat}`;
-          adminData[key] = editData[key] ?? '';
-        });
-        ['M', 'F'].forEach(gender => {
-          ['min', 'max'].forEach(stat => {
-            const key = `bio_${f.key}_${gender}_${stat}`;
-            adminData[key] = editData[key] ?? '';
-          });
-        });
-      });
-
-      adminData.geslachts_notities_m = editData.geslachts_notities_m ?? '';
-      adminData.geslachts_notities_f = editData.geslachts_notities_f ?? '';
-      adminData.leeftijds_notities_vj = editData.leeftijds_notities_vj ?? '';
-      adminData.leeftijds_notities_nj = editData.leeftijds_notities_nj ?? '';
-      if (editData.foto !== undefined) adminData.foto = editData.foto;
-      adminData.foto_crop = editData.foto_crop ?? null;
-
-      const newNaamNl = adminData.naam_nl || decodedNaam;
-      const naamGewijzigd = newNaamNl !== decodedNaam;
-
-      if (naamGewijzigd) {
-        await supabase.from('species').delete().eq('naam_nl', decodedNaam);
-        await db.species.delete(decodedNaam);
-      }
-
-      const { error } = await supabase
-        .from('species')
-        .upsert({ naam_nl: newNaamNl, data: adminData });
-
-      if (error) {
-        alert('Opslaan mislukt: ' + error.message);
-        return;
-      }
-
-      await db.species.put(adminData);
-
-      if (naamGewijzigd) {
-        setEditMode(false);
-        setEditData({});
-        navigate('/soorten/' + encodeURIComponent(newNaamNl));
-        return;
-      }
-    } else {
-      // Ringer: sla delta op als override (alleen voor eigen view)
-      if (!speciesOverrides) return;
-      const changes = {};
-      const boekenChanges = {};
-
-      Object.values(EDITABLE_FIELDS).flat().forEach(f => {
-        const defaultVal = isBoekKey(f.key) ? (defaultSoort?.boeken?.[f.key] ?? '') : (defaultSoort?.[f.key] ?? '');
-        const newVal = editData[f.key] ?? '';
-        if (String(newVal) !== String(defaultVal)) {
-          if (isBoekKey(f.key)) {
-            boekenChanges[f.key] = newVal;
-          } else {
-            changes[f.key] = newVal;
-          }
-        }
-      });
-
-      if (Object.keys(boekenChanges).length > 0) {
-        changes.boeken = boekenChanges;
-      }
-
-      // Bio overrides: alleen opslaan als afwijkend van admin-basisdata
-      BIO_FIELDS.forEach(f => {
-        ['min', 'max'].forEach(stat => {
-          const key = `bio_${f.key}_${stat}`;
-          const editVal = editData[key] ?? '';
-          const defaultVal = defaultSoort?.[key] ?? '';
-          if (String(editVal) !== String(defaultVal)) {
-            changes[key] = editVal;
-          }
-        });
-        // Geslachtsspecifieke biometrie overrides
-        ['M', 'F'].forEach(gender => {
-          ['min', 'avg', 'max'].forEach(stat => {
-            const key = `bio_${f.key}_${gender}_${stat}`;
-            const editVal = editData[key] ?? '';
-            const defaultVal = defaultSoort?.[key] ?? '';
-            if (String(editVal) !== String(defaultVal)) {
-              changes[key] = editVal;
-            }
-          });
+      ['M', 'F'].forEach(gender => {
+        ['min', 'avg', 'max'].forEach(stat => {
+          const key = `bio_${f.key}_${gender}_${stat}`;
+          newData[key] = editData[key] ?? '';
         });
       });
+    });
 
-      const defGeslM = defaultSoort?.geslachts_notities_m ?? defaultSoort?.geslachts_notities ?? defaultSoort?.ruitype_notities ?? '';
-      if (editData.geslachts_notities_m !== defGeslM) changes.geslachts_notities_m = editData.geslachts_notities_m;
-      const defGeslF = defaultSoort?.geslachts_notities_f ?? '';
-      if (editData.geslachts_notities_f !== defGeslF) changes.geslachts_notities_f = editData.geslachts_notities_f;
-      const defLeeftVj = defaultSoort?.leeftijds_notities_vj ?? defaultSoort?.leeftijds_notities ?? '';
-      if (editData.leeftijds_notities_vj !== defLeeftVj) changes.leeftijds_notities_vj = editData.leeftijds_notities_vj;
-      const defLeeftNj = defaultSoort?.leeftijds_notities_nj ?? '';
-      if (editData.leeftijds_notities_nj !== defLeeftNj) changes.leeftijds_notities_nj = editData.leeftijds_notities_nj;
-      if (editData.foto && editData.foto !== (defaultSoort?.foto ?? '')) {
-        changes.foto = editData.foto;
-      }
-      if (editData.foto_crop) changes.foto_crop = editData.foto_crop;
+    newData.geslachts_notities_m  = editData.geslachts_notities_m  ?? '';
+    newData.geslachts_notities_f  = editData.geslachts_notities_f  ?? '';
+    newData.leeftijds_notities_vj = editData.leeftijds_notities_vj ?? '';
+    newData.leeftijds_notities_nj = editData.leeftijds_notities_nj ?? '';
+    if (editData.foto !== undefined) newData.foto = editData.foto;
+    newData.foto_crop = editData.foto_crop ?? null;
 
-      speciesOverrides.saveOverride(decodedNaam, changes);
+    const newNaamNl = newData.naam_nl || decodedNaam;
+    const naamGewijzigd = newNaamNl !== decodedNaam;
+
+    if (naamGewijzigd) {
+      await supabase.from('species').delete().eq('naam_nl', decodedNaam);
+      await db.species.delete(decodedNaam);
+    }
+
+    const { error } = await supabase
+      .from('species')
+      .upsert({ naam_nl: newNaamNl, data: newData });
+
+    if (error) {
+      alert('Opslaan mislukt: ' + error.message);
+      return;
+    }
+
+    await db.species.put(newData);
+
+    // Verwijder eventuele lokale override: data staat nu in de centrale tabel
+    if (speciesOverrides) {
+      const ov = speciesOverrides.getOverride(decodedNaam);
+      if (Object.keys(ov).length > 0) speciesOverrides.resetOverride(decodedNaam);
     }
 
     setEditMode(false);
     setEditData({});
+    if (naamGewijzigd) navigate('/soorten/' + encodeURIComponent(newNaamNl));
   };
 
   const handleField = (key, value) => {

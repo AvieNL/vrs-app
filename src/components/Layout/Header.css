@@ -115,6 +115,11 @@
   /* Relatief aan .header-inner */
 }
 
+.header-ringer-rol {
+  opacity: 0.6;
+  font-size: 0.65rem;
+}
+
 .header-sync {
   position: absolute;
   left: 12px;

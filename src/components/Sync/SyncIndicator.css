@@ -10,6 +10,13 @@
   cursor: default;
 }
 
+/* Online — volledig gesynchroniseerd */
+.sync-indicator--online {
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid transparent;
+}
+
 /* Offline */
 .sync-indicator--offline {
   background: var(--warning-bg);

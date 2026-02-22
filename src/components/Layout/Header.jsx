@@ -61,7 +61,10 @@ export default function Header() {
       <div className="header-inner">
         <h1>VRS App{isStaging && <span className="header-staging-badge">STAGING</span>}</h1>
         {profile?.ringer_naam && (
-          <span className="header-ringer">{profile.ringer_naam}</span>
+          <span className="header-ringer">
+            {profile.ringer_naam}
+            <span className="header-ringer-rol"> ({ROL_LABELS[rol] || rol})</span>
+          </span>
         )}
         <div className="header-sync">
           <SyncIndicator />

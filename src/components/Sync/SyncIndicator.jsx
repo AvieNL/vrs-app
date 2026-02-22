@@ -38,6 +38,11 @@ export default function SyncIndicator() {
     );
   }
 
-  // Alles gesynchroniseerd — toon niets (geen visuele rommel als alles goed is)
-  return null;
+  // Online en volledig gesynchroniseerd
+  return (
+    <div className="sync-indicator sync-indicator--online" title="Online — data gesynchroniseerd met server">
+      <span className="sync-icon">●</span>
+      <span className="sync-label">Online</span>
+    </div>
+  );
 }
