@@ -67,6 +67,10 @@
   min-width: 0;
 }
 
+.record-main strong {
+  text-transform: capitalize;
+}
+
 .record-ring-row {
   display: flex;
   align-items: center;

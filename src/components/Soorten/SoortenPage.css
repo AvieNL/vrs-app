@@ -57,6 +57,10 @@
   gap: 2px;
 }
 
+.soort-info strong {
+  text-transform: capitalize;
+}
+
 .soort-lat {
   font-size: 0.8rem;
   color: var(--text-muted);
