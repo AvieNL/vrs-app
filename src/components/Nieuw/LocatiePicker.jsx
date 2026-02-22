@@ -95,7 +95,7 @@ export default function LocatiePicker({ lat, lon, onChange }) {
 
   function useGPS() {
     if (!navigator.geolocation) {
-      setGpsStatus('error');
+      setGpsStatus('unavailable');
       return;
     }
     setGpsStatus('loading');
@@ -104,8 +104,11 @@ export default function LocatiePicker({ lat, lon, onChange }) {
         setGpsStatus(null);
         onChange(pos.coords.latitude.toFixed(6), pos.coords.longitude.toFixed(6));
       },
-      () => setGpsStatus('error'),
-      { enableHighAccuracy: true, timeout: 10000 }
+      err => {
+        if (err.code === 1) setGpsStatus('denied');
+        else setGpsStatus('error');
+      },
+      { enableHighAccuracy: true, timeout: 20000 }
     );
   }
 
@@ -137,8 +140,11 @@ export default function LocatiePicker({ lat, lon, onChange }) {
       <button type="button" className="btn-secondary gps-btn" onClick={useGPS} disabled={gpsStatus === 'loading'}>
         {gpsStatus === 'loading' ? 'Locatie ophalen…' : 'Gebruik GPS'}
       </button>
-      {gpsStatus === 'error' && (
-        <span className="field-warning">GPS niet beschikbaar of geweigerd</span>
+      {gpsStatus === 'denied' && (
+        <span className="field-warning">Locatietoegang geweigerd — sta locatie toe via de app-instellingen van je telefoon</span>
+      )}
+      {(gpsStatus === 'error' || gpsStatus === 'unavailable') && (
+        <span className="field-warning">GPS niet beschikbaar — klik op de kaart om een locatie in te stellen</span>
       )}
       {!hasCoords && gpsStatus !== 'loading' && (
         <span className="field-hint">Klik op de kaart of gebruik GPS om de locatie in te stellen</span>

@@ -448,8 +448,8 @@ export default function SoortDetail({ records, speciesOverrides }) {
     const hasF = v.includes('V') || v.includes('F');
     return (
       <>
-        {hasM && <span className="sd-gender-icon--m">♂</span>}
-        {hasF && <span className="sd-gender-icon--f">♀</span>}
+        {hasM && <span className="sd-gender-icon--m">{'\u2642\uFE0E'}</span>}
+        {hasF && <span className="sd-gender-icon--f">{'\u2640\uFE0E'}</span>}
         {!hasM && !hasF && <span>{val}</span>}
       </>
     );
@@ -640,7 +640,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
           {editMode ? (
             <div className="sd-det-fields">
               <div className="sd-det-block sd-det-block--m">
-                <span className="sd-det-label sd-det-label--m">♂ Man</span>
+                <span className="sd-det-label sd-det-label--m">{'\u2642\uFE0E'} Man</span>
                 <FormattedTextarea
                   value={editData.geslachts_notities_m || ''}
                   onChange={e => handleField('geslachts_notities_m', e.target.value)}
@@ -649,7 +649,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
                 />
               </div>
               <div className="sd-det-block sd-det-block--f">
-                <span className="sd-det-label sd-det-label--f">♀ Vrouw</span>
+                <span className="sd-det-label sd-det-label--f">{'\u2640\uFE0E'} Vrouw</span>
                 <FormattedTextarea
                   value={editData.geslachts_notities_f || ''}
                   onChange={e => handleField('geslachts_notities_f', e.target.value)}
@@ -662,13 +662,13 @@ export default function SoortDetail({ records, speciesOverrides }) {
             <div className="sd-det-view">
               {geslachtsM && (
                 <div className="sd-det-block">
-                  <span className="sd-det-label sd-det-label--m">♂ Man</span>
+                  <span className="sd-det-label sd-det-label--m">{'\u2642\uFE0E'} Man</span>
                   <p className="sd-notities-text" dangerouslySetInnerHTML={{ __html: renderMarkdown(geslachtsM) }} />
                 </div>
               )}
               {geslachtsF && (
                 <div className="sd-det-block">
-                  <span className="sd-det-label sd-det-label--f">♀ Vrouw</span>
+                  <span className="sd-det-label sd-det-label--f">{'\u2640\uFE0E'} Vrouw</span>
                   <p className="sd-notities-text" dangerouslySetInnerHTML={{ __html: renderMarkdown(geslachtsF) }} />
                 </div>
               )}
@@ -755,8 +755,8 @@ export default function SoortDetail({ records, speciesOverrides }) {
                     <div className="sd-bio-edit-field-label">{f.label} ({f.unit})</div>
                     {[
                       { prefix: null, label: 'Alg.', cls: '' },
-                      { prefix: 'M',  label: '♂',    cls: ' sd-bio-edit-subrow--m' },
-                      { prefix: 'F',  label: '♀',    cls: ' sd-bio-edit-subrow--f' },
+                      { prefix: 'M',  label: '\u2642\uFE0E', cls: ' sd-bio-edit-subrow--m' },
+                      { prefix: 'F',  label: '\u2640\uFE0E', cls: ' sd-bio-edit-subrow--f' },
                     ].map(({ prefix, label, cls }) => (
                       <div key={prefix ?? 'alg'} className={`sd-bio-edit-subrow${cls}`}>
                         <span className="sd-bio-gender-lbl">{label}</span>
@@ -810,7 +810,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
                           </tr>
                         );
                       }
-                      [['M', '♂', 'sd-bio-row-m'], ['F', '♀', 'sd-bio-row-f']].forEach(([g, sym, cls]) => {
+                      [['M', '\u2642\uFE0E', 'sd-bio-row-m'], ['F', '\u2640\uFE0E', 'sd-bio-row-f']].forEach(([g, sym, cls]) => {
                         const gMinKey = `bio_${b.key}_${g}_min`;
                         const gMaxKey = `bio_${b.key}_${g}_max`;
                         const gMin = soort[gMinKey];
@@ -903,8 +903,8 @@ export default function SoortDetail({ records, speciesOverrides }) {
                 <div key={g} className="sd-stat">
                   <div className="sd-stat-value">{count}</div>
                   <div className="sd-stat-label">
-                    {g === 'M' ? <><span className="sd-gender-icon--m">♂</span> Man</> :
-                     g === 'F' ? <><span className="sd-gender-icon--f">♀</span> Vrouw</> :
+                    {g === 'M' ? <><span className="sd-gender-icon--m">{'\u2642\uFE0E'}</span> Man</> :
+                     g === 'F' ? <><span className="sd-gender-icon--f">{'\u2640\uFE0E'}</span> Vrouw</> :
                      'Onbekend'}
                   </div>
                 </div>

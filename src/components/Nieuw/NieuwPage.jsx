@@ -395,8 +395,8 @@ function parseVal(v) {
 function renderGeslachtTekst(str) {
   if (!str) return str;
   return String(str).split(/([MVF])/).map((part, i) => {
-    if (part === 'M') return <span key={i} className="gender-m">♂</span>;
-    if (part === 'V' || part === 'F') return <span key={i} className="gender-f">♀</span>;
+    if (part === 'M') return <span key={i} className="gender-m">{'\u2642\uFE0E'}</span>;
+    if (part === 'V' || part === 'F') return <span key={i} className="gender-f">{'\u2640\uFE0E'}</span>;
     return part || null;
   });
 }
@@ -819,8 +819,8 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
         {fieldGenderHint && (
           <span className={`field-hint field-gender-hint${genderMismatch ? ' field-hint--warn' : ''}`}>
             {fieldGenderHint === 'M'
-              ? <><span className="gender-m">♂</span> wijst op man</>
-              : <><span className="gender-f">♀</span> wijst op vrouw</>}
+              ? <><span className="gender-m">{'\u2642\uFE0E'}</span> wijst op man</>
+              : <><span className="gender-f">{'\u2640\uFE0E'}</span> wijst op vrouw</>}
             {genderMismatch && ' — controleer geslacht'}
           </span>
         )}
@@ -1078,8 +1078,8 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
               </div>
               {genderHint && (() => {
                 const sym = genderHint === 'M'
-                  ? <span className="gender-m">♂</span>
-                  : <span className="gender-f">♀</span>;
+                  ? <span className="gender-m">{'\u2642\uFE0E'}</span>
+                  : <span className="gender-f">{'\u2640\uFE0E'}</span>;
                 const ingevuld = form.geslacht === 'M' || form.geslacht === 'F';
                 const klopt = form.geslacht === genderHint;
                 return (
@@ -1405,7 +1405,7 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                 </>}
               </div>
 
-              <div className="form-row">
+              <div className="form-row form-row--datum-tijd">
                 <div className="form-group">
                   <label>Vangstdatum</label>
                   <input

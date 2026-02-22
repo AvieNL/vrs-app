@@ -4,8 +4,8 @@ import { useRole } from '../../hooks/useRole';
 import './RecordsPage.css';
 
 function geslachtIcoon(g) {
-  if (g === 'M') return <span className="gender-m">♂</span>;
-  if (g === 'V' || g === 'F') return <span className="gender-f">♀</span>;
+  if (g === 'M') return <span className="gender-m">{'\u2642\uFE0E'}</span>;
+  if (g === 'V' || g === 'F') return <span className="gender-f">{'\u2640\uFE0E'}</span>;
   return null;
 }
 
