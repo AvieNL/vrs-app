@@ -78,6 +78,10 @@ export default function AdminPage() {
     <div className="page admin-page">
       <h2>Admin panel</h2>
 
+      <button className="admin-link-btn" onClick={() => navigate('/velden')}>
+        📋 Veldenoverzicht (EURING)
+      </button>
+
       {loading && <div className="admin-status">Gebruikers laden...</div>}
 
       {error && (
@@ -103,10 +107,10 @@ export default function AdminPage() {
                         <span className="admin-badge admin-badge--self">Jij</span>
                       )}
                     </div>
-                    <div className="admin-user-email">{g.email || '–'}</div>
                     <div className="admin-user-meta">
-                      {g.ringer_nummer && <span>Ringer #{g.ringer_nummer}</span>}
-                      <span className="admin-count">{g.vangsten_count} vangsten</span>
+                      <span className="admin-user-email-inline">{g.email || '–'}</span>
+                      {g.ringer_nummer && <span>· #{g.ringer_nummer}</span>}
+                      <span className="admin-count">· {g.vangsten_count} vangsten</span>
                     </div>
                   </div>
 
