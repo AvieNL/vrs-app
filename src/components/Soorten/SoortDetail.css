@@ -174,10 +174,19 @@
   color: var(--text-secondary);
 }
 
-.sd-edit-btn {
+/* Actieknoppen rechts in hero (✏️ / 🗑️ / ⟳) */
+.sd-hero-actions {
   position: absolute;
   top: 0;
   right: 0;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.sd-edit-btn,
+.sd-delete-btn,
+.sd-refresh-btn {
   background: var(--bg-tertiary);
   border-radius: 8px;
   padding: 6px 10px;
@@ -187,20 +196,29 @@
 }
 
 .sd-delete-btn {
-  position: absolute;
-  top: 0;
-  right: 40px;
   background: transparent;
-  border-radius: 8px;
-  padding: 6px 10px;
-  min-height: 36px;
-  min-width: 36px;
-  font-size: 0.9rem;
   opacity: 0.5;
 }
 .sd-delete-btn:hover {
   opacity: 1;
   background: var(--danger-bg, rgba(239,68,68,0.15));
+}
+
+.sd-refresh-btn {
+  background: transparent;
+  opacity: 0.5;
+  font-size: 1rem;
+}
+.sd-refresh-btn:hover {
+  opacity: 1;
+  background: var(--accent-bg);
+}
+.sd-refresh-btn--busy {
+  animation: sd-spin 0.8s linear infinite;
+  opacity: 0.7;
+}
+@keyframes sd-spin {
+  to { transform: rotate(360deg); }
 }
 
 /* Sticky topbalk in edit mode: vogelnaam + knoppen */

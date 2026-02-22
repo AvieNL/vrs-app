@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSpeciesRef } from '../../hooks/useSpeciesRef';
+import { useSpeciesRef, pullSpeciesIfNeeded } from '../../hooks/useSpeciesRef';
 import { useRole } from '../../hooks/useRole';
 import { db } from '../../lib/db';
 import { supabase } from '../../lib/supabase';
@@ -165,6 +165,7 @@ export default function SoortDetail({ records, speciesOverrides }) {
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState({});
   const [vangstenOpen, setVangstenOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Auto-start edit voor een nieuwe soort
   useEffect(() => {
@@ -611,20 +612,22 @@ export default function SoortDetail({ records, speciesOverrides }) {
             )}
           </div>
         </div>
-        {!editMode && !isViewer && (
+        {!editMode && (
           <div className="sd-hero-actions">
-            <button className="sd-edit-btn" onClick={startEdit} title="Bewerken">✏️</button>
+            <button
+              className={`sd-refresh-btn${refreshing ? ' sd-refresh-btn--busy' : ''}`}
+              title="Soortdata verversen"
+              disabled={refreshing}
+              onClick={async () => {
+                setRefreshing(true);
+                try { await pullSpeciesIfNeeded(true); } finally { setRefreshing(false); }
+              }}
+            >⟳</button>
+            {!isViewer && (
+              <button className="sd-edit-btn" onClick={startEdit} title="Bewerken">✏️</button>
+            )}
             {isAdmin && (
               <button className="sd-delete-btn" onClick={deleteSoort} title="Soort verwijderen">🗑️</button>
-            )}
-            {!isAdmin && speciesOverrides && Object.keys(speciesOverrides.getOverride(decodedNaam)).length > 0 && (
-              <button
-                className="btn-secondary sd-reset-btn"
-                onClick={() => speciesOverrides.resetOverride(decodedNaam)}
-                title="Reset naar basisdata"
-              >
-                ↩ Reset
-              </button>
             )}
           </div>
         )}
