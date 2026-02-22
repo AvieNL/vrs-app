@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
 import { supabase } from '../lib/supabase';
 
-const PULL_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 uur
+const PULL_INTERVAL_MS = 60 * 60 * 1000; // 1 uur
 
 // Module-level vlag zodat gelijktijdige hook-instanties niet tegelijk pullen
 let _pulling = false;
@@ -58,6 +58,13 @@ export async function pullSpeciesIfNeeded(force = false) {
     // data.map(r => r.data) geeft het volledige soortobject incl. naam_nl
     const rows = data.map(r => r.data);
     await db.species.bulkPut(rows);
+
+    // Verwijder lokale soorten die op een ander apparaat zijn gewist
+    const supabaseNames = new Set(data.map(r => r.data?.naam_nl).filter(Boolean));
+    const localAll = await db.species.toArray();
+    const toDelete = localAll.filter(r => !supabaseNames.has(r.naam_nl)).map(r => r.naam_nl);
+    if (toDelete.length > 0) await db.species.bulkDelete(toDelete);
+
     await db.meta.put({ key: 'species_last_pull', value: new Date().toISOString() });
   } finally {
     _pulling = false;

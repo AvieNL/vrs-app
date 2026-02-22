@@ -5,6 +5,40 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useSync } from '../context/SyncContext';
 
+// Module-level vlag zodat gelijktijdige aanroepen niet overlappen
+let _pulling = false;
+
+/**
+ * Pull alle species overrides van Supabase naar de lokale Dexie-cache.
+ * Verwijdert ook lokale rijen die op een ander apparaat zijn gewist.
+ * Exporteerbaar zodat SyncContext dit ook kan aanroepen.
+ */
+export async function pullSpeciesOverrides(userId) {
+  if (_pulling || !navigator.onLine) return;
+  _pulling = true;
+  try {
+    const { data, error } = await supabase
+      .from('species_overrides')
+      .select('*')
+      .eq('user_id', userId);
+    if (error || !data) return;
+
+    // Upsert alle Supabase-rijen lokaal
+    const rows = data.map(r => ({ user_id: userId, soort_naam: r.soort_naam, data: r.data }));
+    if (rows.length > 0) await db.species_overrides.bulkPut(rows);
+
+    // Verwijder lokale rijen die op een ander apparaat zijn gewist
+    const supabaseNames = new Set(data.map(r => r.soort_naam));
+    const localAll = await db.species_overrides.where('user_id').equals(userId).toArray();
+    const toDelete = localAll
+      .filter(r => !supabaseNames.has(r.soort_naam))
+      .map(r => [userId, r.soort_naam]);
+    if (toDelete.length > 0) await db.species_overrides.bulkDelete(toDelete);
+  } finally {
+    _pulling = false;
+  }
+}
+
 export function useSpeciesOverrides() {
   const { user } = useAuth();
   const { addToQueue } = useSync();
@@ -34,27 +68,8 @@ export function useSpeciesOverrides() {
     }
     if (pulledRef.current) return;
     pulledRef.current = true;
-    pullFromSupabase();
+    pullSpeciesOverrides(user.id).catch(e => console.warn('Override pull mislukt:', e.message));
   }, [user?.id]);  // eslint-disable-line react-hooks/exhaustive-deps
-
-  async function pullFromSupabase() {
-    const localCount = await db.species_overrides.where('user_id').equals(user.id).count();
-    if (localCount > 0) return; // Dexie heeft al data, geen pull nodig
-
-    const { data, error } = await supabase
-      .from('species_overrides')
-      .select('*')
-      .eq('user_id', user.id);
-
-    if (error || !data || data.length === 0) return;
-
-    const rows = data.map(r => ({
-      user_id: user.id,
-      soort_naam: r.soort_naam,
-      data: r.data,
-    }));
-    await db.species_overrides.bulkPut(rows);
-  }
 
   const getOverride = useCallback((naam) => {
     return overrides[naam] || {};

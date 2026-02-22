@@ -684,3 +684,16 @@
   opacity: 0.75;
   font-size: 0.8rem;
 }
+
+/* =====================================================
+   iOS MOBIEL FIXES
+   ===================================================== */
+
+/* Ruikaart-inputs: zorg voor min. 16px font-size zodat iOS Safari
+   niet automatisch inzoomt bij focus */
+@media screen and (max-width: 767px) {
+  .ruikaart-input,
+  .ruikaart-input[type="text"] {
+    font-size: 16px;
+  }
+}

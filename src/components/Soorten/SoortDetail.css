@@ -680,6 +680,8 @@
 /* Biometrie tabel */
 .sd-bio-section {
   margin-top: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .sd-bio-table {
@@ -854,6 +856,32 @@
 /* Age section */
 .sd-age-section {
   margin-bottom: 4px;
+}
+
+/* =====================================================
+   iOS / MOBIEL FIXES
+   ===================================================== */
+
+/* Op smalle schermen (≤ 540px): namen + biometrie en nestgegevens +
+   determinatieboeken onder elkaar i.p.v. naast elkaar.
+   Op een iPhone 14 (390px) zouden ze elk slechts ~180px breed zijn,
+   te krap voor de biometrie-tabel. */
+@media (max-width: 540px) {
+  .sd-two-cards {
+    flex-direction: column;
+  }
+  .sd-two-cards > .sd-card {
+    margin-bottom: 12px;
+  }
+}
+
+/* iOS Safari: edit-inputs hebben font-size < 16px → viewport zoomt in
+   bij focus. Herstel naar 16px op mobiele schermen. */
+@media screen and (max-width: 767px) {
+  .sd-edit-input,
+  .sd-edit-textarea {
+    font-size: 16px;
+  }
 }
 
 /* Age bar chart */

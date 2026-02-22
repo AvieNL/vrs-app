@@ -3,6 +3,7 @@ import { useAuth } from './AuthContext';
 import { supabase } from '../lib/supabase';
 import { db } from '../lib/db';
 import { pullSpeciesIfNeeded } from '../hooks/useSpeciesRef';
+import { pullSpeciesOverrides } from '../hooks/useSpeciesOverrides';
 
 const SyncContext = createContext(null);
 
@@ -48,6 +49,7 @@ export function SyncProvider({ children }) {
     function handleVisibility() {
       if (!document.hidden && navigator.onLine && user) {
         processQueue();
+        pullSpeciesOverrides(user.id).catch(e => console.warn('Override pull mislukt:', e.message));
       }
     }
     document.addEventListener('visibilitychange', handleVisibility);
@@ -124,6 +126,9 @@ export function SyncProvider({ children }) {
     if (!hasErrors) {
       setLastSynced(new Date());
       setSyncError('');
+      if (user) {
+        pullSpeciesOverrides(user.id).catch(e => console.warn('Override pull mislukt:', e.message));
+      }
     } else {
       const stillPending = await db.sync_queue.count();
       if (stillPending > 0) {

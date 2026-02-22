@@ -552,3 +552,37 @@ label {
   background: var(--bg-tertiary);
   border-radius: 3px;
 }
+
+/* =====================================================
+   RESPONSIVE / MOBIEL
+   ===================================================== */
+
+/* Snellere tap-reactie: geen 300ms double-tap-vertraging op iOS */
+button, a, label, select {
+  touch-action: manipulation;
+}
+
+/* iOS Safari: voorkom viewport-zoom bij focus op invoervelden.
+   Safari zoomt automatisch in als font-size < 16px.
+   Hier stellen we het minimum in voor de generieke velden;
+   component-specifieke overrides (ruikaart, edit-inputs) staan
+   in de eigen CSS-bestanden. */
+@media screen and (-webkit-min-device-pixel-ratio: 1) {
+  input[type="text"],
+  input[type="number"],
+  input[type="date"],
+  input[type="time"],
+  input[type="search"],
+  select,
+  textarea {
+    font-size: max(1rem, 16px);
+  }
+}
+
+/* Heel smalle schermen (≤ 380px, bijv. iPhone SE 1e gen):
+   form-row-3 valt terug op 2 kolommen zodat inputs niet te krap worden */
+@media (max-width: 380px) {
+  .form-row-3 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
