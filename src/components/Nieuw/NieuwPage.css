@@ -148,6 +148,13 @@
   text-transform: capitalize;
 }
 
+.suggestion-euring {
+  font-weight: 400;
+  font-size: 0.8em;
+  color: var(--text-secondary, #94a3b8);
+  text-transform: none;
+}
+
 .suggestion-sub {
   font-size: 0.75rem;
   color: var(--text-muted);

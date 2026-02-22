@@ -1126,12 +1126,13 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                 {suggestions.length > 0 && (
                   <ul className="suggestions">
                     {suggestions.map(s => {
-                      const code = s.euringCode || (euringCodes[s.naam_nl?.toLowerCase()] || '');
+                      const code = euringCodes[s.naam_nl?.toLowerCase()] || '';
                       return (
                         <li key={s.naam_nl + (s.matchedField || '')} onClick={() => selectSpecies(s.naam_nl)}>
                           <div className="suggestion-content">
-                            <span className="suggestion-name">{s.naam_nl}</span>
-                            {code && <span className="suggestion-code">{code}</span>}
+                            <span className="suggestion-name">
+                              {s.naam_nl}{code && <span className="suggestion-euring"> ({code})</span>}
+                            </span>
                             {s.matchedName && (
                               <span className="suggestion-sub">{s.matchedName} ({TAAL_LABELS[s.matchedField]})</span>
                             )}
@@ -1807,12 +1808,6 @@ export default function NieuwPage({ onSave, onUpdate, projects, records, species
                     onChange={e => update('netnummer', e.target.value)} />
                 </div>
               </div>
-              {euringCode && (
-                <div className="form-group">
-                  <label>EURING soortcode</label>
-                  <div className="euring-code-display">{euringCode}</div>
-                </div>
-              )}
               <div className="form-group">
                 <label>Opmerkingen</label>
                 <textarea rows="2" value={form.opmerkingen}
